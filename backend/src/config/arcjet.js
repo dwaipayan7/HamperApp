@@ -9,10 +9,10 @@ export const aj = arcjet({
       mode: "LIVE",
     }),
 
-    detectBot({
-      mode: "LIVE",
-      allow: ["CATEGORY:SEARCH_ENGINE"],
-    }),
+    // detectBot({
+    //   mode: "LIVE",
+    //   allow: ["CATEGORY:SEARCH_ENGINE"],
+    // }),
 
     tokenBucket({
       mode: "LIVE",

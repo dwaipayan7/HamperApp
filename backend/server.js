@@ -13,7 +13,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
-app.use(clerkMiddleware());
+app.use(clerkMiddleware({ apiKey: ENV.CLERK_SECRET_KEY }));
 app.use(arcjetMiddleware);
 
 app.use("/api/users", userRoutes);

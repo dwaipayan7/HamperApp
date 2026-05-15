@@ -15,3 +15,9 @@ export const ENV = {
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || "",
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
 };
+
+if (!ENV.CLERK_SECRET_KEY) {
+  throw new Error(
+    "Missing CLERK_SECRET_KEY in backend environment. Configure CLERK_SECRET_KEY for Clerk auth.",
+  );
+}
