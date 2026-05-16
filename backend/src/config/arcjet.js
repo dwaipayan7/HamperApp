@@ -1,5 +1,6 @@
 import arcjet, { tokenBucket, shield, detectBot } from "@arcjet/node";
 import { ENV } from "./env.js";
+//update latest
 
 export const aj = arcjet({
   key: ENV.ARCJET_KEY,
