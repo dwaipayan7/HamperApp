@@ -51,13 +51,31 @@ export const syncUser = asyncHandler(async (req, res) => {
   const clerkUser = await clerkClient.users.getUser(userId);
 
   const email = clerkUser.emailAddresses?.[0]?.emailAddress || "";
+  const rawUsername =
+    clerkUser.username ||
+    email.split("@")[0] ||
+    userId.replace(/^user_/, "") ||
+    userId;
+  const sanitizedUsername = rawUsername
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]/g, "")
+    .slice(0, 30);
+
+  let username = sanitizedUsername || userId;
+  let usernameSuffix = 1;
+
+  while (await User.findOne({ username })) {
+    username = `${sanitizedUsername || userId}${usernameSuffix}`;
+    usernameSuffix += 1;
+  }
 
   const userData = {
     clerkId: userId,
     email,
     firstName: clerkUser.firstName || "",
     lastName: clerkUser.lastName || "",
-    username: clerkUser.emailAddresses[0].emailAddress.split("@")[0],
+    username,
     profilePicture: clerkUser.imageUrl || "",
   };
 
