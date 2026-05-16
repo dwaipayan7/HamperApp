@@ -7,17 +7,15 @@ const commentSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-
     post: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Post",
       required: true,
     },
-
     content: {
       type: String,
       required: true,
-      maxLength: 250,
+      maxLength: 280,
     },
     likes: [
       {
@@ -26,7 +24,7 @@ const commentSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const Comment = mongoose.model("Comment", commentSchema);

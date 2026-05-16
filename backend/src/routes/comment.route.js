@@ -1,17 +1,13 @@
-import { Router } from "express";
-
+import express from "express";
 import { protectRoute } from "../middleware/auth.middleware.js";
-import upload from "../middleware/upload.middleware.js";
-import {
-  createComment,
-  deleteComment,
-  getComments,
-} from "../controllers/comment.controller.js";
+import { createComment, getComments, deleteComment } from "../controllers/comment.controller.js";
 
-const router = Router();
+const router = express.Router();
 
+// public routes
 router.get("/post/:postId", getComments);
 
+// protected routes
 router.post("/post/:postId", protectRoute, createComment);
 router.delete("/:commentId", protectRoute, deleteComment);
 
