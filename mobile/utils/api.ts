@@ -1,7 +1,10 @@
 import { useAuth } from "@clerk/expo";
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 
-const API_BASE_URL = "https://twitter-clone-ten-alpha.vercel.app/api";
+// const API_BASE_URL = "http://192.168.1.50:3000/api";
+const API_BASE_URL = "http://localhost:3000/api";
+
+// const API_BASE_URL = "https://twitter-clone-ten-alpha.vercel.app/api";
 
 export interface IApiResponse<T = any> {
   status: boolean;
@@ -17,12 +20,12 @@ export interface IApiResponse<T = any> {
 
 export const createApiClient = (getToken: any): AxiosInstance => {
   const api = axios.create({
-    baseURL: API_BASE_URL,
+    baseURL: API_BASE_URL.trim(),
   });
 
   api.interceptors.request.use(async (config) => {
     const token = await getToken();
-
+    console.log("TOKEN =>", token);
     console.log("API REQUEST =>", config.baseURL, config.url, config.method);
     console.log("AUTH HEADER =>", token ? `Bearer ${token}` : "no-token");
 
@@ -30,6 +33,7 @@ export const createApiClient = (getToken: any): AxiosInstance => {
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log("FINAL HEADERS =>", config.headers);
     }
 
     return config;
