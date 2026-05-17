@@ -1,10 +1,13 @@
 import { useAuth } from "@clerk/expo";
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import { Platform } from "react-native";
 
 // const API_BASE_URL = "http://192.168.1.50:3000/api";
-const API_BASE_URL = "http://localhost:3000/api";
 
-// const API_BASE_URL = "https://twitter-clone-ten-alpha.vercel.app/api";
+const API_BASE_URL =
+  Platform.OS === "ios"
+    ? process.env.EXPO_PUBLIC_API_URL_IOS
+    : process.env.EXPO_PUBLIC_API_URL_ANDROID;
 
 export interface IApiResponse<T = any> {
   status: boolean;
@@ -20,7 +23,7 @@ export interface IApiResponse<T = any> {
 
 export const createApiClient = (getToken: any): AxiosInstance => {
   const api = axios.create({
-    baseURL: API_BASE_URL.trim(),
+    baseURL: API_BASE_URL!.trim(),
   });
 
   api.interceptors.request.use(async (config) => {
