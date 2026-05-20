@@ -26,6 +26,7 @@ export const useCreatePost = () => {
 
                 const mimeTypeMap: Record<string, string> = {
                     png: "image/png",
+                    jpeg: "image/jpeg",
                     git: "image/gif",
                     webp: "image/webp",
                 };

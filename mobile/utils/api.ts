@@ -69,6 +69,30 @@ export class ApiUtility {
     return this.api.put("/users/profile", data);
   }
 
+  createPost(data: { content: string; image?: string }) {
+    return this.api.post("/posts/data");
+  }
+
+  getPosts() {
+    return this.api.get("/posts");
+  }
+
+  getUserPosts(username: string) {
+    return this.api.get(`/posts/user/${username}`);
+  }
+
+  likePost(postId: string) {
+    return this.api.post(`/posts/${postId}/like`);
+  }
+
+  deletePost(postId: string) {
+    return this.api.delete(`/posts/${postId}`);
+  }
+
+  createComment(postId: string, content: string) {
+    return this.api.post(`/comments/post/${postId}`, { content });
+  }
+
   async get<T = IApiResponse>(
     endpoint: string,
     params?: any,

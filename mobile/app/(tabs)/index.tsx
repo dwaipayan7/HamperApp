@@ -5,6 +5,7 @@ import SignOutButton from '@/components/SignOutButton'
 import { useUserSync } from '@/hooks/useUserSync'
 import { Ionicons } from '@expo/vector-icons'
 import PostComponent from '@/components/PostComponent'
+import PostsList from '@/components/PostsList'
 
 const HomeScreen = () => {
 
@@ -32,7 +33,7 @@ const HomeScreen = () => {
                 <SignOutButton />
 
             </View>
-            <PostComponent />
+
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 style={{
@@ -43,7 +44,8 @@ const HomeScreen = () => {
                     paddingBottom: 80
                 }}
             >
-
+                <PostComponent />
+                <PostsList />
             </ScrollView>
 
         </SafeAreaView>
