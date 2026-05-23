@@ -95,7 +95,7 @@ const PostCard = ({
                         <Image
                             source={{ uri: post.image }}
                             style={{ height: 200, width: '100%', marginTop: '5%', borderRadius: 12, }}
-                            resizeMode='cover'
+                            contentFit='cover'
                         />
                     )}
 

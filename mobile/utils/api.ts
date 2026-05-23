@@ -21,40 +21,88 @@ export interface IApiResponse<T = any> {
   }[];
 }
 
-export const createApiClient = (getToken: any): AxiosInstance => {
-  const api = axios.create({
-    baseURL: API_BASE_URL!.trim(),
-  });
+// export const createApiClient = (getToken: any): AxiosInstance => {
+//   const api = axios.create({
+//     baseURL: API_BASE_URL!.trim(),
+//   });
 
-  api.interceptors.request.use(async (config) => {
-    const token = await getToken();
-    console.log("TOKEN =>", token);
-    console.log("API REQUEST =>", config.baseURL, config.url, config.method);
-    console.log("AUTH HEADER =>", token ? `Bearer ${token}` : "no-token");
+//   api.interceptors.request.use(async (config) => {
+//     const token = await getToken();
+//     console.log("TOKEN =>", token);
+//     console.log("API REQUEST =>", config.baseURL, config.url, config.method);
+//     console.log("AUTH HEADER =>", token ? `Bearer ${token}` : "no-token");
 
-    console.log("TOKEN => ", token);
+//     console.log("TOKEN => ", token);
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-      console.log("FINAL HEADERS =>", config.headers);
+//     if (token) {
+//       config.headers.Authorization = `Bearer ${token}`;
+//       console.log("FINAL HEADERS =>", config.headers);
+//     }
+
+//     return config;
+//   });
+
+//   return api;
+// };
+
+// export const useApiClient = (): AxiosInstance => {
+//   const { getToken } = useAuth();
+//   return createApiClient(getToken);
+// };
+
+class ApiUtility {
+  private static instance: ApiUtility;
+
+  private api: AxiosInstance;
+
+  // constructor(api: AxiosInstance) {
+  //   this.api = api;
+  // }
+
+  private tokenGetter: (() => Promise<string | null>) | null = null;
+
+  private constructor() {
+    this.api = axios.create({
+      baseURL: API_BASE_URL?.trim(),
+      timeout: 30000,
+    });
+
+    this.initializeInterceptors();
+  }
+
+  private initializeInterceptors() {
+    this.api.interceptors.request.use(
+      async (config) => {
+        try {
+          if (this.tokenGetter) {
+            const token = await this.tokenGetter();
+
+            if (token) {
+              config.headers.Authorization = `Bearer ${token}`;
+            }
+          }
+
+          console.log("API REQUEST =>", config.baseURL, config.url);
+
+          return config;
+        } catch (error) {
+          return config;
+        }
+      },
+      (error) => Promise.reject(error),
+    );
+  }
+
+  public static getInstance(): ApiUtility {
+    if (!ApiUtility.instance) {
+      ApiUtility.instance = new ApiUtility();
     }
 
-    return config;
-  });
+    return ApiUtility.instance;
+  }
 
-  return api;
-};
-
-export const useApiClient = (): AxiosInstance => {
-  const { getToken } = useAuth();
-  return createApiClient(getToken);
-};
-
-export class ApiUtility {
-  api: AxiosInstance;
-
-  constructor(api: AxiosInstance) {
-    this.api = api;
+  public setTokenGetter(getter: () => Promise<string | null>) {
+    this.tokenGetter = getter;
   }
 
   syncUser() {
@@ -70,7 +118,7 @@ export class ApiUtility {
   }
 
   createPost(data: { content: string; image?: string }) {
-    return this.api.post("/posts/data");
+    return this.api.post("/posts", data);
   }
 
   getPosts() {
@@ -142,8 +190,11 @@ export class ApiUtility {
     } catch (error: any) {
       console.log(
         "API ERROR =>",
+        error?.message,
+        error?.code,
         error?.response?.status,
         error?.response?.data,
+        error?.request,
       );
       return error?.response?.data as T;
     }
@@ -210,3 +261,5 @@ export class ApiUtility {
     console.warn("API Error:", message, errors);
   }
 }
+
+export default ApiUtility.getInstance();

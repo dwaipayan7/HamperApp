@@ -1,12 +1,11 @@
 import { queryClient } from "@/app/_layout";
-import { ApiUtility, useApiClient } from "@/utils/api"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useApi } from "./useAPi";
 
 export const usePosts = () => {
 
-    const api = useApiClient();
+    const api = useApi();
 
-    const apiUtility = new ApiUtility(api);
     const {
 
         data: postsData,
@@ -16,18 +15,18 @@ export const usePosts = () => {
 
     } = useQuery({
         queryKey: ["posts"],
-        queryFn: () => apiUtility.getPosts(),
+        queryFn: () => api.getPosts(),
         select: (response) => response.data.posts
     });
 
 
     const likePostMutation = useMutation({
-        mutationFn: (postId: string) => apiUtility.likePost(postId),
+        mutationFn: (postId: string) => api.likePost(postId),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts"] })
     });
 
     const deleteMutation = useMutation({
-        mutationFn: (postId: string) => apiUtility.deletePost(postId),
+        mutationFn: (postId: string) => api.deletePost(postId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["posts"] });
             queryClient.invalidateQueries({ queryKey: ["userPosts"] });

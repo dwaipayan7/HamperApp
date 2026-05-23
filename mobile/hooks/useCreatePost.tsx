@@ -1,15 +1,16 @@
-import { useApiClient } from "@/utils/api"
+
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import * as ImagePicker from "expo-image-picker"
 import { useState } from "react"
 import { Alert } from "react-native"
+import { useApi } from "./useAPi"
+import { queryClient } from "@/app/_layout"
 
 export const useCreatePost = () => {
 
     const [content, setContent] = useState("")
     const [selectedImage, setSelectedImage] = useState<string | null>(null)
-    const api = useApiClient()
-    const queryClient = useQueryClient();
+    const api = useApi();
 
     const createPostMutation = useMutation({
         mutationFn: async (postData: { content: string, imageUri?: string }) => {
@@ -40,9 +41,7 @@ export const useCreatePost = () => {
                 } as any)
 
             }
-            return api.post("/posts", formData, {
-                headers: { 'Content-Type': "multipart/form-data" },
-            })
+            return api.postForm("/posts", formData)
         },
 
         onSuccess: () => {
