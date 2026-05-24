@@ -1,10 +1,11 @@
+import { showSnackbar } from "@/redux/slices/snackbarSlice";
 import { useAuth } from "@clerk/expo";
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import { Platform } from "react-native";
 
 // const API_BASE_URL = "http://192.168.1.50:3000/api";
 
-const API_BASE_URL =
+export const API_BASE_URL =
   Platform.OS === "ios"
     ? process.env.EXPO_PUBLIC_API_URL_IOS
     : process.env.EXPO_PUBLIC_API_URL_ANDROID;
@@ -71,6 +72,7 @@ class ApiUtility {
   }
 
   private initializeInterceptors() {
+    //For Request
     this.api.interceptors.request.use(
       async (config) => {
         try {
@@ -90,6 +92,28 @@ class ApiUtility {
         }
       },
       (error) => Promise.reject(error),
+    );
+
+    //For response
+    this.api.interceptors.response.use(
+      (response) => response,
+
+      async (error) => {
+        let message = "Something went wrong";
+
+        if (!error.response) {
+          message = "Network error. Check internet connection.";
+        } else {
+          message = error?.response?.data?.message || error.message;
+        }
+
+        showSnackbar({
+          message: error,
+          variant: "error",
+        });
+
+        return Promise.reject(error);
+      },
     );
   }
 

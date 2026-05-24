@@ -44,3 +44,5 @@ export interface Notification {
   };
   createdAt: string;
 }
+
+export type TSnackbarVariant = "success" | "warning" | "error" | "info";

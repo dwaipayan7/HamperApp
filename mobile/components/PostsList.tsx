@@ -1,15 +1,22 @@
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { usePosts } from '@/hooks/usePosts'
 import { Ionicons } from '@expo/vector-icons'
 import PostCard from './PostCard'
+import { Post } from '../types/index';
 
 const PostsList = () => {
 
     const { currentUser, } = useCurrentUser()
 
     const { deletePost, posts, isLoading, refetch, toggleLike, checkIsLiked, error } = usePosts();
+
+    const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
+
+    const selectedPost = selectedPostId ? posts.find((p: Post) => p._id === selectedPostId) : null;
+
+
 
     console.log("THe currentUser data is: ", currentUser);
 
@@ -59,13 +66,14 @@ const PostsList = () => {
     return (
         <View style={{ flex: 1 }}>
             <FlatList
-                key={posts._id}
+                keyExtractor={(item) => item._id}
                 data={posts}
                 renderItem={({ item, index }) => {
                     return <PostCard
                         key={index}
                         post={item}
                         onLike={toggleLike}
+                        onComment={(post: Post) => setSelectedPostId(post._id)}
                         onDelete={deletePost}
                         currentUser={currentUser}
                         isLiked={checkIsLiked(item.likes, currentUser)}
@@ -76,6 +84,8 @@ const PostsList = () => {
 
 
             />
+
+            {/* <CommnetModal /> */}
         </View>
     )
 }
