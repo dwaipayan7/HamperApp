@@ -1,6 +1,7 @@
 import { TouchableOpacity, ViewStyle } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { isTablet } from "./AllContext";
+import { COLORS } from '../constants/colors';
 
 type IconComponent = React.FC<SVGElement & { isActive: boolean, color: string }>;
 
@@ -1199,7 +1200,7 @@ export const Icon: React.FC<IconProps> = ({ name, size, ...props }) => {
     if (!IconComponent) return null;
     return <SvgXml
         // @ts-ignore
-        xml={IconComponent({ isActive: props.isActive || false, color: COLORS.colorPrimary })}
+        xml={IconComponent({ isActive: props.isActive || false, color: COLORS.gray500 })}
         width={finalSize}
         height={finalSize}
         {...props}

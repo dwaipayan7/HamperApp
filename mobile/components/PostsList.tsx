@@ -5,8 +5,11 @@ import { usePosts } from '@/hooks/usePosts'
 import { Ionicons } from '@expo/vector-icons'
 import PostCard from './PostCard'
 import { Post } from '../types/index';
+import CommentsModal from './CommentsModal'
 
 const PostsList = () => {
+
+    const [visibleModal, setVisibleModal] = useState<boolean>(false)
 
     const { currentUser, } = useCurrentUser()
 
@@ -73,7 +76,10 @@ const PostsList = () => {
                         key={index}
                         post={item}
                         onLike={toggleLike}
-                        onComment={(post: Post) => setSelectedPostId(post._id)}
+                        onComment={(post: Post) => {
+                            setVisibleModal(true);
+                            setSelectedPostId(post._id);
+                        }}
                         onDelete={deletePost}
                         currentUser={currentUser}
                         isLiked={checkIsLiked(item.likes, currentUser)}
@@ -85,7 +91,7 @@ const PostsList = () => {
 
             />
 
-            {/* <CommnetModal /> */}
+            <CommentsModal show={visibleModal} onClose={() => setVisibleModal(false)} selectedPost={selectedPost} />
         </View>
     )
 }
