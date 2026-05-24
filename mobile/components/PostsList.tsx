@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { usePosts } from '@/hooks/usePosts'
@@ -68,9 +68,11 @@ const PostsList = () => {
                         onLike={toggleLike}
                         onDelete={deletePost}
                         currentUser={currentUser}
-                        isLiked={checkIsLiked(posts.likes, currentUser)}
+                        isLiked={checkIsLiked(item.likes, currentUser)}
                     />
                 }}
+
+                refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
 
 
             />
