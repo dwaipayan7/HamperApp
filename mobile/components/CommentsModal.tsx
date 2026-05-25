@@ -40,7 +40,7 @@ const CommentsModal = ({ onClose, selectedPost, show }: Comment) => {
             animationType='slide'
             presentationStyle='pageSheet'
         >
-            <SafeAreaView style={{ flex: 1, marginHorizontal: 12 }}>
+            <SafeAreaView style={{ flex: 1, marginHorizontal: 12, marginTop: 10 }} edges={['top']}>
 
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', }}>
 
@@ -112,7 +112,7 @@ const CommentsModal = ({ onClose, selectedPost, show }: Comment) => {
                                         <SCText
                                             style={{
                                                 color: COLORS.gray500,
-                                                fontSize: 13,
+
                                             }}
                                         >
                                             @{selectedPost.user.username}
