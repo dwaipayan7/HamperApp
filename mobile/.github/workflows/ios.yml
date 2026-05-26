@@ -1,0 +1,54 @@
+name: iOS Build
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-ios:
+
+    runs-on: macos-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      - name: Select Xcode Version
+        run: sudo xcode-select -switch /Applications/Xcode.app
+
+      - name: Build iOS App
+        run: |
+          cd ios
+          xcodebuild \
+          -workspace mobile.xcworkspace \
+          -scheme mobile \
+          -sdk iphonesimulator \
+          -configuration Debug \
+          build
