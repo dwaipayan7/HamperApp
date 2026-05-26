@@ -1,21 +1,34 @@
-import { useAuth } from '@clerk/expo'
-import { Redirect, Stack } from 'expo-router'
-import { ActivityIndicator, View } from 'react-native'
+import { useAuth } from '@clerk/expo';
+import { Redirect } from 'expo-router';
+import { Drawer } from 'expo-router/drawer';
+import CustomDrawerContent from '@/components/CustomDrawerComponent';
+import { useSelector } from 'react-redux';
+import { selectIsAuthenticated } from '@/redux/slices/AuthSlice';
 
-export default function AuthRoutesLayout() {
-    const { isSignedIn, isLoaded } = useAuth()
+export default function DrawerLayout() {
+    // const { isSignedIn, isLoaded } = useAuth();
+    // if (!isLoaded) return null;
+    // if (!isSignedIn) return <Redirect href="/(auth)" />;
+    const isAuthenticated = useSelector(
+        selectIsAuthenticated
+    );
 
-    if (!isLoaded) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-                <ActivityIndicator size="large" color="#1DA1F2" />
-            </View>
-        )
+    if (!isAuthenticated) {
+        return <Redirect href="/(auth)" />;
     }
-
-    if (isSignedIn) {
-        return <Redirect href={'/(tabs)'} />
-    }
-
-    return <Stack screenOptions={{ headerShown: false }} />;
+    return (
+        <Drawer
+            drawerContent={(props) => <CustomDrawerContent {...props} />}
+            screenOptions={{
+                headerShown: false,
+                drawerPosition: 'left',
+                drawerStyle: {
+                    width: 280,
+                    backgroundColor: '#111827',
+                },
+            }}
+        >
+            <Drawer.Screen name="(tabs)" options={{ title: 'Home' }} />
+        </Drawer>
+    );
 }

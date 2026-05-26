@@ -12,7 +12,17 @@ import { useSignOut } from '@/hooks/useSignOut'
 import { LinearGradient } from 'expo-linear-gradient'
 import GradientWrapper from '@/components/GradientWrapper'
 
+import { useNavigation } from 'expo-router';
+import { DrawerActions } from '@react-navigation/native';
+
+
 const HomeScreen = () => {
+
+    const navigation = useNavigation();
+
+    const openDrawer = () => {
+        navigation.dispatch(DrawerActions.openDrawer());
+    };
 
     useUserSync();
 
@@ -20,53 +30,12 @@ const HomeScreen = () => {
     const { handleSignOut } = useSignOut()
 
     return (
-        // <LinearGradient
-        //     colors={["#05010D", "#140821", "#24103D", "#05010D"]}
-        //     locations={[0, 0.4, 0.75, 1]}
-        //     style={{ flex: 1 }}
-        // >
-        //     <SafeAreaView style={{ flex: 1 }}>
-        //         <View style={{ flex: 1 }}>
-
-        //             {/* Glow */}
-        //             <LinearGradient
-        //                 colors={[
-        //                     "rgba(168,85,247,0.28)",
-        //                     "rgba(168,85,247,0.10)",
-        //                     "transparent",
-        //                 ]}
-        //                 start={{ x: 0.5, y: 0 }}
-        //                 end={{ x: 0.5, y: 1 }}
-        //                 style={{
-        //                     position: 'absolute',
-        //                     top: -120,
-        //                     alignSelf: 'center',
-        //                     width: 350,
-        //                     height: 350,
-        //                     borderRadius: 999,
-        //                 }}
-        //             />
-
-        //             <Header
-        //                 title='Home'
-        //                 showIcon
-        //             // rightActionLabel='sign out'
-        //             // onRightActions={handleSignOut}
-        //             />
-
-        //             <PostComponent />
-        //             <PostsList />
-        //         </View>
-        //     </SafeAreaView>
-        // </LinearGradient>
-
-
-
         <GradientWrapper>
             <SafeAreaView style={{ flex: 1 }}>
                 <Header
                     title="Home"
                     showIcon
+                    onLeftActions={openDrawer}
                 // rightActionLabel="sign out"
                 // onRightActions={handleSignOut}
                 />
@@ -81,3 +50,43 @@ const HomeScreen = () => {
 export default HomeScreen
 
 const styles = StyleSheet.create({})
+
+// <LinearGradient
+//     colors={["#05010D", "#140821", "#24103D", "#05010D"]}
+//     locations={[0, 0.4, 0.75, 1]}
+//     style={{ flex: 1 }}
+// >
+//     <SafeAreaView style={{ flex: 1 }}>
+//         <View style={{ flex: 1 }}>
+
+//             {/* Glow */}
+//             <LinearGradient
+//                 colors={[
+//                     "rgba(168,85,247,0.28)",
+//                     "rgba(168,85,247,0.10)",
+//                     "transparent",
+//                 ]}
+//                 start={{ x: 0.5, y: 0 }}
+//                 end={{ x: 0.5, y: 1 }}
+//                 style={{
+//                     position: 'absolute',
+//                     top: -120,
+//                     alignSelf: 'center',
+//                     width: 350,
+//                     height: 350,
+//                     borderRadius: 999,
+//                 }}
+//             />
+
+//             <Header
+//                 title='Home'
+//                 showIcon
+//             // rightActionLabel='sign out'
+//             // onRightActions={handleSignOut}
+//             />
+
+//             <PostComponent />
+//             <PostsList />
+//         </View>
+//     </SafeAreaView>
+// </LinearGradient>

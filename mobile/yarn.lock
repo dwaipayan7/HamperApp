@@ -1902,10 +1902,29 @@
     use-latest-callback "^0.2.4"
     use-sync-external-store "^1.5.0"
 
+"@react-navigation/drawer@^7.10.3":
+  version "7.10.3"
+  resolved "https://registry.yarnpkg.com/@react-navigation/drawer/-/drawer-7.10.3.tgz#3d4c466370733803a5338a0a270a214c75daf454"
+  integrity sha512-Gt60Cc8taRBAR+kzPNY/c42xQ67skS4nek/LcegKVhbiHqptABzx75+gp5NIsLCS0WqnH/LZasPWXawixMubjg==
+  dependencies:
+    "@react-navigation/elements" "^2.9.19"
+    color "^4.2.3"
+    react-native-drawer-layout "^4.2.4"
+    use-latest-callback "^0.2.4"
+
 "@react-navigation/elements@^2.6.3", "@react-navigation/elements@^2.9.17":
   version "2.9.17"
   resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-2.9.17.tgz#2ad61b9e7b5441ce9ae039b51cfc779515dd3256"
   integrity sha512-Prax9RDS6l32npcl4PzvL88VoXe9HdtcIUP2+rim3DLVSZceD6oreA+cmPBUjeLFjsnxKlU3pTRby3RpYJ5/xw==
+  dependencies:
+    color "^4.2.3"
+    use-latest-callback "^0.2.4"
+    use-sync-external-store "^1.5.0"
+
+"@react-navigation/elements@^2.9.19":
+  version "2.9.19"
+  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-2.9.19.tgz#8b9756ce0daab39095c90cd11d85ab41f78ba4f9"
+  integrity sha512-gBUvCZuUkOGw1KpLQEZIkByUz8RYPwXeoA6mZFJy9K1mxd8GdqHDMFCIoB0lfPz9rgrHj99RvtdlGZ/ZzkZv2A==
   dependencies:
     color "^4.2.3"
     use-latest-callback "^0.2.4"
@@ -7060,6 +7079,14 @@ react-native-css-interop@0.2.3:
     debug "^4.3.7"
     lightningcss "~1.27.0"
     semver "^7.6.3"
+
+react-native-drawer-layout@^4.2.4:
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/react-native-drawer-layout/-/react-native-drawer-layout-4.2.4.tgz#06d850f6599fd2be2558073ddf073913780971f3"
+  integrity sha512-l1Le5HcVidobnJm8xqFZo46Rs8FDHdxbTZhkjxpNSRgU+QMoQXilOfzTHAeNjEGiKVGgIs9cW3ctXeHqgp5jJg==
+  dependencies:
+    color "^4.2.3"
+    use-latest-callback "^0.2.4"
 
 react-native-element-dropdown@^2.12.4:
   version "2.12.4"
