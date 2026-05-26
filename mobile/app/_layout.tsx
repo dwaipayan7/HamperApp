@@ -29,6 +29,7 @@ export default function RootLayout() {
               loading={<View style={{ flex: 1, backgroundColor: '#fff' }} />}
               persistor={persistor}
             >
+              <StatusBar style='light' />
               <Stack screenOptions={{ headerShown: false }} />
               {/* <Stack /> */}
             </PersistGate>

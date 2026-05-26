@@ -27,4 +27,9 @@ export const COLORS = {
     disabledInputBg: '#EFEFFB',
     disabledPlaceholderTextColor: '#A59EBD',
     tabBgColor: '#ECF9F2',
+    primaryColor: '#9147ff',
+    secondaryColor: '#bf94ff',
+    neutralColor: '#0d0b14',
+    teriaryColor: '#6420c8',
+    gardientColors: ['#05010D', '#140821', '#24103D', '#05010D']
 }   

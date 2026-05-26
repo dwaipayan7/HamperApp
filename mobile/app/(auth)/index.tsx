@@ -1,149 +1,237 @@
 import { COLORS } from "@/constants/colors";
 import { useSocialAuth } from "@/hooks/useSocialAuth";
 import { useAuth } from "@clerk/expo";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect } from "react";
-import { Text, View, Image, TouchableOpacity, ActivityIndicator, Platform } from "react-native";
-import { router } from 'expo-router'
+import {
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+  Platform,
+} from "react-native";
+import { router } from "expo-router";
+import SCText from "@/components/CustomText";
+import { deviceWidth } from "@/utils/AllContext";
 
 export default function Index() {
+  const { handleSocialAuth, isLoading } = useSocialAuth();
 
-  const { handleSocialAuth, isLoading } = useSocialAuth()
-
-  // const isLoading = false
-
-  const { isSignedIn } = useAuth({ treatPendingAsSignedOut: false })
+  const { isSignedIn } = useAuth({
+    treatPendingAsSignedOut: false,
+  });
 
   useEffect(() => {
     if (isSignedIn) {
-      router.replace('/(tabs)')
-      // <Link href={'/(home)'} />
+      router.replace("/(tabs)");
     }
-  }, [isSignedIn])
+  }, [isSignedIn]);
+
   return (
-    <View className="flex-1 bg-white">
-      <View className="flex-1 px-8 justify-between">
+    <LinearGradient
+      colors={["#05010D", "#140821", "#24103D", "#05010D"]}
+      locations={[0, 0.4, 0.75, 1]}
+      style={{
+        flex: 1,
+      }}
+    >
+      <View
+        style={{
+          flex: 1,
+          paddingHorizontal: 24,
+          justifyContent: "space-between",
+        }}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+          }}
+        >
+          <View
+            style={{
+              alignItems: "center",
+              marginTop: 60,
+            }}
+          >
 
-        <View className="flex-1 justify-center">
-
-          <View className="items-center">
-
-            <Image
-
-              source={require('../../assets/images/auth2.png')}
+            <LinearGradient
+              colors={[
+                "rgba(168,85,247,0.45)",
+                "rgba(168,85,247,0.12)",
+                "transparent",
+              ]}
               style={{
-                height: 300,
-                width: '100%',
-                marginTop: '50%'
+                width: 180,
+                height: 180,
+                borderRadius: 180 / 2,
+                justifyContent: "center",
+                alignItems: "center",
               }}
+            >
 
-              resizeMode="contain"
-            />
+              <View
+
+              >
+                <Image
+                  source={require("../../assets/images/hamper_logo.png")}
+                  style={{
+
+
+                    height: 250,
+                    width: 800,
+                    marginLeft: deviceWidth / 12 - 24
+
+                  }}
+                  resizeMode="contain"
+                />
+              </View>
+            </LinearGradient>
+
+            {/* Title */}
+            <SCText
+              varient="bold"
+              color={"#E9D5FF"}
+              size={44}
+              style={{
+
+                marginTop: 16,
+              }}
+            >
+              Hamper
+            </SCText>
+
+            {/* Subtitle */}
+            <SCText
+              size={18}
+              color={"#8B7AA8"}
+              style={{
+
+                marginTop: 4,
+
+              }}
+            >
+              drop in. tune in. vibe out.
+            </SCText>
           </View>
 
-          <View style={{ gap: 10 }}>
+          {/* Buttons */}
+          <View
+            style={{
+              gap: 12,
+              marginTop: 60,
+            }}
+          >
             <TouchableOpacity
               style={{
-                borderWidth: 0.5,
-                width: '80%',
-                height: 50,
-                alignSelf: 'center',
-                marginTop: 20,
-                borderRadius: 26,
-                borderColor: 'gary',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: 8,
-                flexDirection: 'row',
-                elevation: 50
+                width: "100%",
+                height: 54,
+                borderRadius: 30,
+                backgroundColor: "#FFFFFF",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "row",
+                gap: 10,
               }}
-
-              onPress={() => handleSocialAuth('oauth_google')}
-
+              onPress={() => handleSocialAuth("oauth_google")}
               disabled={isLoading}
             >
-
-
-              {isLoading ? <ActivityIndicator /> : (
+              {isLoading ? (
+                <ActivityIndicator />
+              ) : (
                 <>
                   <Image
-                    source={require('../../assets/images/google.png')}
+                    source={require("../../assets/images/google.png")}
                     style={{
-                      height: 25,
-                      width: 25,
-
+                      width: 24,
+                      height: 24,
                     }}
                   />
 
-                  <Text style={{
-                    fontWeight: '700',
-
-                  }}>Continue with Google</Text>
+                  <Text
+                    style={{
+                      fontWeight: "700",
+                      fontSize: 16,
+                    }}
+                  >
+                    Continue with Google
+                  </Text>
                 </>
-
               )}
-
-
             </TouchableOpacity>
-            {Platform.OS === 'ios' ? <TouchableOpacity
-              style={{
-                borderWidth: 0.5,
-                width: '80%',
-                height: 50,
-                alignSelf: 'center',
-                marginTop: 5,
-                borderRadius: 26,
-                borderColor: 'gary',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: 8,
-                flexDirection: 'row'
-              }}
-              onPress={() => handleSocialAuth('oauth_apple')}
-              disabled={isLoading}
-            >
 
-              {isLoading ? <ActivityIndicator /> : (
-                <>
-                  <Image
-                    source={require('../../assets/images/apple.png')}
-                    style={{
-                      height: 30,
-                      width: 25,
+            {Platform.OS === "ios" && (
+              <TouchableOpacity
+                style={{
+                  width: "100%",
+                  height: 54,
+                  borderRadius: 30,
+                  backgroundColor: "#FFFFFF",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  flexDirection: "row",
+                  gap: 10,
+                }}
+                onPress={() => handleSocialAuth("oauth_apple")}
+                disabled={isLoading}
+              >
+                <Image
+                  source={require("../../assets/images/apple.png")}
+                  style={{
+                    width: 24,
+                    height: 24,
+                  }}
+                />
 
-                    }}
-                  />
-
-                  <Text style={{
-                    fontWeight: '700',
-
-                  }}>Continue with Apple</Text></>
-              )}
-
-
-            </TouchableOpacity> : null}
+                <Text
+                  style={{
+                    fontWeight: "700",
+                    fontSize: 16,
+                  }}
+                >
+                  Continue with Apple
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
-          <View style={{ alignItems: 'center', justifyContent: 'center', paddingHorizontal: 30, marginTop: 15 }}>
-            <Text style={{
-              fontSize: 11,
-              letterSpacing: 1.2,
-              textAlign: 'center'
+          {/* Footer */}
+          <View
+            style={{
+              alignItems: "center",
+              marginTop: 24,
+              paddingHorizontal: 10,
             }}
-
+          >
+            <Text
+              style={{
+                fontSize: 11,
+                letterSpacing: 1,
+                textAlign: "center",
+                color: "#A78BFA",
+              }}
             >
-              By signin up, you agree to our <Text style={{
-                color: COLORS.lightBlue
-              }}>Terms, Privacy Policy,</Text> and <Text
+              By signing up, you agree to our{" "}
+              <Text
                 style={{
-                  color: COLORS.lightBlue
+                  color: "#C084FC",
                 }}
-              >Cookie Use.</Text>
+              >
+                Terms, Privacy Policy,
+              </Text>{" "}
+              and{" "}
+              <Text
+                style={{
+                  color: "#C084FC",
+                }}
+              >
+                Cookie Use.
+              </Text>
             </Text>
           </View>
-
         </View>
-
       </View>
-    </View>
+    </LinearGradient>
   );
 }

@@ -4,6 +4,9 @@ import { useCreatePost } from '@/hooks/useCreatePost';
 import { Image } from 'expo-image'
 import { useUser } from '@clerk/expo';
 import { Feather } from '@expo/vector-icons';
+import { COLORS } from '@/constants/colors';
+import { SCTextInput } from '@/utils/CustomInputStore';
+import SCText from './CustomText';
 
 const PostComponent = () => {
 
@@ -26,35 +29,38 @@ const PostComponent = () => {
     return (
         <View
             style={{
-                backgroundColor: "#fff",
-                paddingVertical: 4,
+
+                paddingVertical: 11,
                 paddingHorizontal: 12,
-                borderBottomWidth: 1,
+                borderBottomWidth: 0.2,
                 borderBottomColor: "#E5E7EB",
-                borderWidth: 1,
-                borderColor: "#ccc",
+                borderTopWidth: 0.2,
+                borderColor: COLORS.divider2,
+
             }}
         >
             <View
                 style={{
                     flexDirection: "row",
                     gap: 12,
-                    alignItems: 'center'
+                    alignItems: 'flex-start',
                 }}
             >
                 <Image
                     source={{ uri: user?.imageUrl }}
                     contentFit="cover"
                     style={{
-                        height: 58,
-                        width: 58,
-                        borderRadius: 29,
+                        height: 48,
+                        width: 48,
+                        borderRadius: 48 / 2,
                         backgroundColor: "#ddd",
+                        justifyContent: 'center',
+                        alignItems: 'center'
                     }}
                 />
 
-                <View style={{ flex: 1 }}>
-                    <TextInput
+                <View style={{ flex: 1, justifyContent: 'center' }}>
+                    {/* <TextInput
                         placeholder="What's happening?"
                         placeholderTextColor="#657786"
                         multiline
@@ -66,12 +72,27 @@ const PostComponent = () => {
                             // minHeight: 80,
                             color: "#000",
                         }}
+                    /> */}
+
+                    <SCTextInput
+                        placeholder="What's happening?"
+                        placeholderTextColor="#657786"
+                        multiline
+                        value={content}
+                        onChangeText={setContent}
+                        maxLength={280}
+                        style={{
+                            fontSize: 16,
+                            // minHeight: 80,
+                            color: "#000",
+                        }}
+
                     />
                 </View>
             </View>
 
             {selectedImage && (
-                <View style={{ marginTop: 12 }}>
+                <View style={{ marginTop: 15 }}>
                     <View
                         style={{
                             position: "relative",
@@ -102,22 +123,25 @@ const PostComponent = () => {
                                 alignItems: "center",
                             }}
                         >
-                            <Text
-                                style={{
-                                    color: "white",
-                                    fontSize: 16,
-                                    fontWeight: "700",
-                                }}
+                            <SCText
+                                color='white'
+                                size={16}
+                                varient='medium'
+                            // style={{
+                            //     color: "white",
+                            //     fontSize: 16,
+                            //     fontWeight: "700",
+                            // }}
                             >
                                 ×
-                            </Text>
+                            </SCText>
                         </TouchableOpacity>
                     </View>
                 </View>
             )}
 
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <View style={{ flexDirection: 'row', gap: 15, marginTop: 4 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 15 }}>
+                <View style={{ flexDirection: 'row', gap: 15, marginTop: 15 }}>
 
                     <TouchableOpacity onPress={pickImageFromGallery}>
                         <Feather name='image' size={20} color={'#1da1f2'} />

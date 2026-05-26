@@ -7,6 +7,8 @@ import SCText from '@/components/CustomText'
 import { COLORS } from '@/constants/colors'
 import { Feather } from '@expo/vector-icons'
 import NoNotificationsFound from '@/components/NoNotificationsFound';
+import Header from '@/components/Header';
+import GradientWrapper from '@/components/GradientWrapper';
 
 const NotificationsScreen = () => {
 
@@ -30,31 +32,35 @@ const NotificationsScreen = () => {
 
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }} edges={['top']}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 12 }}>
+        <GradientWrapper>
+            <SafeAreaView style={{ flex: 1, }} edges={['top']}>
+                {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 12 }}>
                 <SCText varient='semibold' color={COLORS.textBlack}>Notifications</SCText>
                 <TouchableOpacity>
                     <Feather name='settings' size={20} color={'#657786'} />
                 </TouchableOpacity>
-            </View>
+            </View> */}
 
-            <ScrollView
-                style={{ flex: 1 }}
-                contentContainerStyle={{ paddingBottom: 100 + insets.bottom }}
-                showsVerticalScrollIndicator={false}
-            >
+                <Header leftTitle='Notifications' showSettingsIcon onSettingAction={() => { }} />
 
-                {isLoading ? (
-                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                        <ActivityIndicator size={'large'} />
-                        <SCText color={COLORS.gray500}>Loading notifications...</SCText>
-                    </View>
-                ) : notifications?.result?.length === 0 ? (<View></View>) : (
-                    <NoNotificationsFound />
-                )}
+                <ScrollView
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{ paddingBottom: 100 + insets.bottom }}
+                    showsVerticalScrollIndicator={false}
+                >
 
-            </ScrollView>
-        </SafeAreaView>
+                    {isLoading ? (
+                        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                            <ActivityIndicator size={'large'} />
+                            <SCText color={COLORS.gray500}>Loading notifications...</SCText>
+                        </View>
+                    ) : notifications?.result?.length === 0 ? (<View></View>) : (
+                        <NoNotificationsFound />
+                    )}
+
+                </ScrollView>
+            </SafeAreaView>
+        </GradientWrapper>
     )
 }
 

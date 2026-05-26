@@ -6,6 +6,7 @@ import { Feather } from "@expo/vector-icons"
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '@clerk/expo'
 import { useUserSync } from '@/hooks/useUserSync'
+import { COLORS } from '@/constants/colors'
 
 const TabsLayout = () => {
 
@@ -27,12 +28,12 @@ const TabsLayout = () => {
     return (
         <Tabs screenOptions={{
             headerShown: false,
-            tabBarActiveTintColor: "#1DA1F2",
+            tabBarActiveTintColor: COLORS.white,
             tabBarInactiveTintColor: "#657786",
             tabBarStyle: {
-                backgroundColor: "#fff",
-                borderTopWidth: 1,
-                borderTopColor: "#E1E8ED",
+                backgroundColor: '#05010D',
+                // borderTopWidth: 0.2,
+                // borderTopColor: "#E1E8ED",
                 height: 50 + insets.bottom,
                 paddingTop: 8,
             },
