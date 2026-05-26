@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, KeyboardAvoidingView, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { Post } from '@/types'
 import { createCommentMutation } from '@/services/CommentService';
@@ -268,8 +268,8 @@ const CommentsModal = ({ onClose, selectedPost, show }: Comment) => {
                                                     onPress={() => handleSubmit()}
                                                     style={{
                                                         backgroundColor: COLORS.lightBlue,
-                                                        paddingVertical: 12,
-                                                        paddingHorizontal: 12,
+                                                        paddingVertical: 14,
+                                                        paddingHorizontal: 14,
                                                         borderRadius: 8,
                                                         justifyContent: 'center',
                                                         alignItems: 'center',
@@ -278,9 +278,15 @@ const CommentsModal = ({ onClose, selectedPost, show }: Comment) => {
 
 
                                                 >
-                                                    <SCText color={COLORS.white}>
-                                                        Comment
-                                                    </SCText>
+                                                    {isPending ?
+                                                        <View style={{
+                                                            paddingHorizontal: 14,
+                                                        }}>
+                                                            <ActivityIndicator color={'white'} size={'small'} />
+                                                        </View> :
+                                                        <SCText color={COLORS.white}>
+                                                            Comment
+                                                        </SCText>}
                                                 </TouchableOpacity>
                                             </KeyboardAvoidingView>
                                         )}
