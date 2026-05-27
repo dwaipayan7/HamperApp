@@ -6,9 +6,65 @@ import { COLORS } from '../constants/colors';
 type IconComponent = React.FC<SVGElement & { isActive: boolean, color: string }>;
 
 
-export type IconNamesList = 'splash' | 'logo' | 'notification' | 'calender' | 'clockIn' | 'clockOut' | 'eyeIcon' | 'attendenceIcon' | 'remainderIcon' | 'leaveIcon' | 'requestIcon' | 'dashboardIcon' | 'profileIcon' | 'taskIcon' | 'moreIcon' | 'exitIcon' | 'addIcon' | 'travelIcon' | 'policies' | 'settings' | 'internetIcon' | 'instaIcon' | 'likedInIcon' | 'checkbox' | 'messageIcon' | 'close' | 'task' | 'event' | 'leave' | 'request' | 'timer' | 'meal' | 'back' | 'check' | 'headerclose' | 'filter' | 'checkOutfilled' | 'delete' | 'checkRounded' | 'sponsicoreMessageIcon' | 'downArrow' | 'upArrow' | 'geminiStar' | 'birthdayIcon' | 'starIcon' | 'clickUploadIcon' | 'editIcon' | 'eyeIconGreen' | 'clock' | 'closeBalck' | 'rightArrow' | 'greenTick' | 'emptybox' | 'emptyCircle' | 'filledCircle' | 'resetIcon' | 'pinIcon' | 'threeDots' | 'addGreen' | 'leftArrow' | 'rightArrow2' | 'profileBanner' | 'messageIcon2' | 'phone' | 'mail' | 'arrowIOSRight' | 'arrowIOSDown' | 'greenProfileIcon' | 'greenDocumentIcon' | 'greenSponsorshipIcon' | 'englandFlag' | 'eyeIconBlack' | 'downloadIcon' | 'historyIcon' | 'docBlack' | 'taskIcon2' | 'taskIconGreen' | 'dueIcon' | 'locationIcon' | 'peopleIcon' | 'travelIcon2' | 'personGreenIcon' | 'leafIcon' | 'leafIconOutfilled' | 'eyeClose' | 'policiesIconGreen' | 'arrowRightIOSGreen' | 'resetPasswordIcon' | 'supportIcon' | 'logOutIcon' | 'themeEyeIcon' | 'closeBlack' | 'attachmentIcon' | 'cameraIcon' | 'galleryIcon' | 'documentIcon' | 'snackSuccess' | 'snackError' | 'snackWarning' | 'snackInfo' | 'blackTickIcon' | 'updateIcon' | 'expireIcon' | 'noInternet' | 'closeMore' | 'greenCalender' | 'arrowUpGreen' | 'uploadIcon' | 'uploadIconGreen' | 'uploadPrimaryIcon' | 'lockIcon' | 'addIconGreen' | 'travelIcon3' | 'pendingIcon' | 'peopleIconGreen' | 'cancelCalender'
+export type IconNamesList = 'splash' | 'logo' | 'notification' | 'calender' | 'clockIn' | 'clockOut' | 'eyeIcon' | 'attendenceIcon' | 'remainderIcon' | 'leaveIcon' | 'requestIcon' | 'dashboardIcon' | 'profileIcon' | 'taskIcon' | 'moreIcon' | 'exitIcon' | 'addIcon' | 'travelIcon' | 'policies' | 'settings' | 'internetIcon' | 'instaIcon' | 'likedInIcon' | 'checkbox' | 'messageIcon' | 'close' | 'task' | 'event' | 'leave' | 'request' | 'timer' | 'meal' | 'back' | 'check' | 'headerclose' | 'filter' | 'checkOutfilled' | 'delete' | 'checkRounded' | 'sponsicoreMessageIcon' | 'downArrow' | 'upArrow' | 'geminiStar' | 'birthdayIcon' | 'starIcon' | 'clickUploadIcon' | 'editIcon' | 'eyeIconGreen' | 'clock' | 'closeBalck' | 'rightArrow' | 'greenTick' | 'emptybox' | 'emptyCircle' | 'filledCircle' | 'resetIcon' | 'pinIcon' | 'threeDots' | 'addGreen' | 'leftArrow' | 'rightArrow2' | 'profileBanner' | 'messageIcon2' | 'phone' | 'mail' | 'arrowIOSRight' | 'arrowIOSDown' | 'greenProfileIcon' | 'greenDocumentIcon' | 'greenSponsorshipIcon' | 'englandFlag' | 'eyeIconBlack' | 'downloadIcon' | 'historyIcon' | 'docBlack' | 'taskIcon2' | 'taskIconGreen' | 'dueIcon' | 'locationIcon' | 'peopleIcon' | 'travelIcon2' | 'personGreenIcon' | 'leafIcon' | 'leafIconOutfilled' | 'eyeClose' | 'policiesIconGreen' | 'arrowRightIOSGreen' | 'resetPasswordIcon' | 'supportIcon' | 'logOutIcon' | 'themeEyeIcon' | 'closeBlack' | 'attachmentIcon' | 'cameraIcon' | 'galleryIcon' | 'documentIcon' | 'snackSuccess' | 'snackError' | 'snackWarning' | 'snackInfo' | 'blackTickIcon' | 'updateIcon' | 'expireIcon' | 'noInternet' | 'closeMore' | 'greenCalender' | 'arrowUpGreen' | 'uploadIcon' | 'uploadIconGreen' | 'uploadPrimaryIcon' | 'lockIcon' | 'addIconGreen' | 'travelIcon3' | 'pendingIcon' | 'peopleIconGreen' | 'cancelCalender' | 'hamperIcon'
 
 const Icons: Record<IconNamesList, IconComponent> = {
+
+    hamperIcon: () => `<svg width="220" height="220" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+  
+  <defs>
+    <!-- Purple Gradient -->
+    <linearGradient id="basketGradient" x1="50" y1="40" x2="170" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C084FC"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+
+    <!-- Glow -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Basket Body -->
+  <g filter="url(#glow)">
+    
+    <!-- Handle -->
+    <path
+      d="M85 90L110 55L135 90"
+      stroke="url(#basketGradient)"
+      stroke-width="10"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+
+    <!-- Basket -->
+    <path
+      d="M60 90
+         H160
+         L145 150
+         H75
+         Z"
+      fill="url(#basketGradient)"
+      stroke="url(#basketGradient)"
+      stroke-width="6"
+      stroke-linejoin="round"
+    />
+
+    <!-- Hole -->
+    <circle
+      cx="110"
+      cy="120"
+      r="12"
+      fill="#05010D"
+    />
+  </g>
+
+</svg>`,
 
     cancelCalender: () => `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M13.5 16.9502C15.1569 16.9502 16.5 15.607 16.5 13.9502C16.5 12.2933 15.1569 10.9502 13.5 10.9502C11.8431 10.9502 10.5 12.2933 10.5 13.9502C10.5 15.607 11.8431 16.9502 13.5 16.9502Z" stroke="#625982" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>

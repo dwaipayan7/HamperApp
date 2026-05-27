@@ -7,10 +7,10 @@ const NoNotificationsFound = () => {
         <View style={{ minHeight: 400, flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <View style={{ alignItems: 'center' }}>
                 <Feather name="bell" size={80} color="#E1E8ED" />
-                <SCText style={{
+                <SCText color='white' style={{
                     marginTop: 10
                 }}>No notifications yet</SCText>
-                <SCText style={{ marginTop: 5 }}>
+                <SCText color='white' style={{ marginTop: 5 }}>
                     When people like, comment, or follow you, you&apos;ll see it here.
                 </SCText>
             </View>

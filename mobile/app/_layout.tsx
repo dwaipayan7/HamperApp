@@ -9,7 +9,10 @@ import { Provider as StoreProvider } from 'react-redux';
 import { persistor, store } from '@/redux/store/store';
 import { PersistGate } from 'redux-persist/integration/react'
 import { View } from 'react-native';
-
+import Drawer from 'expo-router/drawer';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import CustomDrawerContent from '@/components/CustomDrawerComponent';
+import { useSyncAuth } from '@/hooks/useSyncAuth';
 export const queryClient = new QueryClient();
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
@@ -19,23 +22,44 @@ if (!publishableKey) {
 }
 
 export default function RootLayout() {
-  return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <StoreProvider store={store}>
-        <PaperProvider>
-          <QueryClientProvider client={queryClient}>
-            <PersistGate
 
-              loading={<View style={{ flex: 1, backgroundColor: '#fff' }} />}
-              persistor={persistor}
-            >
-              <Stack screenOptions={{ headerShown: false }} />
-              {/* <Stack /> */}
-            </PersistGate>
-            <StatusBar style="dark" />
-          </QueryClientProvider>
-        </PaperProvider>
-      </StoreProvider>
-    </ClerkProvider>
+  // useSyncAuth();
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+        <StoreProvider store={store}>
+          <PaperProvider>
+            <QueryClientProvider client={queryClient}>
+              <PersistGate
+
+                loading={<View style={{ flex: 1, backgroundColor: '#fff' }} />}
+                persistor={persistor}
+              >
+                <StatusBar style='light' />
+                {/* <Stack screenOptions={{ headerShown: false }} /> */}
+
+                {/* <CustomDrawerContent /> */}
+                {/* <Drawer /> */}
+                {/* <Stack /> */}
+
+                <AppContent />
+              </PersistGate>
+              <StatusBar style="dark" />
+            </QueryClientProvider>
+          </PaperProvider>
+        </StoreProvider>
+      </ClerkProvider>
+    </GestureHandlerRootView>
   );
+}
+
+function AppContent() {
+  useSyncAuth();
+  return (
+    <Drawer
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
+      screenOptions={{ headerShown: false }}
+    />
+  )
 }

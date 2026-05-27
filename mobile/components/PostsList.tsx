@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons'
 import PostCard from './PostCard'
 import { Post } from '../types/index';
 import CommentsModal from './CommentsModal'
+import { COLORS } from '@/constants/colors'
 
 const PostsList = () => {
 
@@ -85,7 +86,9 @@ const PostsList = () => {
                         isLiked={checkIsLiked(item.likes, currentUser)}
                     />
                 }}
-
+                contentContainerStyle={{
+                    gap: 10
+                }}
                 refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
 
 

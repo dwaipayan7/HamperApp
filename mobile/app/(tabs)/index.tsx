@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import SignOutButton from '@/components/SignOutButton'
@@ -6,52 +6,87 @@ import { useUserSync } from '@/hooks/useUserSync'
 import { Ionicons } from '@expo/vector-icons'
 import PostComponent from '@/components/PostComponent'
 import PostsList from '@/components/PostsList'
+import { usePosts } from '@/hooks/usePosts'
+import Header from '@/components/Header'
+import { useSignOut } from '@/hooks/useSignOut'
+import { LinearGradient } from 'expo-linear-gradient'
+import GradientWrapper from '@/components/GradientWrapper'
+
+import { useNavigation } from 'expo-router';
+import { DrawerActions } from '@react-navigation/native';
+
 
 const HomeScreen = () => {
 
+    const navigation = useNavigation();
+
+    const openDrawer = () => {
+        navigation.dispatch(DrawerActions.openDrawer());
+    };
+
     useUserSync();
 
+    const { deletePost, posts, isLoading, refetch, toggleLike, checkIsLiked, error } = usePosts();
+    const { handleSignOut } = useSignOut()
+
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-            {/* <Text>HomeScreen</Text> */}
+        <GradientWrapper>
+            <SafeAreaView style={{ flex: 1 }}>
+                <Header
+                    title="Home"
+                    showIcon
+                    onLeftActions={openDrawer}
+                // rightActionLabel="sign out"
+                // onRightActions={handleSignOut}
+                />
 
-            <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                // paddingVertical: 5,
-                paddingHorizontal: 12,
-                borderColor: '#F3F4F6'
-            }}>
-
-
-                <Ionicons name='logo-twitter' size={24} color={'#1da1f2'} />
-                <Text style={{
-                    fontWeight: '700',
-                    fontSize: 16
-                }}>Home</Text>
-                <SignOutButton />
-
-            </View>
-
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                style={{
-                    flex: 1,
-
-                }}
-                contentContainerStyle={{
-                    paddingBottom: 80
-                }}
-            >
                 <PostComponent />
                 <PostsList />
-            </ScrollView>
-
-        </SafeAreaView>
+            </SafeAreaView>
+        </GradientWrapper>
     )
 }
 
 export default HomeScreen
 
 const styles = StyleSheet.create({})
+
+// <LinearGradient
+//     colors={["#05010D", "#140821", "#24103D", "#05010D"]}
+//     locations={[0, 0.4, 0.75, 1]}
+//     style={{ flex: 1 }}
+// >
+//     <SafeAreaView style={{ flex: 1 }}>
+//         <View style={{ flex: 1 }}>
+
+//             {/* Glow */}
+//             <LinearGradient
+//                 colors={[
+//                     "rgba(168,85,247,0.28)",
+//                     "rgba(168,85,247,0.10)",
+//                     "transparent",
+//                 ]}
+//                 start={{ x: 0.5, y: 0 }}
+//                 end={{ x: 0.5, y: 1 }}
+//                 style={{
+//                     position: 'absolute',
+//                     top: -120,
+//                     alignSelf: 'center',
+//                     width: 350,
+//                     height: 350,
+//                     borderRadius: 999,
+//                 }}
+//             />
+
+//             <Header
+//                 title='Home'
+//                 showIcon
+//             // rightActionLabel='sign out'
+//             // onRightActions={handleSignOut}
+//             />
+
+//             <PostComponent />
+//             <PostsList />
+//         </View>
+//     </SafeAreaView>
+// </LinearGradient>

@@ -5,6 +5,7 @@ import { Image } from 'expo-image';
 import { formatDate, formatNumber } from '@/utils/formatters';
 import { AntDesign, Feather } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
+import SCText from './CustomText';
 
 interface PostCardProps {
     post: Post;
@@ -50,13 +51,8 @@ const PostCard = ({
     };
 
     return (
-        <View style={{
-            borderColor: '#F3F4F6',
-            borderWidth: 0.6,
-            backgroundColor: 'white'
-
-        }}>
-            <View style={{ flexDirection: 'row', }}>
+        <View style={{ borderColor: COLORS.divider2 }}>
+            <View style={{ flexDirection: 'row', borderBottomWidth: 0.2, borderColor: COLORS.divider2 }}>
 
 
                 <View style={{ flexDirection: 'row', padding: 20, paddingLeft: 12 }}>
@@ -73,15 +69,12 @@ const PostCard = ({
 
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={{
-                                fontWeight: '800',
-
-                            }}>
+                            <SCText varient='medium' color={COLORS.white}>
                                 {post.user.firstName}  {post.user.lastName}
-                            </Text>
-                            <Text style={{ marginLeft: 10, color: '#6B7280' }}>
+                            </SCText>
+                            <SCText color='#6B7280' style={{ marginLeft: 10, }}>
                                 @{post.user.username}·{formatDate(post.createdAt)}
-                            </Text>
+                            </SCText>
                         </View>
                         {isOwnPost && (
                             <TouchableOpacity onPress={handleDelete}>
@@ -91,11 +84,11 @@ const PostCard = ({
                     </View>
 
                     {post.content && (
-                        <Text
-                            style={{ color: '#1a202c', fontWeight: '600' }}
+                        <SCText
+                            color={COLORS.white}
                         >{post.content}
 
-                        </Text>
+                        </SCText>
                     )}
 
                     {post.image && (
@@ -160,7 +153,7 @@ const PostCard = ({
 
 
             </View>
-        </View>
+        </View >
     );
 };
 
