@@ -5,7 +5,7 @@ import { useSignOut } from '@/hooks/useSignOut';
 import { useUser } from '@clerk/expo';
 import SCText from './CustomText';
 import GradientWrapper from './GradientWrapper';
-
+import DeviceInfo from 'react-native-device-info';
 export default function CustomDrawerContent(props: any) {
     const { user } = useUser();
     const { handleSignOut } = useSignOut();
@@ -46,7 +46,7 @@ export default function CustomDrawerContent(props: any) {
 
             <View style={{ flex: 1 }} />
             <View>
-                <SCText style={{ textAlign: 'center', marginBottom: 10 }} color='white'>Version: 1.0.0</SCText>
+                <SCText style={{ textAlign: 'center', marginBottom: 10 }} color='white'>Version: Version {DeviceInfo.getVersion()}</SCText>
             </View>
 
             <View

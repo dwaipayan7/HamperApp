@@ -24,7 +24,7 @@ export default function Index() {
 
   useEffect(() => {
     if (isSignedIn) {
-      router.replace("/(tabs)");
+      router.replace("/(drawer)/(tabs)");
     }
   }, [isSignedIn]);
 

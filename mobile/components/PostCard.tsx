@@ -10,6 +10,7 @@ import SCText from './CustomText';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import Loader from './Loader';
+import { globalStyles } from '@/utils/globalStyles';
 interface PostCardProps {
     post: Post;
     onLike: (postId: string) => void;
@@ -96,12 +97,12 @@ const PostCard = ({
     };
 
     return (
-        <View style={{ borderColor: COLORS.divider2 }}>
+        <View style={{ borderColor: COLORS.divider2, paddingHorizontal: 12 }}>
             <Loader show={isDeleting || false} />
             <View style={{ flexDirection: 'row', borderBottomWidth: 0.2, borderColor: COLORS.divider2 }}>
 
 
-                <View style={{ flexDirection: 'row', padding: 20, paddingLeft: 12 }}>
+                <View style={{ flexDirection: 'row', paddingTop: 12, }}>
                     <Image
                         source={{ uri: post.user.profilePicture || "" }}
                         style={{
@@ -111,15 +112,22 @@ const PostCard = ({
                         }}
                     />
                 </View>
-                <View style={{ flex: 1, marginTop: 20, marginRight: 12 }}>
+                <View style={{ flex: 1, marginTop: 20, marginLeft: 10 }}>
 
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <SCText varient='medium' color={COLORS.white}>
-                                {post.user.firstName}  {post.user.lastName}
-                            </SCText>
-                            <SCText color='#6B7280' style={{ marginLeft: 10, }}>
-                                @{post.user.username}·{formatDate(post.createdAt)}
+
+
+                        <View style={{ ...globalStyles.rowBetweeen, flex: 1 }}>
+                            <View style={{ alignItems: 'flex-start' }}>
+                                <SCText varient='medium' color={COLORS.white}>
+                                    {post.user.firstName}  {post.user.lastName}
+                                </SCText>
+                                <SCText color='#6B7280' >
+                                    @{post.user.username}
+                                </SCText>
+                            </View>
+                            <SCText style={{ textAlign: 'right' }} color={COLORS.gray400}>
+                                {formatDate(post.createdAt)}
                             </SCText>
                         </View>
                         {isOwnPost && (

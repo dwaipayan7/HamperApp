@@ -67,6 +67,7 @@ const PostComponent = () => {
 
                 <View style={{ flex: 1 }}>
                     <TextInput
+                        autoCorrect={true}
                         placeholder="What's happening?"
                         placeholderTextColor="#657786"
                         multiline
@@ -86,15 +87,15 @@ const PostComponent = () => {
                             fontSize: 16,
                             color: "#000",
 
-                            minHeight: MIN_HEIGHT,
+                            minHeight: inputHeight,
                             maxHeight: MAX_HEIGHT,
-                            height: inputHeight,
 
                             backgroundColor: COLORS.white,
                             borderRadius: 6,
 
                             paddingHorizontal: 10,
-                            paddingVertical: 10,
+                            paddingTop: 10,
+                            paddingBottom: 10,
                         }}
                     />
                 </View>
@@ -166,24 +167,24 @@ const PostComponent = () => {
                     marginTop: 4,
                     borderRadius: 12
                 }}
-                    onPress={createPost}
+                    onPress={() => {
+                        createPost()
+                        setInputHeight(0);
+                    }}
                     disabled={isCreating || !(content.trim() || selectedImage)}
                 >
                     {isCreating ? (
                         <ActivityIndicator size={'small'} color={'white'} />
                     ) : (
-                        <Text style={{
-                            fontWeight: '700',
-                            color: content.trim() || selectedImage ? "#FFFFFF" : '#6B7280'
-                        }}>
+                        <SCText varient='semibold' color={content.trim() || selectedImage ? COLORS.neutralColor : COLORS.gray300} >
                             Post
 
-                        </Text>
+                        </SCText>
                     )}
 
                 </TouchableOpacity>
             </View>
-        </View>
+        </View >
     );
 };
 
