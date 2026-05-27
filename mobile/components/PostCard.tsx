@@ -1,12 +1,14 @@
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { Post, User } from '@/types';
-import { Image } from 'expo-image';
+import { Image, } from 'expo-image';
 import { formatDate, formatNumber } from '@/utils/formatters';
+import ImageViewing from 'react-native-image-viewing';
 import { AntDesign, Feather } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import SCText from './CustomText';
-
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 interface PostCardProps {
     post: Post;
     onLike: (postId: string) => void;
@@ -28,6 +30,8 @@ const PostCard = ({
     console.log("Liked Data is: ", isLiked);
     console.log("Liked Data is: ", post.likes?.length);
 
+    const [isImageView, setIsImageView] = useState<boolean>(false)
+
 
     const isOwnPost =
         post?.user?._id === currentUser?._id;
@@ -48,6 +52,28 @@ const PostCard = ({
                 }
             ]
         );
+    };
+
+
+    const shareImage = async (imageUrl: string) => {
+        try {
+
+            const fileUri =
+                `${FileSystem} post-image.jpg`;
+
+            const downloadedFile = await FileSystem.downloadAsync(
+                imageUrl,
+                fileUri
+            );
+
+            // Open native share sheet
+            await Sharing.shareAsync(downloadedFile.uri, {
+                mimeType: 'image/jpeg',
+                dialogTitle: 'Share Image',
+            });
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     return (
@@ -92,11 +118,27 @@ const PostCard = ({
                     )}
 
                     {post.image && (
-                        <Image
-                            source={{ uri: post.image }}
-                            style={{ height: 200, width: '100%', marginTop: '5%', borderRadius: 12, }}
-                            contentFit='cover'
-                        />
+                        <>
+
+                            <TouchableOpacity activeOpacity={0.8} onPress={() => setIsImageView(true)}>
+
+                                <Image
+                                    source={{ uri: post.image }}
+                                    style={{ height: 200, width: '100%', marginTop: '5%', borderRadius: 12, }}
+                                    contentFit='cover'
+                                />
+                            </TouchableOpacity>
+
+                            <ImageViewing
+                                images={[{ uri: post.image }]}
+                                imageIndex={0}
+                                visible={isImageView}
+                                onRequestClose={() => setIsImageView(false)}
+                                presentationStyle='fullScreen'
+                                backgroundColor={COLORS.neutralColor}
+                            />
+                        </>
+
                     )}
 
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '90%', paddingVertical: 10 }}>
@@ -114,7 +156,7 @@ const PostCard = ({
 
                             <Feather name='repeat' size={24} color={'#657786'} />
                             <Text style={{ color: COLORS.gray500, fontSize: 14, }}>
-                                {formatNumber(post.comments?.length || 0)}
+                                0
                             </Text>
                         </TouchableOpacity>
 
@@ -136,10 +178,14 @@ const PostCard = ({
                         </TouchableOpacity>
 
 
-                        <TouchableOpacity>
-
+                        <TouchableOpacity
+                            onPress={() => {
+                                if (post.image) {
+                                    shareImage(post.image);
+                                }
+                            }}
+                        >
                             <Feather name='share' size={24} color={'#657786'} />
-
                         </TouchableOpacity>
 
                     </View>

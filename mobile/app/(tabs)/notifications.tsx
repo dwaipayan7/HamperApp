@@ -9,6 +9,8 @@ import { Feather } from '@expo/vector-icons'
 import NoNotificationsFound from '@/components/NoNotificationsFound';
 import Header from '@/components/Header';
 import GradientWrapper from '@/components/GradientWrapper';
+import { Notification } from '@/types';
+import NotificationCard from '@/components/NotificationCard';
 
 const NotificationsScreen = () => {
 
@@ -54,7 +56,14 @@ const NotificationsScreen = () => {
                             <ActivityIndicator size={'large'} />
                             <SCText color={COLORS.gray500}>Loading notifications...</SCText>
                         </View>
-                    ) : notifications?.result?.length === 0 ? (<View></View>) : (
+                    ) : notifications?.result?.length === 0 ? (
+                        notifications?.result?.map((notification: Notification) => {
+                            <NotificationCard
+                                key={notification._id}
+
+                            />
+                        })
+                    ) : (
                         <NoNotificationsFound />
                     )}
 

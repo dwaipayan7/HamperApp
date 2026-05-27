@@ -25,6 +25,8 @@ export default function RootLayout() {
 
   // useSyncAuth();
 
+  // "reactCompiler": true
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
@@ -43,7 +45,7 @@ export default function RootLayout() {
                 {/* <Drawer /> */}
                 {/* <Stack /> */}
 
-                <AppContent />
+                <RootContent />
               </PersistGate>
               <StatusBar style="dark" />
             </QueryClientProvider>
@@ -54,12 +56,12 @@ export default function RootLayout() {
   );
 }
 
-function AppContent() {
+function RootContent() {
   useSyncAuth();
   return (
-    <Drawer
-      drawerContent={(props) => <CustomDrawerContent {...props} />}
-      screenOptions={{ headerShown: false }}
-    />
-  )
+    <>
+      <StatusBar style='light' />
+      <Stack screenOptions={{ headerShown: false }} />
+    </>
+  );
 }
