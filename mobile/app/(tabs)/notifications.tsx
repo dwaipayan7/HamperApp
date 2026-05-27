@@ -1,5 +1,5 @@
 
-import { View, Text, ActivityIndicator, TouchableOpacity, ScrollView, ViewStyle } from 'react-native';
+import { View, Text, ActivityIndicator, TouchableOpacity, ScrollView, ViewStyle, RefreshControl, FlatList } from 'react-native';
 import React from 'react'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { deleteNotification, useNotification } from '@/services/NotificationService'
@@ -11,11 +11,19 @@ import Header from '@/components/Header';
 import GradientWrapper from '@/components/GradientWrapper';
 import { Notification } from '@/types';
 import NotificationCard from '@/components/NotificationCard';
+import LoaderModal from '@/components/LoaderModal';
 
 const NotificationsScreen = () => {
 
-    const { data: notifications, isLoading, refetch, error } = useNotification();
-    const { mutateAsync, isPending } = deleteNotification();
+    // const { data, isLoading, refetch, error } = useNotification();
+    const { mutateAsync: deleteNotifi, isPending } = deleteNotification();
+
+
+    const { data, isLoading, refetch, error } = useNotification();
+
+    const notifications = data?.notifications || [];
+
+    // console.log("The Notifications are: ", notifications);
 
 
     const insets = useSafeAreaInsets();
@@ -35,6 +43,7 @@ const NotificationsScreen = () => {
 
     return (
         <GradientWrapper>
+            <LoaderModal show={isPending} />
             <SafeAreaView style={{ flex: 1, }} edges={['top']}>
                 {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 12 }}>
                 <SCText varient='semibold' color={COLORS.textBlack}>Notifications</SCText>
@@ -45,29 +54,52 @@ const NotificationsScreen = () => {
 
                 <Header leftTitle='Notifications' showSettingsIcon onSettingAction={() => { }} />
 
-                <ScrollView
+                <FlatList
+                    data={notifications || []}
+                    keyExtractor={(item: Notification) => item._id}
                     style={{ flex: 1 }}
-                    contentContainerStyle={{ paddingBottom: 100 + insets.bottom }}
+                    contentContainerStyle={{
+                        paddingBottom: 100 + insets.bottom,
+                        flexGrow: 1,
+                    }}
                     showsVerticalScrollIndicator={false}
-                >
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isLoading}
+                            onRefresh={refetch}
+                        />
+                    }
+                    ListEmptyComponent={
+                        isLoading ? (
+                            <View
+                                style={{
+                                    flex: 1,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    marginTop: 50,
+                                }}
+                            >
+                                <SCText color={COLORS.gray500}>
+                                    Loading notifications...
+                                </SCText>
+                            </View>
+                        ) : (
+                            <NoNotificationsFound />
+                        )
+                    }
+                    renderItem={({ item, index }) => {
+                        console.log("The Item is: ", item);
 
-                    {isLoading ? (
-                        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                            <ActivityIndicator size={'large'} />
-                            <SCText color={COLORS.gray500}>Loading notifications...</SCText>
-                        </View>
-                    ) : notifications?.result?.length === 0 ? (
-                        notifications?.result?.map((notification: Notification) => {
+                        return (
+
                             <NotificationCard
-                                key={notification._id}
-
+                                notification={item}
+                                onDelete={(notificationId) => deleteNotifi(item._id)}
                             />
-                        })
-                    ) : (
-                        <NoNotificationsFound />
-                    )}
-
-                </ScrollView>
+                        )
+                    }
+                    }
+                />
             </SafeAreaView>
         </GradientWrapper>
     )

@@ -1,5 +1,5 @@
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { useCreatePost } from '@/hooks/useCreatePost';
 import { Image } from 'expo-image'
 import { useUser } from '@clerk/expo';
@@ -9,6 +9,12 @@ import { SCTextInput } from '@/utils/CustomInputStore';
 import SCText from './CustomText';
 
 const PostComponent = () => {
+    const MIN_HEIGHT = 40;
+    const MAX_HEIGHT = 140;
+    const [inputHeight, setInputHeight] = useState(MIN_HEIGHT);
+
+    console.log("The input height is: ", inputHeight);
+
 
     const {
 
@@ -59,34 +65,37 @@ const PostComponent = () => {
                     }}
                 />
 
-                <View style={{ flex: 1, justifyContent: 'center' }}>
-                    {/* <TextInput
+                <View style={{ flex: 1 }}>
+                    <TextInput
                         placeholder="What's happening?"
                         placeholderTextColor="#657786"
                         multiline
                         value={content}
                         onChangeText={setContent}
                         maxLength={280}
+                        textAlignVertical="top"
+                        scrollEnabled={inputHeight >= MAX_HEIGHT}
+                        onContentSizeChange={(event) => {
+                            const height = event.nativeEvent.contentSize.height;
+
+                            setInputHeight(
+                                Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, height))
+                            );
+                        }}
                         style={{
                             fontSize: 16,
-                            // minHeight: 80,
                             color: "#000",
-                        }}
-                    /> */}
 
-                    <SCTextInput
-                        placeholder="What's happening?"
-                        placeholderTextColor="#657786"
-                        multiline
-                        value={content}
-                        onChangeText={setContent}
-                        maxLength={280}
-                        style={{
-                            fontSize: 16,
-                            // minHeight: 80,
-                            color: "#000",
-                        }}
+                            minHeight: MIN_HEIGHT,
+                            maxHeight: MAX_HEIGHT,
+                            height: inputHeight,
 
+                            backgroundColor: COLORS.white,
+                            borderRadius: 6,
+
+                            paddingHorizontal: 10,
+                            paddingVertical: 10,
+                        }}
                     />
                 </View>
             </View>

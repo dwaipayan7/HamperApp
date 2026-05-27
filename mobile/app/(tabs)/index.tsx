@@ -26,9 +26,6 @@ const HomeScreen = () => {
 
     useUserSync();
 
-    const { deletePost, posts, isLoading, refetch, toggleLike, checkIsLiked, error } = usePosts();
-    const { handleSignOut } = useSignOut()
-
     return (
         <GradientWrapper>
             <SafeAreaView style={{ flex: 1 }}>

@@ -9,13 +9,15 @@ import { COLORS } from '@/constants/colors';
 import SCText from './CustomText';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
+import Loader from './Loader';
 interface PostCardProps {
     post: Post;
     onLike: (postId: string) => void;
-    onDelete: (postId: string) => void;
+    onDelete: (postId: string) => Promise<void>;
     isLiked?: boolean;
     currentUser?: User | null;
     onComment: (post: Post) => void;
+    isDeleting?: boolean;
 }
 
 const PostCard = ({
@@ -24,13 +26,17 @@ const PostCard = ({
     onDelete,
     currentUser,
     isLiked,
-    onComment
+    onComment,
+    isDeleting
 }: PostCardProps) => {
 
     console.log("Liked Data is: ", isLiked);
     console.log("Liked Data is: ", post.likes?.length);
 
     const [isImageView, setIsImageView] = useState<boolean>(false)
+    const [showLoader, setIsLoader] = useState<boolean>(false)
+
+
 
 
     const isOwnPost =
@@ -48,7 +54,20 @@ const PostCard = ({
                 {
                     text: "Delete",
                     style: 'destructive',
-                    onPress: () => onDelete(post._id)
+                    onPress: async () => {
+                        // try {
+                        //     setIsLoader(true);
+
+                        //     await onDelete(post._id);
+
+                        // } catch (error) {
+                        //     console.log(error);
+                        // } finally {
+                        //     setIsLoader(false);
+                        // }
+
+                        await onDelete(post._id)
+                    }
                 }
             ]
         );
@@ -78,6 +97,7 @@ const PostCard = ({
 
     return (
         <View style={{ borderColor: COLORS.divider2 }}>
+            <Loader show={isDeleting || false} />
             <View style={{ flexDirection: 'row', borderBottomWidth: 0.2, borderColor: COLORS.divider2 }}>
 
 

@@ -1,9 +1,11 @@
-import { Alert, StyleSheet, Text, View } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { Notification } from '@/types'
 import { Feather } from '@expo/vector-icons'
 import { COLORS } from '@/constants/colors'
 import { Image } from 'expo-image'
+import SCText from './CustomText'
+import { formatDate } from '@/utils/formatters'
 
 interface NotificationCardProps {
     notification: Notification,
@@ -11,6 +13,9 @@ interface NotificationCardProps {
 }
 
 const NotificationCard = ({ notification, onDelete }: NotificationCardProps) => {
+
+    console.log("The Notification Details are: ", notification);
+
 
     const getNotificationText = () => {
         const name = `${notification.from.firstName} ${notification.from.lastName}`;
@@ -59,7 +64,7 @@ const NotificationCard = ({ notification, onDelete }: NotificationCardProps) => 
         <View style={{ borderColor: COLORS.gray100 }}>
             <View style={{ flexDirection: 'row', paddingHorizontal: 14, paddingVertical: 12 }}>
 
-                <View style={{ position: 'relative', marginRight: 20 }}>
+                <View style={{ position: 'relative', marginRight: 20, }}>
 
                     <Image
                         source={{ uri: notification.from.profilePicture }}
@@ -67,11 +72,11 @@ const NotificationCard = ({ notification, onDelete }: NotificationCardProps) => 
                         style={{
                             height: 40,
                             width: 40,
-                            borderRadius: 40 / 2
+                            borderRadius: 40 / 2,
                         }}
                     />
 
-                    <View style={{ position: 'absolute', bottom: 10, right: 10, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ position: 'absolute', top: 20, bottom: 10, right: 10, alignItems: 'center', justifyContent: 'center' }}>
 
                         {getNotificationIcon()}
 
@@ -79,8 +84,59 @@ const NotificationCard = ({ notification, onDelete }: NotificationCardProps) => 
 
                 </View>
 
+                <View style={{ flex: 1 }}>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+
+                        <View style={{ flex: 1 }}>
+                            <SCText color={COLORS.gray100} varient='semibold'>
+                                {notification?.from?.firstName} {notification?.from?.lastName}
+                            </SCText>
+
+                            <SCText size={12} color={COLORS.gray400}>@{notification?.from?.username}</SCText>
+                            <SCText style={{ marginTop: 4 }} color={COLORS.gray200}>{getNotificationText()}</SCText>
+                        </View>
+                        <TouchableOpacity style={{}} onPress={handleDelete}>
+                            <Feather name='trash' size={16} color={COLORS.redColor} />
+                        </TouchableOpacity>
+                    </View>
+
+                    {notification?.post && (
+                        <View style={{ backgroundColor: COLORS.themePrimary, borderTopEndRadius: 4, borderTopLeftRadius: 12, padding: 8, borderBottomLeftRadius: !notification?.comment ? 4 : 0, borderBottomRightRadius: !notification?.comment ? 12 : 0 }}>
+
+                            <SCText numberOfLines={3} color='white'>
+                                {notification?.post?.content}
+                            </SCText>
+                            {notification?.post.image && (
+                                <Image
+                                    source={{ uri: notification?.post?.image }}
+                                    style={{
+                                        height: 32,
+                                        width: 32,
+                                        borderRadius: 16,
+                                        resizeMode: 'cover'
+                                    }}
+
+                                />
+                            )}
+                        </View>
+                    )}
+
+                    {notification?.comment && (
+                        <View style={{ backgroundColor: COLORS.borderColorCard, borderBottomEndRadius: 12, paddingHorizontal: 8, borderBottomLeftRadius: 4 }}>
+                            <SCText color={COLORS.gray500}>Comment:</SCText>
+                            <SCText numberOfLines={2} color={COLORS.gray500}>
+                                &ldquo;{notification.comment.content}&rdquo;
+                            </SCText>
+                        </View>
+                    )}
+
+                    <SCText style={{ alignSelf: 'flex-end', paddingTop: 4 }} color='white'>{formatDate(notification.createdAt)}</SCText>
+
+                </View>
+
             </View>
-        </View>
+        </View >
     )
 }
 

@@ -1,4 +1,4 @@
-import { ActivityIndicator, KeyboardAvoidingView, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { Post } from '@/types'
 import { createCommentMutation } from '@/services/CommentService';
@@ -13,6 +13,7 @@ import { COLORS } from '@/constants/colors';
 import { Image } from 'expo-image';
 import Header from './Header';
 import GradientWrapper from './GradientWrapper';
+import Loader from './Loader';
 
 
 interface Comment {
@@ -35,6 +36,7 @@ const CommentsModal = ({ onClose, selectedPost, show }: Comment) => {
         content: yup.string().trim().required("This field is required")
     })
 
+
     return (
         <Modal
             visible={show}
@@ -43,262 +45,271 @@ const CommentsModal = ({ onClose, selectedPost, show }: Comment) => {
             presentationStyle='pageSheet'
         >
             <GradientWrapper style={{ flex: 1 }}>
-                <SafeAreaView style={{ flex: 1, marginTop: 10 }} edges={['top']}>
+                <Loader show={isPending} />
+                <KeyboardAvoidingView
+                    style={{ flex: 1 }}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    keyboardVerticalOffset={0}
+                >
+                    <SafeAreaView style={{ flex: 1, marginTop: 10 }} edges={['top']}>
 
-                    {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', }}>
+                        {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', }}>
 
                     <SCText>Comments</SCText>
                     <IconButton size={16} name='closeMore' onPress={onClose} />
 
                 </View> */}
 
-                    <Header leftTitle='Comments' showClose onClose={onClose} />
+                        <Header leftTitle='Comments' showClose onClose={onClose} />
 
-                    <View style={{ flex: 1, paddingHorizontal: 12 }}>
-                        {selectedPost && (
-                            <ScrollView
-                                style={{
-                                    flex: 1,
-                                }}
-                                contentContainerStyle={{
-                                    paddingBottom: 20,
-                                }}
-                            >
-                                <View
+                        <View style={{ flex: 1, paddingHorizontal: 12 }}>
+                            {selectedPost && (
+                                <ScrollView
                                     style={{
-                                        // backgroundColor: COLORS.white,
-                                        borderRadius: 12,
-                                        marginTop: 15,
-
+                                        flex: 1,
+                                    }}
+                                    contentContainerStyle={{
+                                        paddingBottom: 20,
                                     }}
                                 >
                                     <View
                                         style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'flex-start',
-                                            justifyContent: 'center',
-                                            // alignItems: 'center'
+                                            // backgroundColor: COLORS.white,
+                                            borderRadius: 12,
+                                            marginTop: 15,
+
                                         }}
                                     >
-
-                                        <Image
-                                            source={{ uri: selectedPost.user.profilePicture }}
-                                            contentFit="cover"
-                                            style={{
-                                                height: 48,
-                                                width: 48,
-                                                borderRadius: 24,
-                                                marginRight: 10,
-                                            }}
-                                        />
-
-                                        {/* Right Content */}
                                         <View
                                             style={{
-                                                flex: 1,
+                                                flexDirection: 'row',
+                                                alignItems: 'flex-start',
+                                                justifyContent: 'center',
+                                                // alignItems: 'center'
                                             }}
                                         >
-                                            {/* Name + Username */}
-                                            <View
-                                                style={{
-                                                    flexDirection: 'row',
-                                                    alignItems: 'center',
-                                                    flexWrap: 'wrap',
-                                                }}
-                                            >
-                                                <SCText
-
-                                                    varient='semibold'
-                                                    color='white'
-                                                    style={{
-                                                        marginRight: 5,
-
-                                                    }}
-                                                >
-                                                    {selectedPost.user.firstName} {selectedPost.user.lastName}
-                                                </SCText>
-
-                                                <SCText
-                                                    color={COLORS.gray500}
-                                                >
-                                                    @{selectedPost.user.username}
-                                                </SCText>
-                                            </View>
-
-
-                                            {selectedPost.content && (
-                                                <SCText
-                                                    color='white'
-
-                                                    style={{
-
-                                                        marginTop: 4,
-                                                        lineHeight: 20,
-
-                                                    }}
-                                                >
-                                                    {selectedPost.content}
-                                                </SCText>
-                                            )}
-
-                                            {selectedPost.image && (
-                                                <Image
-                                                    contentFit='cover'
-                                                    source={{ uri: selectedPost.image }}
-                                                    style={{
-                                                        height: 200,
-                                                        width: '100%',
-                                                        borderRadius: 12,
-                                                        marginTop: 10
-                                                    }}
-                                                />
-                                            )}
-                                        </View>
-                                    </View>
-                                </View>
-
-                                {/* {Comment List} */}
-
-                                {selectedPost.comments.map((comment, index) => (
-                                    <View key={comment._id}
-                                        style={{
-                                            // backgroundColor: COLORS.white,
-                                            borderColor: COLORS.gray100,
-                                            borderBottomWidth: index === selectedPost.comments.length - 1 ? 0 : 0.2,
-                                            paddingVertical: 8
-                                        }}
-                                    >
-
-                                        <View style={{
-                                            flexDirection: 'row',
-                                            gap: 8,
-                                            marginTop: 15
-                                        }}>
 
                                             <Image
-
-                                                source={{ uri: comment.user.profilePicture || "" }}
-                                                contentFit='cover'
+                                                source={{ uri: selectedPost.user.profilePicture }}
+                                                contentFit="cover"
                                                 style={{
-                                                    width: 20,
-                                                    height: 20,
-                                                    borderRadius: 20 / 2
+                                                    height: 48,
+                                                    width: 48,
+                                                    borderRadius: 24,
+                                                    marginRight: 10,
                                                 }}
                                             />
 
-                                            <View style={{ flex: 1 }}>
-                                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                            {/* Right Content */}
+                                            <View
+                                                style={{
+                                                    flex: 1,
+                                                }}
+                                            >
+                                                {/* Name + Username */}
+                                                <View
+                                                    style={{
+                                                        flexDirection: 'row',
+                                                        alignItems: 'center',
+                                                        flexWrap: 'wrap',
+                                                    }}
+                                                >
                                                     <SCText
+
+                                                        varient='semibold'
+                                                        color='white'
                                                         style={{
-                                                            fontWeight: 'bold',
-                                                            color: COLORS.gray500
+                                                            marginRight: 5,
+
                                                         }}
                                                     >
-                                                        {comment.user.firstName}{comment.user.lastName}
+                                                        {selectedPost.user.firstName} {selectedPost.user.lastName}
                                                     </SCText>
 
-                                                    <SCText varient='bold' color={COLORS.gray500}>
-                                                        {comment.user.username}
+                                                    <SCText
+                                                        color={COLORS.gray500}
+                                                    >
+                                                        @{selectedPost.user.username}
                                                     </SCText>
                                                 </View>
 
-                                                <SCText color={COLORS.white}>
-                                                    {comment.content}
-                                                </SCText>
+
+                                                {selectedPost.content && (
+                                                    <SCText
+                                                        color='white'
+
+                                                        style={{
+
+                                                            marginTop: 4,
+                                                            lineHeight: 20,
+
+                                                        }}
+                                                    >
+                                                        {selectedPost.content}
+                                                    </SCText>
+                                                )}
+
+                                                {selectedPost.image && (
+                                                    <Image
+                                                        contentFit='cover'
+                                                        source={{ uri: selectedPost.image }}
+                                                        style={{
+                                                            height: 200,
+                                                            width: '100%',
+                                                            borderRadius: 12,
+                                                            marginTop: 10
+                                                        }}
+                                                    />
+                                                )}
+                                            </View>
+                                        </View>
+                                    </View>
+
+                                    {/* {Comment List} */}
+
+                                    {selectedPost.comments.map((comment, index) => (
+                                        <View key={comment._id}
+                                            style={{
+                                                // backgroundColor: COLORS.white,
+                                                borderColor: COLORS.gray100,
+                                                borderBottomWidth: index === selectedPost.comments.length - 1 ? 0 : 0.2,
+                                                paddingVertical: 8
+                                            }}
+                                        >
+
+                                            <View style={{
+                                                flexDirection: 'row',
+                                                gap: 8,
+                                                marginTop: 15
+                                            }}>
+
+                                                <Image
+
+                                                    source={{ uri: comment.user.profilePicture || "" }}
+                                                    contentFit='cover'
+                                                    style={{
+                                                        width: 20,
+                                                        height: 20,
+                                                        borderRadius: 20 / 2
+                                                    }}
+                                                />
+
+                                                <View style={{ flex: 1 }}>
+                                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                        <SCText
+                                                            style={{
+                                                                fontWeight: 'bold',
+                                                                color: COLORS.gray500
+                                                            }}
+                                                        >
+                                                            {comment.user.firstName}{comment.user.lastName}
+                                                        </SCText>
+
+                                                        <SCText varient='bold' color={COLORS.gray500}>
+                                                            {comment.user.username}
+                                                        </SCText>
+                                                    </View>
+
+                                                    <SCText color={COLORS.white}>
+                                                        {comment.content}
+                                                    </SCText>
+
+                                                </View>
 
                                             </View>
 
                                         </View>
+                                    ))}
+
+                                    <View >
 
                                     </View>
-                                ))}
 
-                                <View >
-                                    <Formik
-                                        initialValues={{ content: '' }}
-                                        validationSchema={validationSchema}
-                                        onSubmit={async (values, { resetForm }) => {
-                                            try {
-                                                await mutateAsync({
-                                                    postId: selectedPost._id,
-                                                    content: values.content,
-                                                });
+                                </ScrollView>
+                            )}
 
-                                                resetForm();
+                        </View>
+                        <Formik
+                            initialValues={{ content: '' }}
+                            validationSchema={validationSchema}
+                            onSubmit={async (values, { resetForm }) => {
+                                try {
+                                    await mutateAsync({
+                                        postId: selectedPost._id,
+                                        content: values.content,
+                                    });
 
-                                            } catch (error) {
-                                                console.log(error);
-                                            }
+                                    resetForm();
+
+                                } catch (error) {
+                                    console.log(error);
+                                }
+                            }}
+                        >
+                            {({
+                                handleChange,
+                                handleBlur,
+                                handleSubmit,
+                                values,
+                                errors,
+                                touched,
+                            }) => (
+                                <View
+                                    style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'flex-start',
+                                        paddingHorizontal: 20,
+                                        paddingVertical: 10,
+                                        paddingBottom: Platform.OS === 'ios' ? 26 : 0,
+                                    }}
+                                >
+
+                                    <View
+                                        style={{
+                                            flex: 1,
+                                            marginRight: 10,
                                         }}
                                     >
-                                        {({
-                                            handleChange,
-                                            handleBlur,
-                                            handleSubmit,
-                                            values,
-                                            errors,
-                                            touched,
-                                        }) => (
-                                            <KeyboardAvoidingView
-                                                style={{
-                                                    marginTop: 15,
-                                                    flexDirection: 'row',
-                                                    alignItems: 'flex-start',
-                                                }}
-                                            >
-
-                                                <View
-                                                    style={{
-                                                        flex: 1,
-                                                        marginRight: 10,
-                                                    }}
-                                                >
-                                                    <SCTextInput
-                                                        onChangeText={handleChange('content')}
-                                                        onBlur={handleBlur('content')}
-                                                        value={values.content}
-                                                        placeholder="Add Comment"
-                                                        error={[errors.content, touched.content]}
-                                                    />
+                                        <SCTextInput
+                                            onChangeText={handleChange('content')}
+                                            onBlur={handleBlur('content')}
+                                            value={values.content}
+                                            placeholder="Add Comment"
+                                        // error={[errors.content, touched.content]}
+                                        />
 
 
-                                                </View>
+                                    </View>
 
-                                                <TouchableOpacity
-                                                    onPress={() => handleSubmit()}
-                                                    style={{
-                                                        backgroundColor: COLORS.lightBlue,
-                                                        paddingVertical: 14,
-                                                        paddingHorizontal: 14,
-                                                        borderRadius: 8,
-                                                        justifyContent: 'center',
-                                                        alignItems: 'center',
-                                                        marginTop: 2,
-                                                    }}
+                                    <TouchableOpacity
+                                        onPress={() => handleSubmit()}
+                                        style={{
+                                            backgroundColor: COLORS.lightBlue,
+                                            paddingVertical: 14,
+                                            paddingHorizontal: 14,
+                                            borderRadius: 8,
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginTop: 2,
+                                        }}
 
 
-                                                >
-                                                    {isPending ?
-                                                        <View style={{
-                                                            paddingHorizontal: 14,
-                                                        }}>
-                                                            <ActivityIndicator color={'white'} size={'small'} />
-                                                        </View> :
-                                                        <SCText color={COLORS.white}>
-                                                            Comment
-                                                        </SCText>}
-                                                </TouchableOpacity>
-                                            </KeyboardAvoidingView>
-                                        )}
-                                    </Formik>
+                                    >
+                                        {isPending ?
+                                            <View style={{
+                                                paddingHorizontal: 14,
+                                            }}>
+                                                <ActivityIndicator color={'white'} size={'small'} />
+                                            </View> :
+                                            <SCText color={COLORS.white}>
+                                                Comment
+                                            </SCText>}
+                                    </TouchableOpacity>
                                 </View>
-
-                            </ScrollView>
-                        )}
-
-                    </View>
-
-                </SafeAreaView>
+                            )}
+                        </Formik>
+                    </SafeAreaView>
+                </KeyboardAvoidingView>
             </GradientWrapper>
         </Modal >
     )

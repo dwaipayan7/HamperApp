@@ -7,6 +7,7 @@ import PostCard from './PostCard'
 import { Post } from '../types/index';
 import CommentsModal from './CommentsModal'
 import { COLORS } from '@/constants/colors'
+import { useDeletePost, useLikePost } from '@/services/PostService'
 
 const PostsList = () => {
 
@@ -14,13 +15,17 @@ const PostsList = () => {
 
     const { currentUser, } = useCurrentUser()
 
-    const { deletePost, posts, isLoading, refetch, toggleLike, checkIsLiked, error } = usePosts();
+    const { posts, isLoading, refetch, checkIsLiked, error, } = usePosts();
+
+    const { mutateAsync: deletePost, isPending: isDeleting } = useDeletePost()
+
+    const { mutateAsync: likePost, isPending: isLiking } = useLikePost()
 
     const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
 
     const selectedPost = selectedPostId ? posts.find((p: Post) => p._id === selectedPostId) : null;
 
-
+    const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
 
     console.log("THe currentUser data is: ", currentUser);
 
@@ -76,14 +81,31 @@ const PostsList = () => {
                     return <PostCard
                         key={index}
                         post={item}
-                        onLike={toggleLike}
+                        onLike={() => {
+                            console.log("The liked post id is: ", item._id);
+
+                            likePost(item._id)
+                        }}
                         onComment={(post: Post) => {
                             setVisibleModal(true);
                             setSelectedPostId(post._id);
                         }}
-                        onDelete={deletePost}
+                        // onDelete={async (postId: string) => deletePost(postId)}
+                        onDelete={async (postId: string) => {
+                            try {
+                                setDeletingPostId(postId);
+
+                                await deletePost(postId);
+
+                            } catch (error) {
+                                console.log(error);
+                            } finally {
+                                setDeletingPostId(null);
+                            }
+                        }}
                         currentUser={currentUser}
                         isLiked={checkIsLiked(item.likes, currentUser)}
+                        isDeleting={deletingPostId === item._id}
                     />
                 }}
                 contentContainerStyle={{
