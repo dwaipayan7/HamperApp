@@ -14,19 +14,41 @@ import {
 import { router } from "expo-router";
 import SCText from "@/components/CustomText";
 import { deviceWidth } from "@/utils/AllContext";
+import { useDispatch, useSelector } from "react-redux";
+import { selectIsAuthenticated, setAuthenticated } from "@/redux/slices/AuthSlice";
 
 export default function Index() {
+
+  const dispatch = useDispatch();
+
   const { handleSocialAuth, isLoading } = useSocialAuth();
 
-  const { isSignedIn } = useAuth({
+  const { isSignedIn, isLoaded } = useAuth({
     treatPendingAsSignedOut: false,
   });
 
+  const isAuthenticated = useSelector(
+    selectIsAuthenticated
+  );
+
   useEffect(() => {
-    if (isSignedIn) {
+
+    if (!isLoaded) {
+      return;
+    }
+
+    if (!isSignedIn) {
+      dispatch(setAuthenticated(false))
+    } else {
+      dispatch(setAuthenticated(true))
+
+    }
+
+
+    if (isAuthenticated) {
       router.replace("/(drawer)/(tabs)");
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, isAuthenticated]);
 
   return (
     <LinearGradient
