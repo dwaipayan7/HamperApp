@@ -117,7 +117,7 @@ const PostCard = ({
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
 
 
-                        <View style={{ ...globalStyles.rowBetweeen, flex: 1 }}>
+                        <View style={{ ...globalStyles.rowBetweeen, gap: 5 }}>
                             <View style={{ alignItems: 'flex-start' }}>
                                 <SCText varient='medium' color={COLORS.white}>
                                     {post.user.firstName}  {post.user.lastName}
@@ -126,8 +126,8 @@ const PostCard = ({
                                     @{post.user.username}
                                 </SCText>
                             </View>
-                            <SCText style={{ textAlign: 'right' }} color={COLORS.gray400}>
-                                {formatDate(post.createdAt)}
+                            <SCText style={{}} color={COLORS.gray400}>
+                                • {formatDate(post.createdAt)}
                             </SCText>
                         </View>
                         {isOwnPost && (

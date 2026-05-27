@@ -5,11 +5,13 @@ import { LinearGradient } from "expo-linear-gradient";
 interface GradientWrapperProps {
     children: React.ReactNode;
     style?: ViewStyle;
+    hideGlow?: boolean
 }
 
 const GradientWrapper = ({
     children,
     style,
+    hideGlow
 }: GradientWrapperProps) => {
     return (
         <LinearGradient
@@ -17,7 +19,7 @@ const GradientWrapper = ({
             locations={[0, 0.4, 0.75, 1]}
             style={[styles.container, style]}
         >
-            <LinearGradient
+            {!hideGlow && <LinearGradient
                 colors={[
                     "rgba(168,85,247,0.30)",
                     "rgba(168,85,247,0.10)",
@@ -26,7 +28,7 @@ const GradientWrapper = ({
                 start={{ x: 0.5, y: 0 }}
                 end={{ x: 0.5, y: 1 }}
                 style={styles.glow}
-            />
+            />}
 
             {children}
         </LinearGradient>
