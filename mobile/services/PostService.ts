@@ -2,6 +2,12 @@ import { queryClient } from "@/app/_layout";
 import { useApi } from "@/hooks/useAPi";
 import { ApiUtility } from "@/utils/api";
 import { useMutation } from "@tanstack/react-query";
+import QueryKeys from "./QueryKeys";
+
+export interface CreatePostPayload {
+  content: string;
+  imageUri?: string;
+}
 
 const apiUtility = ApiUtility.getInstance();
 
@@ -50,6 +56,36 @@ export const useRepostPost = () => {
 
       queryClient.invalidateQueries({
         queryKey: ["userPosts"],
+      });
+    },
+  });
+};
+
+export const useCreatePost = () => {
+  return useMutation({
+    mutationFn: async ({ content, imageUri }: CreatePostPayload) => {
+      const formData = new FormData();
+      if (content) {
+        formData.append("content", content);
+      }
+
+      if (imageUri) {
+        const uriParts = imageUri.split(".");
+        const fileType = uriParts[uriParts.length - 1];
+
+        formData.append("image", {
+          uri: imageUri,
+          name: fileType,
+          type: fileType,
+        } as any);
+      }
+
+      return apiUtility.postForm("/posts", formData);
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.PostKey.posts],
       });
     },
   });
