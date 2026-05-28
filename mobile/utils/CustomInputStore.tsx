@@ -66,10 +66,16 @@ interface ICCTextInput extends TextInputProps, IValidationError, IBasicProps {
 
 }
 
+const MIN_HEIGHT = 40;
+const MAX_HEIGHT = 140;
+
+
+
 export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
     leftIcon?: React.ReactNode;
     prefix?: string;
-    radius?: number
+    radius?: number;
+    extendingField?: boolean
 }>((props, ref) => {
     const {
         label,
@@ -85,11 +91,13 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
         onBlur,
         labelSize,
         radius,
+        extendingField,
         ...rest
     } = props;
 
     const [isFocused, setIsFocused] = useState(false);
-
+    const [inputHeight, setInputHeight] =
+        useState(MIN_HEIGHT);
     return (
         <View style={[styles.wrapper, wrapperStyle]}>
             {label && <SCText size={labelSize || 14} style={labelStyle}>{label}</SCText>}
@@ -116,11 +124,29 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
                 }
 
                 <TextInput
-                    // ref={ref}
+                    ref={ref}
+                    autoCorrect
+                    multiline={extendingField}
                     editable={editable}
+                    maxLength={200}
                     allowFontScaling={false}
-                    placeholderTextColor={editable ? props.placeholderTextColor || COLORS.dotColor : COLORS.disabledPlaceholderTextColor}
+                    textAlignVertical="top"
+                    placeholderTextColor={
+                        editable
+                            ? props.placeholderTextColor || COLORS.dotColor
+                            : COLORS.disabledPlaceholderTextColor
+                    }
                     {...rest}
+                    onChangeText={(text) => {
+
+                        // call parent onChangeText
+                        rest.onChangeText?.(text);
+
+                        // reset height when empty
+                        if (extendingField && text.trim().length === 0) {
+                            setInputHeight(MIN_HEIGHT);
+                        }
+                    }}
                     onFocus={e => {
                         setIsFocused(true);
                         onFocus?.(e);
@@ -129,12 +155,47 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
                         setIsFocused(false);
                         onBlur?.(e);
                     }}
+                    scrollEnabled={
+                        extendingField
+                            ? inputHeight >= MAX_HEIGHT
+                            : false
+                    }
+                    onContentSizeChange={(event) => {
+
+                        if (!extendingField) return;
+
+                        const height =
+                            event.nativeEvent.contentSize.height;
+
+                        setInputHeight(
+                            Math.min(
+                                MAX_HEIGHT,
+                                Math.max(MIN_HEIGHT, height)
+                            )
+                        );
+                    }}
                     style={[
                         {
-                            height: isTablet ? 60 : (46),
+                            height: extendingField
+                                ? undefined
+                                : isTablet
+                                    ? 60
+                                    : 46,
+
+                            minHeight: extendingField
+                                ? inputHeight
+                                : undefined,
+
+                            maxHeight: extendingField
+                                ? MAX_HEIGHT
+                                : undefined,
+
                             fontFamily: 'Figtree-Regular',
                             fontSize: font(14),
+
                             paddingHorizontal: leftIcon ? 36 : 12,
+                            paddingVertical: extendingField ? 10 : 0,
+
                             borderWidth: 1,
                             borderColor: '#ccc',
                             borderRadius: radius || 8,
@@ -142,13 +203,32 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
                         },
 
                         style,
-                        (leftIcon || prefix) ? styles.inputWithLeft : undefined,
-                        rightIcon ? styles.inputWithRight : undefined,
+
+                        (leftIcon || prefix)
+                            ? styles.inputWithLeft
+                            : undefined,
+
+                        rightIcon
+                            ? styles.inputWithRight
+                            : undefined,
+
                         {
-                            color: editable ? COLORS.textBlack : COLORS.themePrimary,
+                            color: editable
+                                ? COLORS.textBlack
+                                : COLORS.themePrimary,
+
                             borderWidth: editable ? 1 : 0,
-                            borderColor: editable ? !isFocused ? COLORS.divider2 : COLORS.lightBlue : '',
-                            backgroundColor: editable ? COLORS.white : COLORS.disabledInputBg,
+
+                            borderColor: editable
+                                ? !isFocused
+                                    ? COLORS.divider2
+                                    : COLORS.lightBlue
+                                : '',
+
+                            backgroundColor: editable
+                                ? COLORS.white
+                                : COLORS.disabledInputBg,
+
                             paddingLeft: prefix ? 20 : undefined,
                         }
                     ]}

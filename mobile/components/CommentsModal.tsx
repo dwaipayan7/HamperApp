@@ -1,12 +1,13 @@
 import {
     ActivityIndicator,
+    Alert,
     StyleSheet,
     TouchableOpacity,
     View,
 } from 'react-native';
 import React, { useEffect, useRef } from 'react';
 import { Post } from '@/types';
-import { createCommentMutation } from '@/services/CommentService';
+import { createCommentMutation, deleteCommentMutation, likeCommentMutation, useGetCommentById } from '@/services/CommentService';
 import { Formik } from 'formik';
 import * as yup from 'yup';
 import SCText from './CustomText';
@@ -16,8 +17,11 @@ import { COLORS } from '@/constants/colors';
 import { Image } from 'expo-image';
 import Header from './Header';
 import GradientWrapper from './GradientWrapper';
-import Loader from './Loader';
 import ActionSheet, { ActionSheetRef, ScrollView } from 'react-native-actions-sheet';
+import { AntDesign, Feather } from '@expo/vector-icons';
+import { formatNumber } from '@/utils/formatters';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import Loader from './Loader';
 
 interface CommentProps {
     selectedPost: Post;
@@ -28,6 +32,18 @@ interface CommentProps {
 const CommentsModal = ({ show, onClose, selectedPost }: CommentProps) => {
     const actionSheetRef = useRef<ActionSheetRef>(null);
 
+
+    // const { data } = useGetCommentById(selectedPost._id)
+    // const comments = data?.result?.comments || [];
+
+    console.log("The Commented Post is: ", selectedPost?.comments);
+
+
+    const { currentUser } = useCurrentUser();
+
+    const { mutateAsync: likeComment, } = likeCommentMutation();
+    const { mutateAsync: deleteComment, isPending } = deleteCommentMutation();
+
     useEffect(() => {
         if (show) {
             actionSheetRef.current?.show();
@@ -36,7 +52,7 @@ const CommentsModal = ({ show, onClose, selectedPost }: CommentProps) => {
         }
     }, [show]);
 
-    const { mutateAsync, isPending } = createCommentMutation();
+    const { mutateAsync, } = createCommentMutation();
 
     const validationSchema = yup.object().shape({
         content: yup.string().trim().required('Required'),
@@ -56,7 +72,7 @@ const CommentsModal = ({ show, onClose, selectedPost }: CommentProps) => {
             }}
         >
             <GradientWrapper hideGlow style={{ flex: 1 }}>
-                {/* <Loader show={isPending} /> */}
+                <Loader show={isPending} />
 
                 <SafeAreaView style={{ flex: 1 }}>
                     <Header
@@ -143,38 +159,137 @@ const CommentsModal = ({ show, onClose, selectedPost }: CommentProps) => {
                         }} />
 
 
-                        {selectedPost.comments.map((comment, index) => (
-                            <View
-                                key={comment._id}
-                                style={{
-                                    borderColor: COLORS.gray100,
-                                    borderBottomWidth:
-                                        index === selectedPost.comments.length - 1 ? 0 : 0.2,
-                                    paddingVertical: 8,
-                                }}
-                            >
-                                <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
-                                    <Image
-                                        source={{ uri: comment.user.profilePicture || '' }}
-                                        contentFit='cover'
-                                        style={{ width: 32, height: 32, borderRadius: 16 }}
-                                    />
-                                    <View style={{ flex: 1 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                            <SCText varient='semibold' color={COLORS.white}>
-                                                {comment.user.firstName} {comment.user.lastName}
-                                            </SCText>
-                                            <SCText color={COLORS.gray500}>
-                                                @{comment.user.username}
+                        {selectedPost?.comments?.map((comment, index) => {
+                            // const isLiked = comment.likes?.includes(currentUser._id);
+                            return (
+                                <View
+                                    key={comment?._id}
+                                    style={{
+                                        borderColor: COLORS.gray100,
+                                        borderBottomWidth:
+                                            index === selectedPost.comments.length - 1 ? 0 : 0.2,
+                                        paddingVertical: 8,
+                                    }}
+                                >
+                                    <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                                        <Image
+                                            source={{ uri: comment.user.profilePicture || '' }}
+                                            contentFit='cover'
+                                            style={{ width: 32, height: 32, borderRadius: 16 }}
+                                        />
+                                        <View style={{ flex: 1 }}>
+
+                                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                                    <SCText varient='semibold' color={COLORS.white}>
+                                                        {comment.user.firstName} {comment.user.lastName}
+                                                    </SCText>
+                                                    <SCText color={COLORS.gray500}>
+                                                        @{comment.user.username}
+                                                    </SCText>
+                                                </View>
+
+
+                                                <TouchableOpacity
+                                                    onPress={() => {
+                                                        Alert.alert(
+                                                            "Delete Comment",
+                                                            "Are you sure you want to delete this comment?",
+                                                            [
+                                                                {
+                                                                    text: "Cancel",
+                                                                    style: 'cancel'
+                                                                },
+                                                                {
+                                                                    text: 'Delete',
+                                                                    style: 'destructive',
+                                                                    onPress: async () => {
+                                                                        try {
+                                                                            await deleteComment(comment._id)
+                                                                        } catch (error) {
+
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        )
+
+                                                    }}
+                                                >
+                                                    <Feather name='trash' size={20} color={COLORS.redColor} />
+                                                </TouchableOpacity>
+                                            </View>
+                                            <SCText color={COLORS.white} style={{ marginTop: 2 }}>
+                                                {comment.content}
                                             </SCText>
                                         </View>
-                                        <SCText color={COLORS.white} style={{ marginTop: 2 }}>
-                                            {comment.content}
+                                    </View>
+
+                                    {/* <View style={{}}>
+
+                                </View> */}
+
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '90%', paddingVertical: 10 }}>
+
+                                        {/* <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }} onPress={() => { }}>
+
+                                        <Feather name='message-circle' size={24} color={'#657786'} />
+                                        <SCText style={{ color: COLORS.gray500, fontSize: 14, }}>
+                                            {formatNumber(comment.comments?.length || 0)}
                                         </SCText>
+                                    </TouchableOpacity> */}
+
+
+                                        {/* <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }} onPress={() => { }}>
+
+                                        <Feather name='repeat' size={24} color={'#657786'} />
+                                        <SCText style={{ color: COLORS.gray500, fontSize: 14, }}>
+                                            {post?.repostCount || 0}
+                                        </SCText>
+                                    </TouchableOpacity> */}
+
+
+                                        <TouchableOpacity
+                                            style={{
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                                gap: 5,
+                                            }}
+                                            onPress={() => likeComment(comment._id)}
+                                        >
+                                            {comment.likes?.includes(currentUser?._id) ? (
+                                                <AntDesign
+                                                    name='heart'
+                                                    size={24}
+                                                    color={COLORS.redColor}
+                                                />
+                                            ) : (
+                                                <Feather
+                                                    name='heart'
+                                                    size={24}
+                                                    color={'#657786'}
+                                                />
+                                            )}
+
+                                            <SCText
+                                                style={{
+                                                    fontSize: 14,
+                                                    color: comment.likes?.includes(currentUser?._id)
+                                                        ? COLORS.textColorRed
+                                                        : COLORS.gray500,
+                                                }}
+                                            >
+                                                {formatNumber(comment.likes?.length || 0)}
+                                            </SCText>
+                                        </TouchableOpacity>
+
+
+
+
                                     </View>
                                 </View>
-                            </View>
-                        ))}
+                            )
+                        })}
 
                     </ScrollView>
 
@@ -201,6 +316,7 @@ const CommentsModal = ({ show, onClose, selectedPost }: CommentProps) => {
                                         value={values.content}
                                         onChangeText={handleChange('content')}
                                         onBlur={handleBlur('content')}
+                                        extendingField
                                     />
                                 </View>
 
@@ -240,7 +356,7 @@ const styles = StyleSheet.create({
     },
     submitButton: {
         backgroundColor: COLORS.lightBlue,
-        paddingVertical: 14,
+        paddingVertical: 12,
         paddingHorizontal: 16,
         borderRadius: 8,
         justifyContent: 'center',

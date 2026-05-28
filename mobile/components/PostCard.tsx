@@ -38,11 +38,7 @@ const PostCard = ({
     const [isImageView, setIsImageView] = useState<boolean>(false)
     const [showModal, setShowModal] = useState<boolean>(false)
 
-
-
-
-    const isOwnPost =
-        post?.user?._id === currentUser?._id;
+    const isOwnPost = post?.user?._id === currentUser?._id;
 
     const handleDelete = () => {
         Alert.alert(
