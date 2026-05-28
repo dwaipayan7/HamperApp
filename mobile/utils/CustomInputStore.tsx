@@ -69,6 +69,7 @@ interface ICCTextInput extends TextInputProps, IValidationError, IBasicProps {
 export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
     leftIcon?: React.ReactNode;
     prefix?: string;
+    radius?: number
 }>((props, ref) => {
     const {
         label,
@@ -83,6 +84,7 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
         onFocus,
         onBlur,
         labelSize,
+        radius,
         ...rest
     } = props;
 
@@ -128,7 +130,16 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
                         onBlur?.(e);
                     }}
                     style={[
-                        styles.input,
+                        {
+                            height: isTablet ? 60 : (46),
+                            fontFamily: 'Figtree-Regular',
+                            fontSize: font(14),
+                            paddingHorizontal: leftIcon ? 36 : 12,
+                            borderWidth: 1,
+                            borderColor: '#ccc',
+                            borderRadius: radius || 8,
+                            backgroundColor: '#fff',
+                        },
 
                         style,
                         (leftIcon || prefix) ? styles.inputWithLeft : undefined,
@@ -689,14 +700,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     input: {
-        height: isTablet ? 60 : (46),
-        fontFamily: 'Figtree-Regular',
-        fontSize: font(14),
-        paddingHorizontal: 12,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        backgroundColor: '#fff',
+
     },
     errorBorder: {
         borderColor: 'red',
@@ -735,9 +739,12 @@ const styles = StyleSheet.create({
     // },
 
     leftContainer: {
-        flexDirection: 'row',
+        position: 'absolute',
+        left: 12,
+        zIndex: 10,
+        height: '100%',
+        justifyContent: 'center',
         alignItems: 'center',
-        paddingLeft: 12,
     },
 
     prefix: {

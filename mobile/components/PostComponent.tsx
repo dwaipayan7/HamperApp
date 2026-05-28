@@ -69,7 +69,7 @@ const PostComponent = () => {
                     <TextInput
                         autoCorrect={true}
                         placeholder="What's happening?"
-                        placeholderTextColor="#657786"
+                        placeholderTextColor={COLORS.lightGray}
                         multiline
                         value={content}
                         onChangeText={setContent}
@@ -176,7 +176,7 @@ const PostComponent = () => {
                     {isCreating ? (
                         <ActivityIndicator size={'small'} color={'white'} />
                     ) : (
-                        <SCText varient='semibold' color={content.trim() || selectedImage ? COLORS.neutralColor : COLORS.gray300} >
+                        <SCText varient='semibold' color={content.trim() || selectedImage ? COLORS.neutralColor : COLORS.lightGray} >
                             Post
 
                         </SCText>

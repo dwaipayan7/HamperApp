@@ -31,5 +31,6 @@ export const COLORS = {
     secondaryColor: '#bf94ff',
     neutralColor: '#0d0b14',
     teriaryColor: '#6420c8',
-    gardientColors: ['#05010D', '#140821', '#24103D', '#05010D']
+    gardientColors: ['#05010D', '#140821', '#24103D', '#05010D'],
+    lightGray: '#657786'
 }   

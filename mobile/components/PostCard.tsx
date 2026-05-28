@@ -11,6 +11,7 @@ import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import Loader from './Loader';
 import { globalStyles } from '@/utils/globalStyles';
+import RequestRepostModal from '@/modal/RequestRepostModal';
 interface PostCardProps {
     post: Post;
     onLike: (postId: string) => void;
@@ -35,7 +36,7 @@ const PostCard = ({
     console.log("Liked Data is: ", post.likes?.length);
 
     const [isImageView, setIsImageView] = useState<boolean>(false)
-    const [showLoader, setIsLoader] = useState<boolean>(false)
+    const [showModal, setShowModal] = useState<boolean>(false)
 
 
 
@@ -125,6 +126,28 @@ const PostCard = ({
                                 <SCText color='#6B7280' >
                                     @{post.user.username}
                                 </SCText>
+
+                                {post.repostOf && (
+                                    <View
+                                        style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            gap: 5,
+                                            marginBottom: 4,
+                                            marginTop: 4,
+                                        }}
+                                    >
+                                        <Feather
+                                            name="repeat"
+                                            size={14}
+                                            color={COLORS.gray500}
+                                        />
+
+                                        <SCText color={COLORS.gray500}>
+                                            {post.user.firstName} reposted
+                                        </SCText>
+                                    </View>
+                                )}
                             </View>
                             <SCText style={{}} color={COLORS.gray400}>
                                 • {formatDate(post.createdAt)}
@@ -132,7 +155,7 @@ const PostCard = ({
                         </View>
                         {isOwnPost && (
                             <TouchableOpacity onPress={handleDelete}>
-                                <Feather name='trash' size={20} color={'#657786'} />
+                                <Feather name='trash' size={20} color={COLORS.redColor} />
                             </TouchableOpacity>
                         )}
                     </View>
@@ -180,11 +203,11 @@ const PostCard = ({
                         </TouchableOpacity>
 
 
-                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }} onPress={() => { }}>
+                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }} onPress={() => setShowModal(true)}>
 
                             <Feather name='repeat' size={24} color={'#657786'} />
                             <Text style={{ color: COLORS.gray500, fontSize: 14, }}>
-                                0
+                                {post?.repostCount || 0}
                             </Text>
                         </TouchableOpacity>
 
@@ -227,6 +250,12 @@ const PostCard = ({
 
 
             </View>
+
+            <RequestRepostModal
+                show={showModal}
+                close={() => setShowModal(false)}
+                postId={post._id}
+            />
         </View >
     );
 };

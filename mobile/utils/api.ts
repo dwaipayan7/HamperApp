@@ -1,7 +1,9 @@
 import { showSnackbar } from "@/redux/slices/snackbarSlice";
+import { store } from "@/redux/store/store";
 import { useAuth } from "@clerk/expo";
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import { Platform } from "react-native";
+import { useDispatch } from "react-redux";
 
 // const API_BASE_URL = "http://192.168.1.50:3000/api";
 
@@ -51,7 +53,9 @@ export interface IApiResponse<T = any> {
 //   return createApiClient(getToken);
 // };
 
-class ApiUtility {
+export class ApiUtility {
+  // dispatch = useDispatch();
+
   private static instance: ApiUtility;
 
   private api: AxiosInstance;
@@ -96,7 +100,19 @@ class ApiUtility {
 
     //For response
     this.api.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        // SUCCESS MESSAGE
+        if (response?.data?.message) {
+          store.dispatch(
+            showSnackbar({
+              message: response.data.message,
+              variant: "success",
+            }),
+          );
+        }
+
+        return response;
+      },
 
       async (error) => {
         let message = "Something went wrong";
@@ -104,13 +120,19 @@ class ApiUtility {
         if (!error.response) {
           message = "Network error. Check internet connection.";
         } else {
-          message = error?.response?.data?.message || error.message;
+          message =
+            error?.response?.data?.error ||
+            error?.response?.data?.message ||
+            error.message ||
+            error;
         }
 
-        showSnackbar({
-          message: error,
-          variant: "error",
-        });
+        store.dispatch(
+          showSnackbar({
+            message,
+            variant: "error",
+          }),
+        );
 
         return Promise.reject(error);
       },

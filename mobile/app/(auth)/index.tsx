@@ -201,8 +201,8 @@ export default function Index() {
                 <Image
                   source={require("../../assets/images/apple.png")}
                   style={{
-                    width: 24,
-                    height: 24,
+                    width: 22,
+                    height: 28,
                   }}
                 />
 

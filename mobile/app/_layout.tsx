@@ -14,7 +14,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import CustomDrawerContent from '@/components/CustomDrawerComponent';
 import { useSyncAuth } from '@/hooks/useSyncAuth';
 import { KeyboardProvider } from "react-native-keyboard-controller";
-
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 export const queryClient = new QueryClient();
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
@@ -32,29 +32,31 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
-        <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-          <StoreProvider store={store}>
-            <PaperProvider>
-              <QueryClientProvider client={queryClient}>
-                <PersistGate
+        <BottomSheetModalProvider>
+          <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+            <StoreProvider store={store}>
+              <PaperProvider>
+                <QueryClientProvider client={queryClient}>
+                  <PersistGate
 
-                  loading={<View style={{ flex: 1, backgroundColor: '#fff' }} />}
-                  persistor={persistor}
-                >
-                  <StatusBar style='light' />
-                  {/* <Stack screenOptions={{ headerShown: false }} /> */}
+                    loading={<View style={{ flex: 1, backgroundColor: '#fff' }} />}
+                    persistor={persistor}
+                  >
+                    <StatusBar style='light' />
+                    {/* <Stack screenOptions={{ headerShown: false }} /> */}
 
-                  {/* <CustomDrawerContent /> */}
-                  {/* <Drawer /> */}
-                  {/* <Stack /> */}
+                    {/* <CustomDrawerContent /> */}
+                    {/* <Drawer /> */}
+                    {/* <Stack /> */}
 
-                  <RootContent />
-                </PersistGate>
-                <StatusBar style="dark" />
-              </QueryClientProvider>
-            </PaperProvider>
-          </StoreProvider>
-        </ClerkProvider>
+                    <RootContent />
+                  </PersistGate>
+                  <StatusBar style="dark" />
+                </QueryClientProvider>
+              </PaperProvider>
+            </StoreProvider>
+          </ClerkProvider>
+        </BottomSheetModalProvider>
       </KeyboardProvider>
     </GestureHandlerRootView>
   );
