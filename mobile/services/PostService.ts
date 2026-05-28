@@ -1,7 +1,7 @@
 import { queryClient } from "@/app/_layout";
 import { useApi } from "@/hooks/useAPi";
 import { ApiUtility } from "@/utils/api";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import QueryKeys from "./QueryKeys";
 
 export interface CreatePostPayload {
@@ -88,5 +88,16 @@ export const useCreatePost = () => {
         queryKey: [QueryKeys.PostKey.posts],
       });
     },
+  });
+};
+
+export const useGetPostById = (postId: string) => {
+  return useQuery({
+    queryFn: async () => {
+      const response = await apiUtility.get<any>(`posts/${postId}`);
+      return response?.post;
+    },
+    queryKey: [QueryKeys.PostKey.posts, postId],
+    // enabled: postId!!,
   });
 };

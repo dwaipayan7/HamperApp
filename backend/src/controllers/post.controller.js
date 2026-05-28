@@ -32,6 +32,26 @@ export const getPosts = asyncHandler(async (req, res) => {
   res.status(200).json({ posts });
 });
 
+export const getPostById = asyncHandler(async (req, res) => {
+  const { postId } = req.params;
+
+  const post = await Post.findById(postId)
+    .populate("user", "username firstName lastName profilePicture")
+    .populate({
+      path: "repostOf",
+      populate: {
+        path: "user",
+        select: "username firstName lastName profilePicture",
+      },
+    });
+
+  if (!post) {
+    return res.status(404).json({ error: "Post not found" });
+  }
+
+  res.status(200).json({ post });
+});
+
 export const getPost = asyncHandler(async (req, res) => {
   const { postId } = req.params;
 
@@ -203,7 +223,7 @@ export const repostPost = asyncHandler(async (req, res) => {
 
   const existingRepost = await Post.findOne({
     user: user._id,
-    respostOf: originalPost._id,
+    repostOf: originalPost._id,
   });
 
   if (existingRepost) {
@@ -241,6 +261,6 @@ export const repostPost = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     message: "Post resposted successfully",
-    createPost,
+    createRepost,
   });
 });

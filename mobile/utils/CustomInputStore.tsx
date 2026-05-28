@@ -75,7 +75,8 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
     leftIcon?: React.ReactNode;
     prefix?: string;
     radius?: number;
-    extendingField?: boolean
+    extendingField?: boolean;
+    maxLimit?: number
 }>((props, ref) => {
     const {
         label,
@@ -92,6 +93,7 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
         labelSize,
         radius,
         extendingField,
+        maxLimit,
         ...rest
     } = props;
 
@@ -128,7 +130,7 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
                     autoCorrect
                     multiline={extendingField}
                     editable={editable}
-                    maxLength={200}
+                    maxLength={maxLimit || 200}
                     allowFontScaling={false}
                     textAlignVertical="top"
                     placeholderTextColor={
@@ -164,8 +166,7 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
 
                         if (!extendingField) return;
 
-                        const height =
-                            event.nativeEvent.contentSize.height;
+                        const height = event.nativeEvent.contentSize.height;
 
                         setInputHeight(
                             Math.min(

@@ -3,7 +3,7 @@ import React, { ReactNode, useEffect, useRef, useState } from 'react'
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
 import { Easing } from 'react-native-reanimated'
 import { COLORS } from '@/constants/colors'
-import { useRepostPost } from '@/services/PostService'
+import { useGetPostById, useRepostPost } from '@/services/PostService'
 import ActionSheet, { ActionSheetRef, ScrollView } from 'react-native-actions-sheet';
 import GradientWrapper from '@/components/GradientWrapper'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -26,6 +26,12 @@ interface iProps {
 }
 
 const RequestRepostModal = ({ show, close, onSubmit, postId }: iProps) => {
+
+    console.log("The Post Id on RequesteModal is: ", postId);
+
+
+
+
 
     const [openPostRepost, setOpenPostRepost] = useState<boolean>(false);
 
@@ -99,7 +105,7 @@ const RequestRepostModal = ({ show, close, onSubmit, postId }: iProps) => {
                 </SafeAreaView>
             </GradientWrapper>
 
-            <PostRepostModal show={openPostRepost} close={() => setOpenPostRepost(false)} />
+            <PostRepostModal postId={postId} show={openPostRepost} close={() => setOpenPostRepost(false)} />
         </ActionSheet>
     )
 }
