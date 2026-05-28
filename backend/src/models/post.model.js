@@ -27,8 +27,17 @@ const postSchema = new mongoose.Schema(
         ref: "Comment",
       },
     ],
+    repostOf: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post",
+      default: null,
+    },
+    repostCount: {
+      type: Number,
+      default: 0,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Post = mongoose.model("Post", postSchema);

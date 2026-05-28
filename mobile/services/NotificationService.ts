@@ -4,10 +4,15 @@ import api from "@/utils/api";
 import ApiUtility from "../utils/api";
 import { queryClient } from "@/app/_layout";
 
+export interface NotificationsResponse {
+  notifications: Notification[];
+}
+
 export const useNotification = () => {
   return useQuery({
     queryKey: [QueryKeys.NotificationKey.notifications],
-    queryFn: async () => await ApiUtility.get("/notifications"),
+    queryFn: async () =>
+      await ApiUtility.get<NotificationsResponse>("/notifications"),
   });
 };
 

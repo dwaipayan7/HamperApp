@@ -97,7 +97,6 @@ export const likedComment = asyncHandler(async (req, res) => {
   const isLiked = comment.likes.includes(user._id);
 
   let updatedComment;
-
   if (isLiked) {
     updatedComment = await Comment.findByIdAndUpdate(
       commentId,
@@ -112,7 +111,7 @@ export const likedComment = asyncHandler(async (req, res) => {
     ).populate("user", "username firstName lastName profilePicture");
   }
 
-  if (comment.user.toString() !== user._id.toString()) {
+  if (comment.user.toString() !== user._id.toString() && !isLiked) {
     await Notification.create({
       from: user._id,
       to: comment.user,

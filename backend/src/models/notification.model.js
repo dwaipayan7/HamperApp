@@ -15,7 +15,7 @@ const notificationSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ["follow", "like", "comment"],
+      enum: ["like", "comment", "follow", "repost", "comment_like"],
     },
     post: {
       type: mongoose.Schema.Types.ObjectId,
@@ -28,7 +28,7 @@ const notificationSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Notification = mongoose.model("Notification", notificationSchema);

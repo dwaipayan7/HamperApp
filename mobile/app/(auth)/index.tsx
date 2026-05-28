@@ -14,19 +14,41 @@ import {
 import { router } from "expo-router";
 import SCText from "@/components/CustomText";
 import { deviceWidth } from "@/utils/AllContext";
+import { useDispatch, useSelector } from "react-redux";
+import { selectIsAuthenticated, setAuthenticated } from "@/redux/slices/AuthSlice";
 
 export default function Index() {
+
+  const dispatch = useDispatch();
+
   const { handleSocialAuth, isLoading } = useSocialAuth();
 
-  const { isSignedIn } = useAuth({
+  const { isSignedIn, isLoaded } = useAuth({
     treatPendingAsSignedOut: false,
   });
 
+  const isAuthenticated = useSelector(
+    selectIsAuthenticated
+  );
+
   useEffect(() => {
-    if (isSignedIn) {
-      router.replace("/(tabs)");
+
+    if (!isLoaded) {
+      return;
     }
-  }, [isSignedIn]);
+
+    if (!isSignedIn) {
+      dispatch(setAuthenticated(false))
+    } else {
+      dispatch(setAuthenticated(true))
+
+    }
+
+
+    if (isAuthenticated) {
+      router.replace("/(drawer)/(tabs)");
+    }
+  }, [isSignedIn, isAuthenticated]);
 
   return (
     <LinearGradient
@@ -179,8 +201,8 @@ export default function Index() {
                 <Image
                   source={require("../../assets/images/apple.png")}
                   style={{
-                    width: 24,
-                    height: 24,
+                    width: 22,
+                    height: 28,
                   }}
                 />
 

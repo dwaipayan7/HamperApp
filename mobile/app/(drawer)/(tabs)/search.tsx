@@ -6,6 +6,8 @@ import { Divider } from '@/components/Divider';
 import GradientWrapper from '@/components/GradientWrapper';
 import SCText from '@/components/CustomText';
 import { COLORS } from '@/constants/colors';
+import { SCTextInput } from '@/utils/CustomInputStore';
+import Header from '@/components/Header';
 
 
 const TRENDING_TOPICS = [
@@ -25,19 +27,23 @@ const SearchScreen = () => {
 
         <GradientWrapper>
             <SafeAreaView className="flex-1">
-                <View style={{ marginTop: 10 }} className='px-4 py-3 border-b border-gray-100'>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', borderRadius: 26, borderWidth: 0.5, paddingHorizontal: 12, marginHorizontal: 12, borderColor: 'gray', backgroundColor: '#F3F4F6' }}>
+                <Header title='Trendings' />
+                <View style={{ marginTop: 10 }} >
+                    {/* <View style={{ flexDirection: 'row', alignItems: 'center', borderRadius: 26, borderWidth: 0.5, paddingHorizontal: 12, marginHorizontal: 12, borderColor: 'gray', backgroundColor: '#F3F4F6' }}>
                         <Feather name='search' size={20} color={'#657786'} />
-                        <TextInput
-                            value={text}
-                            onChangeText={setText}
-                            placeholder='Search X'
-                            className='flex-1 ml-3 text-base'
-                            placeholderTextColor={'#657786'}
+                        
 
-                        />
+                    </View> */}
 
-                    </View>
+                    <SCTextInput
+                        value={text}
+                        onChangeText={setText}
+                        placeholder='Search Trending Topics'
+                        placeholderTextColor={'#657786'}
+                        leftIcon={<Feather size={20} color={COLORS.neutralColor} name='search' />}
+                        wrapperStyle={{ paddingHorizontal: 12 }}
+                        radius={20}
+                    />
                 </View>
 
                 <ScrollView className='flex-1' style={{ paddingHorizontal: 12 }}

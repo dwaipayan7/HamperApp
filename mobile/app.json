@@ -23,8 +23,7 @@
 
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage":
-          "./assets/images/adaptive-icon.png"
+        "foregroundImage": "./assets/images/adaptive-icon.png"
       },
 
       "predictiveBackGestureEnabled": false
@@ -33,14 +32,12 @@
     "web": {
       "output": "static",
 
-      "favicon":
-        "./assets/images/favicon.png",
+      "favicon": "./assets/images/favicon.png",
 
       "bundler": "metro"
     },
 
     "plugins": [
-
       "expo-router",
 
       [
@@ -58,11 +55,9 @@
       [
         "expo-image-picker",
         {
-          "photosPermission":
-            "Allow $(PRODUCT_NAME) to access your photos to share images.",
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos to share images.",
 
-          "cameraPermission":
-            "Allow $(PRODUCT_NAME) to access your camera to take photos."
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to take photos."
         }
       ],
 
@@ -75,8 +70,7 @@
       [
         "expo-splash-screen",
         {
-          "image":
-            "./assets/images/splash-icon.png",
+          "image": "./assets/images/splash-icon.png",
 
           "imageWidth": 200,
 
@@ -93,7 +87,6 @@
 
     "experiments": {
       "typedRoutes": true
-      // "reactCompiler": true
     }
   }
 }

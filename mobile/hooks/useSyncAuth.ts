@@ -8,8 +8,12 @@ export const useSyncAuth = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (isLoaded) {
-      dispatch(setAuthenticated(!!isSignedIn));
+    if (!isLoaded) return;
+
+    if (isSignedIn) {
+      dispatch(setAuthenticated(true));
+    } else {
+      dispatch(setAuthenticated(false));
     }
   }, [isSignedIn, isLoaded]);
 };
