@@ -52,7 +52,7 @@ export const createComment = asyncHandler(async (req, res) => {
     });
   }
 
-  res.status(201).json({ comment });
+  res.status(201).json({ comment, message: "Comment added successfully" });
 });
 
 export const deleteComment = asyncHandler(async (req, res) => {

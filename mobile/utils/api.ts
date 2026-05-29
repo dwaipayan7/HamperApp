@@ -1,9 +1,9 @@
-import { showSnackbar } from "@/redux/slices/snackbarSlice";
 import { store } from "@/redux/store/store";
 import { useAuth } from "@clerk/expo";
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import { Platform } from "react-native";
 import { useDispatch } from "react-redux";
+import { showSnackbar, setMessage } from "@/redux/slices/snackbarSlice";
 
 // const API_BASE_URL = "http://192.168.1.50:3000/api";
 
@@ -128,7 +128,7 @@ export class ApiUtility {
         }
 
         store.dispatch(
-          showSnackbar({
+          setMessage({
             message,
             variant: "error",
           }),

@@ -33,12 +33,12 @@ const SnackBar = () => {
                         width: '100%',
                         zIndex: 999,
                         bottom: 30,
-                        paddingHorizontal: 12,
+                        // paddingHorizontal: 8,
                     }}
                 >
                     <Snackbar
                         elevation={1}
-                        duration={3000}
+                        duration={3500}
                         visible={visible}
                         onDismiss={handleClose}
                         style={{

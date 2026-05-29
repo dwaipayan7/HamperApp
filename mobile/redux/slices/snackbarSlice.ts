@@ -1,19 +1,17 @@
-// snackbarSlice.ts
-
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export type SnackbarVariant = "success" | "error" | "warning" | "info";
+type TSnackbarVariant = "success" | "error" | "warning" | "info";
 
 interface SnackbarState {
-  visible: boolean;
   message: string;
-  variant: SnackbarVariant;
+  visible: boolean;
+  variant: TSnackbarVariant;
 }
 
 const initialState: SnackbarState = {
-  visible: false,
   message: "",
-  variant: "info",
+  visible: false,
+  variant: "success",
 };
 
 const snackbarSlice = createSlice({
@@ -24,22 +22,31 @@ const snackbarSlice = createSlice({
       state,
       action: PayloadAction<{
         message: string;
-        variant?: SnackbarVariant;
+        variant?: TSnackbarVariant;
       }>,
     ) => {
-      state.visible = true;
       state.message = action.payload.message;
-      state.variant = action.payload.variant || "info";
+      state.visible = true;
+      state.variant = action.payload.variant ?? "success";
     },
-
+    setMessage: (
+      state,
+      action: PayloadAction<{
+        message: string;
+        messageStatus?: boolean;
+        variant?: TSnackbarVariant;
+      }>,
+    ) => {
+      state.message = action.payload.message;
+      state.visible = action.payload.messageStatus ?? true;
+      state.variant = action.payload.variant ?? "success";
+    },
     hideSnackbar: (state) => {
       state.visible = false;
       state.message = "";
-      state.variant = "info";
     },
   },
 });
 
-export const { showSnackbar, hideSnackbar } = snackbarSlice.actions;
-
+export const { showSnackbar, setMessage, hideSnackbar } = snackbarSlice.actions;
 export default snackbarSlice.reducer;

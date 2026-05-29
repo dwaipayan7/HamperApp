@@ -32,11 +32,9 @@ export const syncUser = asyncHandler(async (req, res) => {
   const existingUser = await User.findOne({ clerkId: userId });
   console.log("Thw user id is", userId);
   if (existingUser) {
-    return res
-      .status(200)
-      .json({ user: existingUser, message: "User already exists" });
+    return res.status(200).json({ user: existingUser });
   }
-
+  //message: "User already exists"
   // create new user from Clerk data
   const clerkUser = await clerkClient.users.getUser(userId);
 

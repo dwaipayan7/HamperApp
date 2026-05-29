@@ -26,6 +26,10 @@ const NotificationCard = ({ notification, onDelete }: NotificationCardProps) => 
                 return `${name} commented your post`
             case 'follow':
                 return `${name} started following you`
+            case 'comment_like':
+                return `${name} liked your comment`
+            case 'repost':
+                return `${name} repostd your post`
 
             default:
                 return "";

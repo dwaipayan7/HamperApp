@@ -16,6 +16,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { Formik } from 'formik';
 import * as yup from 'yup';
 import { useCreatePost } from '@/services/PostService';
+import { setMessage } from '@/redux/slices/snackbarSlice';
+import { showMessage } from '@/utils/AllContext';
 
 const PostComponent = () => {
     const MIN_HEIGHT = 40;
@@ -81,12 +83,16 @@ const PostComponent = () => {
                 { resetForm }
             ) => {
                 try {
-                    await mutateAsync({
+                    const response = await mutateAsync({
                         content: values.content,
                         imageUri:
                             selectedImage || undefined,
                     });
 
+
+                    if (response) {
+                        showMessage("Post added successfully", 'success')
+                    }
                     resetForm();
                     setSelectedImage(null);
                     setInputHeight(MIN_HEIGHT);

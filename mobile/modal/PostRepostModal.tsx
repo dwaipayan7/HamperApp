@@ -1,5 +1,6 @@
 import {
     ActivityIndicator,
+    Modal,
     StyleSheet,
     TouchableOpacity,
     View,
@@ -10,7 +11,7 @@ import ActionSheet, {
     ActionSheetRef,
 } from 'react-native-actions-sheet';
 import GradientWrapper from '@/components/GradientWrapper';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '@/components/Header';
 import { Formik } from 'formik';
 import * as yup from 'yup';
@@ -19,7 +20,8 @@ import { SCTextInput } from '@/utils/CustomInputStore';
 import SCText from '@/components/CustomText';
 import { COLORS } from '@/constants/colors';
 import { Image } from 'expo-image'
-import { deviceHeight } from '@/utils/AllContext';
+import { deviceHeight, showMessage } from '@/utils/AllContext';
+import SnackBar from '@/components/Snackbar';
 
 interface iProps {
     show: boolean;
@@ -28,7 +30,7 @@ interface iProps {
 }
 
 const validationSchema = yup.object().shape({
-    content: yup.string().trim(),
+    content: yup.string().trim().required("Please add your thoughts"),
 });
 
 const PostRepostModal = ({
@@ -36,6 +38,9 @@ const PostRepostModal = ({
     close,
     postId,
 }: iProps) => {
+
+    const insets = useSafeAreaInsets();
+
     const actionSheetRef =
         useRef<ActionSheetRef>(null);
 
@@ -57,32 +62,32 @@ const PostRepostModal = ({
     const { mutateAsync: repostPost, isPending, } = useRepostPost();
 
     return (
-        <ActionSheet
-            ref={actionSheetRef}
+        <Modal
+            // ref={actionSheetRef}
+            visible={show}
             onRequestClose={close}
-            gestureEnabled
-            containerStyle={{
-                height: '80%',
-                backgroundColor: '#12051F',
-                borderTopLeftRadius: 20,
-                borderTopRightRadius: 20,
-            }}
-            indicatorStyle={{
-                height: 5, width: 40
-            }}
-        >
-            <GradientWrapper
-                hideGlow
-                style={{ flex: 1 }}
-            >
-                <Loader show={isPending} />
+            // gestureEnabled
+            // containerStyle={{
+            //     height: '100%',
+            //     backgroundColor: '#12051F',
+            //     borderTopLeftRadius: 20,
+            //     borderTopRightRadius: 20,
+            // }}
+            // indicatorStyle={{
+            //     height: 5, width: 40
+            // }}
 
-                <SafeAreaView style={{ flex: 1 }}>
-                    <Header
-                        leftTitle="Repost"
-                        showClose
-                        onClose={close}
-                    />
+            animationType="slide"
+            presentationStyle="fullScreen"
+            statusBarTranslucent
+        >
+            <SafeAreaView style={{ flex: 1, backgroundColor: 'black', paddingTop: insets.top, }}>
+                <GradientWrapper
+                    hideGlow
+                    style={{ flex: 1 }}
+                >
+                    <Loader show={isPending} />
+
 
                     <Formik
                         initialValues={{
@@ -101,10 +106,15 @@ const PostRepostModal = ({
                                     content: values.content,
                                 });
 
+
+
                                 resetForm();
                                 close();
+                                showMessage("Reposted successfully", 'success')
                             } catch (error) {
                                 console.log(error);
+                                showMessage("Error while reposting", 'error')
+
                             }
                         }}
                     >
@@ -113,15 +123,26 @@ const PostRepostModal = ({
                             handleBlur,
                             handleSubmit,
                             values,
+                            errors,
+                            touched
                         }) => (
                             <View
                                 style={
                                     styles.container
                                 }
                             >
+                                <Header
+                                    leftTitle="Repost"
+                                    showClose
+                                    onClose={close}
+                                    customPost
+                                    onCustomPost={handleSubmit}
+
+                                />
+
                                 <View
                                     style={{
-                                        flex: 1,
+                                        // flex: 1,
                                         marginRight: 10,
                                     }}
                                 >
@@ -137,48 +158,31 @@ const PostRepostModal = ({
                                             'content'
                                         )}
                                         extendingField
-                                        wrapperStyle={{
-                                            marginBottom: 16,
-                                        }}
+                                        // wrapperStyle={{
+                                        //     marginBottom: 16,
+                                        // }}
+                                        error={[errors.content, touched.content]}
                                     />
                                 </View>
 
                                 {data && (
                                     <View style={styles.originalPostContainer}>
-                                        <SCText
+                                        {/* <SCText
                                             varient="semibold"
                                             color={COLORS.white}
                                             size={16}
                                             style={{ marginBottom: 10 }}
                                         >
                                             {post.content}
-                                        </SCText>
-
-                                        {post?.image && (
-                                            <Image
-                                                source={{ uri: post.image }}
-                                                style={styles.postImage}
-                                                contentFit="cover"
-                                            />
-                                        )}
-
-                                        <SCText
-                                            color={COLORS.white}
-                                            style={{
-                                                marginTop: post?.image ? 8 : 0,
-                                                marginBottom: 12,
-                                                lineHeight: 18,
-                                            }}
-                                        >
-                                            {post?.content}
-                                        </SCText>
-
+                                        </SCText> */}
                                         {post?.user && (
                                             <View
                                                 style={{
                                                     flexDirection: 'row',
                                                     alignItems: 'center',
                                                     gap: 8,
+                                                    marginVertical: 10
+
                                                 }}
                                             >
                                                 <Image
@@ -207,10 +211,30 @@ const PostRepostModal = ({
                                                 </View>
                                             </View>
                                         )}
+                                        <SCText
+                                            color={COLORS.white}
+                                            style={{
+                                                marginTop: post?.image ? 8 : 0,
+                                                marginBottom: 12,
+                                                lineHeight: 18,
+                                            }}
+                                        >
+                                            {post?.content}
+                                        </SCText>
+                                        {post?.image && (
+                                            <Image
+                                                source={{ uri: post.image }}
+                                                style={styles.postImage}
+                                                contentFit="cover"
+                                            />
+                                        )}
+
+
+
                                     </View>
                                 )}
 
-                                <TouchableOpacity
+                                {/* <TouchableOpacity
                                     activeOpacity={
                                         0.8
                                     }
@@ -236,13 +260,13 @@ const PostRepostModal = ({
                                             Repost
                                         </SCText>
                                     )}
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                             </View>
                         )}
                     </Formik>
-                </SafeAreaView>
-            </GradientWrapper>
-        </ActionSheet>
+                </GradientWrapper>
+            </SafeAreaView>
+        </Modal>
     );
 };
 
@@ -252,7 +276,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: 16,
-        paddingTop: 20,
+        // paddingTop: 20,
     },
 
     submitButton: {

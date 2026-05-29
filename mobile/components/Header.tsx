@@ -1,8 +1,9 @@
-import { StyleSheet, TouchableOpacity, View, Image } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
 import React from 'react';
 import SCText from './CustomText';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Icon } from '@/utils/Icons';
+import { COLORS } from '@/constants/colors';
 
 interface HeaderProps {
     title?: string;
@@ -19,13 +20,16 @@ interface HeaderProps {
     leftTitle?: string
     showSettingsIcon?: boolean
     rightActionLabel?: string;
+    customPost?: boolean;
+    isPendingCustomPost?: boolean
 
     onEdit?: () => void;
     onBack?: () => void;
     onClose?: () => void;
     onRightActions?: () => void;
     onLeftActions?: () => void;
-    onSettingAction?: () => void
+    onSettingAction?: () => void;
+    onCustomPost?: () => void
 }
 
 const Header = ({
@@ -40,9 +44,11 @@ const Header = ({
     rightActionLabel,
     showSettingsIcon,
     showEdit,
+    customPost,
+    isPendingCustomPost,
 
 
-
+    onCustomPost,
     onSettingAction,
     onEdit,
     onBack,
@@ -169,7 +175,88 @@ const Header = ({
                         </TouchableOpacity>
                     )}
 
-                    {showClose && (
+                    {!showClose && customPost && (
+
+                        <TouchableOpacity
+                            style={{
+                                paddingVertical: 6,
+                                paddingHorizontal: 12,
+                                backgroundColor: '#3B82F6',
+                                marginTop: 4,
+                                borderRadius: 12,
+                                flexDirection: 'row'
+                            }}
+                            onPress={onCustomPost}
+                        // disabled={
+                        //     isPending ||
+                        //     !(
+                        //         values.content.trim() ||
+                        //         selectedImage
+                        //     )
+                        // }
+                        >
+                            {isPendingCustomPost ? (
+                                <ActivityIndicator
+                                    size="small"
+                                    color="white"
+                                />
+                            ) : (
+                                <SCText
+                                    varient="semibold"
+                                    color={
+                                        COLORS.white
+
+                                    }
+                                >
+                                    Post
+                                </SCText>
+                            )}
+                        </TouchableOpacity>
+                    )}
+
+                    {showClose && customPost && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
+                            <TouchableOpacity
+                                style={{
+                                    paddingVertical: 6,
+                                    paddingHorizontal: 12,
+                                    backgroundColor: '#3B82F6',
+                                    borderRadius: 12,
+
+                                }}
+                                onPress={onCustomPost}
+                            // disabled={
+                            //     isPending ||
+                            //     !(
+                            //         values.content.trim() ||
+                            //         selectedImage
+                            //     )
+                            // }
+                            >
+                                {isPendingCustomPost ? (
+                                    <ActivityIndicator
+                                        size="small"
+                                        color="white"
+                                    />
+                                ) : (
+                                    <SCText
+                                        varient="semibold"
+                                        color={
+                                            COLORS.white
+
+                                        }
+                                    >
+                                        Post
+                                    </SCText>
+                                )}
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={onClose}>
+                                <Icon name='closeMore' size={16} />
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
+                    {!customPost && showClose && (
                         <TouchableOpacity onPress={onClose}>
                             <Icon name='closeMore' size={16} />
                         </TouchableOpacity>
