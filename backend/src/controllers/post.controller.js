@@ -236,8 +236,8 @@ export const repostPost = asyncHandler(async (req, res) => {
     user: user._id,
     repostOf: originalPost._id,
     content:
-      (content && content.trim() !== "") || null
-        ? content.trim()
+      content && content.trim() !== ""
+        ? `${content.trim()}\n\n${originalPost.content}`
         : originalPost.content,
     image: originalPost.image,
   });

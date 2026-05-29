@@ -15,6 +15,7 @@ import CustomDrawerContent from '@/components/CustomDrawerComponent';
 import { useSyncAuth } from '@/hooks/useSyncAuth';
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import SnackBar from '@/components/Snackbar';
 
 export const queryClient = new QueryClient();
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
@@ -42,7 +43,6 @@ export default function RootLayout() {
                     loading={<View style={{ flex: 1, backgroundColor: '#fff' }} />}
                     persistor={persistor}
                   >
-                    <StatusBar style='light' />
                     {/* <Stack screenOptions={{ headerShown: false }} /> */}
 
                     {/* <CustomDrawerContent /> */}
@@ -68,6 +68,7 @@ function RootContent() {
     <>
       <StatusBar style='light' />
       <Stack screenOptions={{ headerShown: false }} />
+      <SnackBar />
     </>
   );
 }

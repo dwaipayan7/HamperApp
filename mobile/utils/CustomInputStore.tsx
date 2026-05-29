@@ -1,4 +1,4 @@
-import React, { forwardRef, ReactNode, useState } from 'react';
+import React, { forwardRef, ReactNode, useEffect, useRef, useState } from 'react';
 import {
     TextInput,
     TextInputProps,
@@ -66,8 +66,7 @@ interface ICCTextInput extends TextInputProps, IValidationError, IBasicProps {
 
 }
 
-const MIN_HEIGHT = 40;
-const MAX_HEIGHT = 140;
+
 
 
 
@@ -97,12 +96,27 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
         ...rest
     } = props;
 
+    const MIN_HEIGHT = 40;
+    const MAX_HEIGHT = 140;
+
     const [isFocused, setIsFocused] = useState(false);
     const [inputHeight, setInputHeight] =
         useState(MIN_HEIGHT);
+
+    const heightRef = useRef(MIN_HEIGHT);
+    const heightUpdateTimer = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (heightUpdateTimer.current) {
+                clearTimeout(heightUpdateTimer.current);
+            }
+        };
+    }, []);
+
     return (
         <View style={[styles.wrapper, wrapperStyle]}>
-            {label && <SCText size={labelSize || 14} style={labelStyle}>{label}</SCText>}
+            {label && <SCText color={COLORS.white} size={labelSize || 14} style={labelStyle}>{label}</SCText>}
 
             <View style={[
                 styles.inputContainer,
@@ -128,7 +142,7 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
                 <TextInput
                     ref={ref}
                     autoCorrect
-                    multiline={extendingField}
+                    multiline={!!extendingField}
                     editable={editable}
                     maxLength={maxLimit || 200}
                     allowFontScaling={false}
@@ -157,39 +171,70 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
                         setIsFocused(false);
                         onBlur?.(e);
                     }}
-                    scrollEnabled={
-                        extendingField
-                            ? inputHeight >= MAX_HEIGHT
-                            : false
-                    }
-                    onContentSizeChange={(event) => {
+                    // scrollEnabled={
+                    //     extendingField
+                    //         ? inputHeight >= MAX_HEIGHT
+                    //         : false
+                    // }
+                    scrollEnabled={inputHeight >= MAX_HEIGHT}
+                    disableFullscreenUI={true}
+                    returnKeyType="default"
 
+                    onContentSizeChange={(event) => {
                         if (!extendingField) return;
 
                         const height = event.nativeEvent.contentSize.height;
 
-                        setInputHeight(
-                            Math.min(
-                                MAX_HEIGHT,
-                                Math.max(MIN_HEIGHT, height)
-                            )
+                        const newHeight = Math.min(
+                            MAX_HEIGHT,
+                            Math.max(MIN_HEIGHT, height)
                         );
+
+                        // Skip if already at max (avoid unnecessary updates)
+                        if (newHeight === MAX_HEIGHT && inputHeight === MAX_HEIGHT) return;
+
+                        // Debounce height updates to prevent rapid re-renders on iOS
+                        if (heightUpdateTimer.current) {
+                            clearTimeout(heightUpdateTimer.current);
+                        }
+
+                        heightUpdateTimer.current = setTimeout(() => {
+                            if (Math.abs(newHeight - heightRef.current) > 5) {
+                                heightRef.current = newHeight;
+                                setInputHeight(newHeight);
+                            }
+                        }, 16); // ~1 frame debounce
                     }}
+
+                    blurOnSubmit={false}
+
                     style={[
                         {
-                            height: extendingField
-                                ? undefined
-                                : isTablet
-                                    ? 60
-                                    : 46,
+                            // height: extendingField
+                            //     ? inputHeight
+                            //     : isTablet
+                            //         ? 60
+                            //         : 46,
 
-                            minHeight: extendingField
+                            // // minHeight: extendingField
+                            // //     ? inputHeight
+                            // //     : undefined,
+
+                            // maxHeight: extendingField
+                            //     ? MAX_HEIGHT
+                            //     : undefined,
+
+                            height: Platform.OS === 'ios' && extendingField
+                                ? undefined
+                                : extendingField
+                                    ? inputHeight
+                                    : isTablet ? 60 : 46,
+
+                            minHeight: Platform.OS === 'ios' && extendingField
                                 ? inputHeight
                                 : undefined,
 
-                            maxHeight: extendingField
-                                ? MAX_HEIGHT
-                                : undefined,
+                            maxHeight: extendingField ? MAX_HEIGHT : undefined,
 
                             fontFamily: 'Figtree-Regular',
                             fontSize: font(14),

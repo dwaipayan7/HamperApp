@@ -13,7 +13,7 @@ import PostRepostModal from './PostRepostModal'
 
 interface iProps {
     show: boolean
-    close: () => boolean
+    close: () => any
     // title?: string
     // onDiscard: () => void
     onSubmit?: () => void
@@ -27,7 +27,7 @@ interface iProps {
 
 const RequestRepostModal = ({ show, close, onSubmit, postId }: iProps) => {
 
-    console.log("The Post Id on RequesteModal is: ", postId);
+    // console.log("The Post Id on RequesteModal is: ", postId);
 
 
 

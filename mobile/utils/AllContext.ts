@@ -11,10 +11,11 @@ import { TSnackbarVariant } from "@/types";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraRoll } from "@react-native-camera-roll/camera-roll";
 import { PermissionsAndroid } from "react-native";
-import { setMessage } from "@/redux/slices/AuthSlice";
+// import { setMessage } from "@/redux/slices/AuthSlice";
 import { store } from "@/redux/store/store";
 import { API_BASE_URL } from "./api";
 import dayjs from "dayjs";
+import { hideSnackbar, setMessage } from "@/redux/slices/snackbarSlice";
 // Avoid calling React hooks at module scope. Use the Redux store token when
 // making non-component requests.
 
@@ -113,6 +114,25 @@ export const getInitials = (name: string, singleCharacter: boolean = false) => {
       .toUpperCase();
   }
 };
+
+// export const showMessage = (message: string, variant?: TSnackbarVariant) => {
+//   store.dispatch(
+//     setMessage({
+//       message: message,
+//       messageStatus: true,
+//       snackbarVariant: variant,
+//     }),
+//   );
+//   setTimeout(() => {
+//     store.dispatch(
+//       setMessage({
+//         message: "",
+//         messageStatus: false,
+//         snackbarVariant: "success",
+//       }),
+//     );
+//   }, 4000);
+// };
 
 export const formatLargeNumber = (
   num: number | undefined,
@@ -289,17 +309,11 @@ export const showMessage = (message: string, variant?: TSnackbarVariant) => {
     setMessage({
       message: message,
       messageStatus: true,
-      snackbarVariant: variant,
+      variant: variant,
     }),
   );
   setTimeout(() => {
-    store.dispatch(
-      setMessage({
-        message: "",
-        messageStatus: false,
-        snackbarVariant: "success",
-      }),
-    );
+    store.dispatch(hideSnackbar());
   }, 4000);
 };
 

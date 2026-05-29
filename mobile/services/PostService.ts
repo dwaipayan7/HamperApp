@@ -11,7 +11,7 @@ export interface CreatePostPayload {
 
 const apiUtility = ApiUtility.getInstance();
 
-export const useLikePost = () => {
+export const useLikePost = (username?: string) => {
   const api = useApi();
 
   return useMutation({
@@ -21,11 +21,16 @@ export const useLikePost = () => {
       queryClient.invalidateQueries({
         queryKey: ["posts"],
       });
+      if (username) {
+        queryClient.invalidateQueries({
+          queryKey: ["userPosts", username],
+        });
+      }
     },
   });
 };
 
-export const useDeletePost = () => {
+export const useDeletePost = (username?: string) => {
   const api = useApi();
 
   return useMutation({
@@ -38,6 +43,16 @@ export const useDeletePost = () => {
 
       queryClient.invalidateQueries({
         queryKey: ["userPosts"],
+      });
+
+      if (username) {
+        queryClient.invalidateQueries({
+          queryKey: ["userPosts", username],
+        });
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.Auth.authUser],
       });
     },
   });
@@ -99,5 +114,26 @@ export const useGetPostById = (postId: string) => {
     },
     queryKey: [QueryKeys.PostKey.posts, postId],
     // enabled: postId!!,
+  });
+};
+
+export const useFollowUser = () => {
+  return useMutation({
+    mutationFn: (userId: string) => apiUtility.followUser(userId),
+    onSuccess: (response) => {
+      console.log("The Follow Response is: ", response);
+
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.PostKey.posts],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.Auth.authUser],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.UserProfile.user],
+      });
+    },
   });
 };

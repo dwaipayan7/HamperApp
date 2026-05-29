@@ -36,7 +36,7 @@ const CommentsModal = ({ show, onClose, selectedPost }: CommentProps) => {
     // const { data } = useGetCommentById(selectedPost._id)
     // const comments = data?.result?.comments || [];
 
-    console.log("The Commented Post is: ", selectedPost?.comments);
+    // console.log("The Commented Post is: ", selectedPost?.comments);
 
 
     const { currentUser } = useCurrentUser();

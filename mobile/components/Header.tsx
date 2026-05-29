@@ -1,8 +1,9 @@
-import { StyleSheet, TouchableOpacity, View, Image } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
 import React from 'react';
 import SCText from './CustomText';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Icon } from '@/utils/Icons';
+import { COLORS } from '@/constants/colors';
 
 interface HeaderProps {
     title?: string;
@@ -19,13 +20,22 @@ interface HeaderProps {
     leftTitle?: string
     showSettingsIcon?: boolean
     rightActionLabel?: string;
+    customPost?: boolean;
+    isPendingCustomPost?: boolean
+    rightIconSignOut?: boolean
+    isUserPosts?: boolean
+    userPosts?: number,
 
+
+
+    onRightSignOut?: () => void
     onEdit?: () => void;
     onBack?: () => void;
     onClose?: () => void;
     onRightActions?: () => void;
     onLeftActions?: () => void;
-    onSettingAction?: () => void
+    onSettingAction?: () => void;
+    onCustomPost?: () => void
 }
 
 const Header = ({
@@ -40,9 +50,15 @@ const Header = ({
     rightActionLabel,
     showSettingsIcon,
     showEdit,
+    customPost,
+    isPendingCustomPost,
+    rightIconSignOut,
+    isUserPosts,
+    userPosts,
 
+    onRightSignOut,
 
-
+    onCustomPost,
     onSettingAction,
     onEdit,
     onBack,
@@ -68,8 +84,16 @@ const Header = ({
 
             }}>
 
-                {leftTitle && (
+                {!isUserPosts && leftTitle && (
                     <SCText color='white' size={16} varient='semibold'>{leftTitle}</SCText>
+                )}
+
+                {isUserPosts && leftTitle && (
+                    <View style={{ gap: 4 }}>
+                        <SCText color='white' size={16} varient='semibold'>{leftTitle}</SCText>
+                        <SCText color='white' size={12} varient='regular'>{` ${userPosts} ${userPosts === 1 ? "Post" : "Posts"} `}</SCText>
+
+                    </View>
                 )}
 
                 {showBackButton && (
@@ -169,9 +193,96 @@ const Header = ({
                         </TouchableOpacity>
                     )}
 
-                    {showClose && (
+                    {!showClose && customPost && (
+
+                        <TouchableOpacity
+                            style={{
+                                paddingVertical: 6,
+                                paddingHorizontal: 12,
+                                backgroundColor: '#3B82F6',
+                                marginTop: 4,
+                                borderRadius: 12,
+                                flexDirection: 'row'
+                            }}
+                            onPress={onCustomPost}
+                        // disabled={
+                        //     isPending ||
+                        //     !(
+                        //         values.content.trim() ||
+                        //         selectedImage
+                        //     )
+                        // }
+                        >
+                            {isPendingCustomPost ? (
+                                <ActivityIndicator
+                                    size="small"
+                                    color="white"
+                                />
+                            ) : (
+                                <SCText
+                                    varient="semibold"
+                                    color={
+                                        COLORS.white
+
+                                    }
+                                >
+                                    Post
+                                </SCText>
+                            )}
+                        </TouchableOpacity>
+                    )}
+
+                    {showClose && customPost && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
+                            <TouchableOpacity
+                                style={{
+                                    paddingVertical: 6,
+                                    paddingHorizontal: 12,
+                                    backgroundColor: '#3B82F6',
+                                    borderRadius: 12,
+
+                                }}
+                                onPress={onCustomPost}
+                            // disabled={
+                            //     isPending ||
+                            //     !(
+                            //         values.content.trim() ||
+                            //         selectedImage
+                            //     )
+                            // }
+                            >
+                                {isPendingCustomPost ? (
+                                    <ActivityIndicator
+                                        size="small"
+                                        color="white"
+                                    />
+                                ) : (
+                                    <SCText
+                                        varient="semibold"
+                                        color={
+                                            COLORS.white
+
+                                        }
+                                    >
+                                        Post
+                                    </SCText>
+                                )}
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={onClose}>
+                                <Icon name='closeMore' size={16} />
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
+                    {!customPost && showClose && (
                         <TouchableOpacity onPress={onClose}>
                             <Icon name='closeMore' size={16} />
+                        </TouchableOpacity>
+                    )}
+
+                    {rightIconSignOut && (
+                        <TouchableOpacity onPress={onRightSignOut}>
+                            <Feather size={24} name='log-out' color={COLORS.redColor} />
                         </TouchableOpacity>
                     )}
 

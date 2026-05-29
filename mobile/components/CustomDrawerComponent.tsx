@@ -46,7 +46,7 @@ export default function CustomDrawerContent(props: any) {
 
             <View style={{ flex: 1 }} />
             <View>
-                <SCText style={{ textAlign: 'center', marginBottom: 10 }} color='white'>Version: Version {DeviceInfo.getVersion()}</SCText>
+                <SCText style={{ textAlign: 'center', marginBottom: 10 }} color='white'>Version: {DeviceInfo.getVersion()}</SCText>
             </View>
 
             <View

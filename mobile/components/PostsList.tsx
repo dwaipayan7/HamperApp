@@ -9,17 +9,17 @@ import CommentsModal from './CommentsModal'
 import { COLORS } from '@/constants/colors'
 import { useDeletePost, useLikePost } from '@/services/PostService'
 
-const PostsList = () => {
+const PostsList = ({ username }: { username?: string }) => {
 
     const [visibleModal, setVisibleModal] = useState<boolean>(false)
 
     const { currentUser, } = useCurrentUser()
 
-    const { posts, isLoading, refetch, checkIsLiked, error, } = usePosts();
+    const { posts, isLoading, refetch, checkIsLiked, error, } = usePosts(username);
 
-    const { mutateAsync: deletePost, isPending: isDeleting } = useDeletePost()
+    const { mutateAsync: deletePost, isPending: isDeleting } = useDeletePost(username)
 
-    const { mutateAsync: likePost, isPending: isLiking } = useLikePost()
+    const { mutateAsync: likePost, isPending: isLiking } = useLikePost(username)
 
     const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
 
@@ -29,7 +29,7 @@ const PostsList = () => {
 
     console.log("THe currentUser data is: ", currentUser);
 
-    console.log("THe posts are: ", posts);
+    // console.log("THe posts are: ", posts);
 
     if (isLoading) {
         return (
