@@ -188,7 +188,7 @@ const ProfileScreen = () => {
 
                                                 <SCText color={COLORS.white}>
                                                     <SCText varient='bold'>{currentUser?.followers?.length}</SCText>
-                                                    <SCText> Following</SCText>
+                                                    <SCText> Followers</SCText>
                                                 </SCText>
 
                                             </TouchableOpacity>

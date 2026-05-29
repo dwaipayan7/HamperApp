@@ -116,7 +116,7 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
 
     return (
         <View style={[styles.wrapper, wrapperStyle]}>
-            {label && <SCText size={labelSize || 14} style={labelStyle}>{label}</SCText>}
+            {label && <SCText color={COLORS.white} size={labelSize || 14} style={labelStyle}>{label}</SCText>}
 
             <View style={[
                 styles.inputContainer,
