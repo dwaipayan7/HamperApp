@@ -81,14 +81,8 @@ export const followUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(currentUser._id, {
       $pull: { following: targetUserId },
     });
-    await User.findByIdAndUpdate(targetUserId, {
-      $pull: { followers: currentUser._id },
-    });
   } else {
     // follow
-    await User.findByIdAndUpdate(currentUser._id, {
-      $push: { following: targetUserId },
-    });
     await User.findByIdAndUpdate(targetUserId, {
       $push: { followers: currentUser._id },
     });

@@ -150,6 +150,26 @@ const ProfileScreen = () => {
                                                 Joined {dayjs(currentUser?.createdAt).format('MMM YYYY')}
                                             </SCText>
                                         </View>
+
+                                        <View style={{ flexDirection: 'row', gap: 10, paddingTop: 4 }}>
+                                            <TouchableOpacity onPress={() => { }}>
+
+                                                <SCText color={COLORS.white}>
+                                                    <SCText varient='bold'>{currentUser?.following?.length}</SCText>
+                                                    <SCText> Following</SCText>
+                                                </SCText>
+
+                                            </TouchableOpacity>
+                                            <SCText color={COLORS.white}>•</SCText>
+                                            <TouchableOpacity onPress={() => { }}>
+
+                                                <SCText color={COLORS.white}>
+                                                    <SCText varient='bold'>{currentUser?.followers?.length}</SCText>
+                                                    <SCText> Following</SCText>
+                                                </SCText>
+
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
 
                                 </View>
