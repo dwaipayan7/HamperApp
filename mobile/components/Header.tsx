@@ -23,6 +23,9 @@ interface HeaderProps {
     customPost?: boolean;
     isPendingCustomPost?: boolean
     rightIconSignOut?: boolean
+    isUserPosts?: boolean
+    userPosts?: number,
+
 
 
     onRightSignOut?: () => void
@@ -50,7 +53,8 @@ const Header = ({
     customPost,
     isPendingCustomPost,
     rightIconSignOut,
-
+    isUserPosts,
+    userPosts,
 
     onRightSignOut,
 
@@ -80,8 +84,16 @@ const Header = ({
 
             }}>
 
-                {leftTitle && (
+                {!isUserPosts && leftTitle && (
                     <SCText color='white' size={16} varient='semibold'>{leftTitle}</SCText>
+                )}
+
+                {isUserPosts && leftTitle && (
+                    <View style={{ gap: 4 }}>
+                        <SCText color='white' size={16} varient='semibold'>{leftTitle}</SCText>
+                        <SCText color='white' size={12} varient='regular'>{` ${userPosts} ${userPosts === 1 ? "Post" : "Posts"} `}</SCText>
+
+                    </View>
                 )}
 
                 {showBackButton && (

@@ -1,5 +1,5 @@
-import { View, Text, FlatList, Alert, TouchableOpacity } from 'react-native'
-import React from 'react'
+import { View, Text, FlatList, Alert, TouchableOpacity, RefreshControl } from 'react-native'
+import React, { useState } from 'react'
 import GradientWrapper from '@/components/GradientWrapper'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -12,14 +12,26 @@ import { deviceHeight } from '@/utils/AllContext'
 import SCText from '@/components/CustomText'
 import { Feather } from '@expo/vector-icons'
 import dayjs from 'dayjs'
+import { usePosts } from '@/hooks/usePosts'
+import { useDeletePost, useLikePost } from '@/services/PostService'
+import PostsList from '@/components/PostsList'
+import UpdateProfileModal from '@/modal/UpdateProfileModal'
 
 const ProfileScreen = () => {
 
-    const { currentUser, isLoading, error, refetch } = useCurrentUser();
+    const { currentUser, } = useCurrentUser();
 
     const insets = useSafeAreaInsets();
 
     const { signOut } = useClerk();
+
+    const { posts: userPosts, isLoading, checkIsLiked, refetch, error } = usePosts();
+
+    // const { mutateAsync: deletePost, isPending: isDeletePending } = useDeletePost(currentUser?.username);
+
+    // const { mutateAsync: likePost, isPending: isLikePending } = useLikePost(currentUser?.username)
+
+    const [openModal, setIsModal] = useState<boolean>(false)
 
 
     return (
@@ -39,11 +51,14 @@ const ProfileScreen = () => {
                         return true
 
                     }}
+
+                    isUserPosts
+                    userPosts={userPosts?.length}
                 />
                 <View >
                     <FlatList
                         data={currentUser ? [currentUser] : []}
-                        renderItem={({ item }) => {
+                        renderItem={({ item, index }) => {
                             return (
                                 <View>
                                     <Image
@@ -99,7 +114,7 @@ const ProfileScreen = () => {
                                                 justifyContent: 'center',
                                                 alignItems: 'center',
                                             }}
-                                            onPress={() => { }}
+                                            onPress={() => setIsModal(true)}
                                         >
                                             <SCText
                                                 varient="semibold"
@@ -126,8 +141,16 @@ const ProfileScreen = () => {
                                         <SCText varient='bold' size={14} style={{
                                             marginBottom: 8
                                         }} color={COLORS.gray500}>@{currentUser?.username}</SCText>
-                                        <SCText varient='bold' size={14} color={COLORS.white}>Bio: {currentUser?.bio}</SCText>
+                                        <SCText varient='bold' size={14} color={COLORS.white}>{currentUser?.bio}</SCText>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 15, marginBottom: 8 }}>
 
+                                            {<Feather name='map-pin' size={20} color={COLORS.gray500} />}
+                                            <SCText varient='bold' size={15} color={COLORS.white}>
+                                                {currentUser?.location}
+                                            </SCText>
+
+
+                                        </View>
                                         <View
                                             style={{
                                                 flexDirection: 'row',
@@ -139,7 +162,7 @@ const ProfileScreen = () => {
                                             <Feather
                                                 name="calendar"
                                                 size={18}
-                                                color={COLORS.white}
+                                                color={COLORS.gray500}
                                             />
 
                                             <SCText
@@ -172,6 +195,10 @@ const ProfileScreen = () => {
                                         </View>
                                     </View>
 
+                                    <PostsList username={currentUser?.username}
+
+                                    />
+
                                 </View>
                             )
                         }}
@@ -179,8 +206,15 @@ const ProfileScreen = () => {
                             paddingBottom: 100 + insets.bottom
                         }}
                         showsVerticalScrollIndicator={false}
+
+                        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
                     />
                 </View>
+
+                <UpdateProfileModal
+                    show={openModal}
+                    close={() => setIsModal(false)}
+                />
             </SafeAreaView>
         </GradientWrapper >
     )

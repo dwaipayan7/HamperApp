@@ -11,7 +11,7 @@ export interface CreatePostPayload {
 
 const apiUtility = ApiUtility.getInstance();
 
-export const useLikePost = () => {
+export const useLikePost = (username?: string) => {
   const api = useApi();
 
   return useMutation({
@@ -21,11 +21,16 @@ export const useLikePost = () => {
       queryClient.invalidateQueries({
         queryKey: ["posts"],
       });
+      if (username) {
+        queryClient.invalidateQueries({
+          queryKey: ["userPosts", username],
+        });
+      }
     },
   });
 };
 
-export const useDeletePost = () => {
+export const useDeletePost = (username?: string) => {
   const api = useApi();
 
   return useMutation({
@@ -36,9 +41,11 @@ export const useDeletePost = () => {
         queryKey: ["posts"],
       });
 
-      queryClient.invalidateQueries({
-        queryKey: ["userPosts"],
-      });
+      if (username) {
+        queryClient.invalidateQueries({
+          queryKey: ["userPosts", username],
+        });
+      }
     },
   });
 };

@@ -8,6 +8,9 @@ const QueryKeys = {
   CommentKey: {
     comments: "comments",
   },
+  Auth: {
+    authUser: "authUser",
+  },
 };
 
 export default QueryKeys;
