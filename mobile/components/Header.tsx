@@ -22,7 +22,10 @@ interface HeaderProps {
     rightActionLabel?: string;
     customPost?: boolean;
     isPendingCustomPost?: boolean
+    rightIconSignOut?: boolean
 
+
+    onRightSignOut?: () => void
     onEdit?: () => void;
     onBack?: () => void;
     onClose?: () => void;
@@ -46,7 +49,10 @@ const Header = ({
     showEdit,
     customPost,
     isPendingCustomPost,
+    rightIconSignOut,
 
+
+    onRightSignOut,
 
     onCustomPost,
     onSettingAction,
@@ -259,6 +265,12 @@ const Header = ({
                     {!customPost && showClose && (
                         <TouchableOpacity onPress={onClose}>
                             <Icon name='closeMore' size={16} />
+                        </TouchableOpacity>
+                    )}
+
+                    {rightIconSignOut && (
+                        <TouchableOpacity onPress={onRightSignOut}>
+                            <Feather size={24} name='log-out' color={COLORS.redColor} />
                         </TouchableOpacity>
                     )}
 
