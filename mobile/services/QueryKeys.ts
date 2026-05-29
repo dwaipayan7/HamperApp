@@ -11,6 +11,10 @@ const QueryKeys = {
   Auth: {
     authUser: "authUser",
   },
+  UserProfile: {
+    followProfile: "followProfile",
+    user: 'user'
+  },
 };
 
 export default QueryKeys;

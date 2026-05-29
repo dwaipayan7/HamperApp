@@ -12,6 +12,7 @@ import * as FileSystem from 'expo-file-system';
 import Loader from './Loader';
 import { globalStyles } from '@/utils/globalStyles';
 import RequestRepostModal from '@/modal/RequestRepostModal';
+import { useFollowUser } from '@/services/PostService';
 interface PostCardProps {
     post: Post;
     onLike: (postId: string) => void;
@@ -32,13 +33,16 @@ const PostCard = ({
     isDeleting
 }: PostCardProps) => {
 
-    console.log("Liked Data is: ", isLiked);
-    console.log("Liked Data is: ", post.likes?.length);
+    // console.log("Liked Data is: ", isLiked);
+    // console.log("Liked Data is: ", post.likes?.length);
 
     const [isImageView, setIsImageView] = useState<boolean>(false)
     const [showModal, setShowModal] = useState<boolean>(false)
+    const { mutateAsync: followUser, isPending: isFollowing } = useFollowUser();
 
     const isOwnPost = post?.user?._id === currentUser?._id;
+    // const isFollowingUser = currentUser?.following?.includes(post.user._id);
+    const isFollowingUser = currentUser?.following?.includes(post.user._id);
 
     const handleDelete = () => {
         Alert.alert(
@@ -145,6 +149,19 @@ const PostCard = ({
                                     </View>
                                 )}
                             </View>
+                            {!isOwnPost && <TouchableOpacity
+                                disabled={isFollowing}
+                                onPress={() => followUser(post.user._id)}
+                            >
+                                <SCText
+                                    color={isFollowingUser ? COLORS.gray500 : COLORS.lightBlue}
+                                    size={14}
+                                    varient='bold'
+                                >
+                                    {isFollowing ? '...' : isFollowingUser ? 'Following' : 'Follow'}
+                                </SCText>
+
+                            </TouchableOpacity>}
                             <SCText style={{}} color={COLORS.gray400}>
                                 • {formatDate(post.createdAt)}
                             </SCText>

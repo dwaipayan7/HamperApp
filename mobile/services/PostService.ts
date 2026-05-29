@@ -41,11 +41,19 @@ export const useDeletePost = (username?: string) => {
         queryKey: ["posts"],
       });
 
+      queryClient.invalidateQueries({
+        queryKey: ["userPosts"],
+      });
+
       if (username) {
         queryClient.invalidateQueries({
           queryKey: ["userPosts", username],
         });
       }
+
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.Auth.authUser],
+      });
     },
   });
 };
@@ -106,5 +114,26 @@ export const useGetPostById = (postId: string) => {
     },
     queryKey: [QueryKeys.PostKey.posts, postId],
     // enabled: postId!!,
+  });
+};
+
+export const useFollowUser = () => {
+  return useMutation({
+    mutationFn: (userId: string) => apiUtility.followUser(userId),
+    onSuccess: (response) => {
+      console.log("The Follow Response is: ", response);
+
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.PostKey.posts],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.Auth.authUser],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.UserProfile.user],
+      });
+    },
   });
 };

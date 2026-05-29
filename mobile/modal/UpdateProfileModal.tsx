@@ -1,13 +1,12 @@
 import {
     ActivityIndicator,
     Modal,
-    ScrollView,
     StyleSheet,
     TouchableOpacity,
     View,
     Alert,
 } from 'react-native';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Formik } from 'formik';
 import * as yup from 'yup';
 
@@ -15,7 +14,7 @@ import GradientWrapper from '@/components/GradientWrapper';
 import Header from '@/components/Header';
 import SCText from '@/components/CustomText';
 import { SCMultilineTextInput, SCTextInput } from '@/utils/CustomInputStore';
-
+import ActionSheet, { ActionSheetRef, ScrollView } from 'react-native-actions-sheet';
 import {
     SafeAreaView,
     useSafeAreaInsets,
@@ -71,41 +70,53 @@ const UpdateProfileModal = ({
         isPending,
     } = useUpdateMutation();
 
+    const actionSheetRef = useRef<ActionSheetRef>(null);
+
+    useEffect(() => {
+        if (show) {
+            actionSheetRef.current?.show();
+        } else {
+            actionSheetRef.current?.hide();
+        }
+    }, [show]);
     return (
-        <Modal
-            visible={show}
+        <ActionSheet
+            // gestureEnabled
+            ref={actionSheetRef}
             onRequestClose={close}
-            animationType="slide"
-            presentationStyle="fullScreen"
-            statusBarTranslucent
+            containerStyle={{
+                height: '80%',
+                backgroundColor: '#12051F',
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
+            }}
+            indicatorStyle={{ height: 5, width: 40 }}
         >
+
             <SafeAreaView
-                edges={['top']}
+                // edges={['top']}
                 style={{
                     flex: 1,
-                    backgroundColor: 'black'
-
+                    backgroundColor: 'black',
+                    marginTop: insets.top
                 }}
+
             >
                 <GradientWrapper style={{ flex: 1 }}>
+
                     <Formik
                         enableReinitialize
                         validateOnMount
                         initialValues={{
-                            firstName:
-                                currentUser?.firstName || '',
+                            firstName: currentUser?.firstName || '',
 
-                            lastName:
-                                currentUser?.lastName || '',
+                            lastName: currentUser?.lastName || '',
 
                             bio: currentUser?.bio || '',
 
-                            location:
-                                currentUser?.location || '',
+                            location: currentUser?.location || '',
                         }}
-                        validationSchema={
-                            validationSchema
-                        }
+                        validationSchema={validationSchema}
                         onSubmit={async (
                             values
                         ) => {
@@ -279,7 +290,7 @@ const UpdateProfileModal = ({
                     </Formik>
                 </GradientWrapper>
             </SafeAreaView>
-        </Modal>
+        </ActionSheet >
     );
 };
 
@@ -290,7 +301,7 @@ const styles = StyleSheet.create({
         backgroundColor:
             COLORS.lightBlue,
 
-        marginTop: 28,
+        marginTop: 14,
 
         paddingVertical: 14,
 

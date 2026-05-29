@@ -187,6 +187,10 @@ export class ApiUtility {
     return this.api.post(`/comments/post/${postId}`, { content });
   }
 
+  followUser(userId: string) {
+    return this.api.post(`/users/follow/${userId}`, {});
+  }
+
   async get<T = IApiResponse>(
     endpoint: string,
     params?: any,

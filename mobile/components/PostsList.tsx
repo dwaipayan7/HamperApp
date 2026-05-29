@@ -29,7 +29,7 @@ const PostsList = ({ username }: { username?: string }) => {
 
     console.log("THe currentUser data is: ", currentUser);
 
-    console.log("THe posts are: ", posts);
+    // console.log("THe posts are: ", posts);
 
     if (isLoading) {
         return (
