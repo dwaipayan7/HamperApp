@@ -102,7 +102,7 @@ const UpdateProfileModal = ({
                 }}
 
             >
-                <GradientWrapper style={{ flex: 1 }}>
+                <GradientWrapper hideGlow style={{ flex: 1 }}>
 
                     <Formik
                         enableReinitialize

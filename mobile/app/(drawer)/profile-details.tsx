@@ -1,73 +1,63 @@
-import { View, Text, FlatList, Alert, TouchableOpacity, RefreshControl } from 'react-native'
+import { Alert, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
-import GradientWrapper from '@/components/GradientWrapper'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useCurrentUser } from '@/hooks/useCurrentUser'
-import Header from '@/components/Header'
-import { Image } from "expo-image"
-import { useSignOut } from '@/hooks/useSignOut'
-import { useClerk } from '@clerk/expo'
-import { COLORS } from '@/constants/colors'
-import { deviceHeight } from '@/utils/AllContext'
-import SCText from '@/components/CustomText'
-import { Feather } from '@expo/vector-icons'
-import dayjs from 'dayjs'
-import { usePosts } from '@/hooks/usePosts'
-import { useDeletePost, useLikePost } from '@/services/PostService'
-import PostsList from '@/components/PostsList'
-import UpdateProfileModal from '@/modal/UpdateProfileModal'
-import ImagePreviewModal from '@/modal/ImagePreviewModal'
-import { useLocalSearchParams } from 'expo-router'
+import { useRoute } from '@react-navigation/native';
+import { useLocalSearchParams, router, useRouter } from 'expo-router';
+import { getUserProfileByUsername } from '@/services/UserService';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import GradientWrapper from '@/components/GradientWrapper';
+import Header from '@/components/Header';
+import { usePosts } from '@/hooks/usePosts';
+import { Image } from 'expo-image'
+import { COLORS } from '@/constants/colors';
+import SCText from '@/components/CustomText';
+import { Feather } from '@expo/vector-icons';
+import dayjs from 'dayjs';
+import PostsList from '@/components/PostsList';
+import ImagePreviewModal from '@/modal/ImagePreviewModal';
 
-const ProfileScreen = () => {
+const ProfileDetails = () => {
 
-    const { currentUser, refetch: invalidateCurrentUser } = useCurrentUser();
+    // console.log("Ther username is: ", username);
+
+    // const route = useRoute()
+    // console.log('Route Params:', route.params);
+
+    // const { username } = route.params as {
+    //     username: string;
+    // };
 
     const { username } = useLocalSearchParams<{ username: string }>();
+    console.log('The username is:', username);
+
+    const { data: getUserProfileDetails, isLoading: isLoadingProfileDetails, refetch: onRefetchUserProfileData } = getUserProfileByUsername(username);
+
+    const { posts: userPosts, isLoading, checkIsLiked, refetch, error } = usePosts(username);
 
     const insets = useSafeAreaInsets();
 
-    const { signOut } = useClerk();
-
-    const { posts: userPosts, isLoading, checkIsLiked, refetch, error } = usePosts(username || currentUser?.username);
-
-    console.log("The userPosts are: ", userPosts);
+    const router = useRouter();
 
     const [visibleModal, setVisibleModal] = useState<boolean>(false)
 
 
-
-    // const { mutateAsync: deletePost, isPending: isDeletePending } = useDeletePost(currentUser?.username);
-
-    // const { mutateAsync: likePost, isPending: isLikePending } = useLikePost(currentUser?.username)
-
-    const [openModal, setIsModal] = useState<boolean>(false)
-
+    console.log("The User Profile Details is: ", getUserProfileDetails);
 
     return (
-        <GradientWrapper style={{ flex: 1 }}>
-            <SafeAreaView style={{ flex: 1 }}>
-                <Header leftTitle={`${currentUser.firstName} ${currentUser.lastName}`}
-                    rightIconSignOut
-                    onRightSignOut={() => {
-                        Alert.alert("Logout", "Are you sure you want to logout?", [
-                            { text: "Cancel", style: "cancel" },
-                            {
-                                text: "Logout",
-                                style: "destructive",
-                                onPress: () => signOut(),
-                            },
-                        ])
-                        return true
+        <GradientWrapper hideGlow style={{ flex: 1 }}>
+            <SafeAreaView>
 
-                    }}
+                <Header
+                    showBackButton
+                    onBack={() => router.back()}
+                    leftTitle={`${getUserProfileDetails?.firstName} ${getUserProfileDetails?.lastName}`}
 
                     isUserPosts
                     userPosts={userPosts?.length}
                 />
+
                 <View >
                     <FlatList
-                        data={currentUser ? [currentUser] : []}
+                        data={getUserProfileDetails ? [getUserProfileDetails] : []}
                         renderItem={({ item, index }) => {
 
                             // console.log("The Item is: ", item);
@@ -97,7 +87,6 @@ const ProfileScreen = () => {
                                         }}
                                     >
                                         <TouchableOpacity
-                                            onPress={() => setVisibleModal(true)}
                                             activeOpacity={0.8}
                                             style={{
                                                 marginTop: -50,
@@ -107,9 +96,11 @@ const ProfileScreen = () => {
                                                 borderColor: COLORS.gray100,
 
                                             }}
+
+                                            onPress={() => setVisibleModal(true)}
                                         >
                                             <Image
-                                                source={{ uri: currentUser?.profilePicture }}
+                                                source={{ uri: getUserProfileDetails?.profilePicture }}
                                                 style={{
                                                     width: 100,
                                                     height: 100,
@@ -119,7 +110,7 @@ const ProfileScreen = () => {
                                             />
                                         </TouchableOpacity>
 
-                                        <TouchableOpacity
+                                        {/* <TouchableOpacity
                                             style={{
                                                 marginTop: 12,
                                                 paddingVertical: 8,
@@ -130,7 +121,7 @@ const ProfileScreen = () => {
                                                 justifyContent: 'center',
                                                 alignItems: 'center',
                                             }}
-                                            onPress={() => setIsModal(true)}
+                                        // onPress={() => setIsModal(true)}
                                         >
                                             <SCText
                                                 varient="semibold"
@@ -138,7 +129,7 @@ const ProfileScreen = () => {
                                             >
                                                 Edit Profile
                                             </SCText>
-                                        </TouchableOpacity>
+                                        </TouchableOpacity> */}
 
 
 
@@ -186,7 +177,7 @@ const ProfileScreen = () => {
                                                 size={14}
                                                 color={COLORS.white}
                                             >
-                                                Joined {dayjs(currentUser?.createdAt).format('MMM YYYY')}
+                                                Joined {dayjs(getUserProfileDetails?.createdAt).format('MMM YYYY')}
                                             </SCText>
                                         </View>
 
@@ -195,7 +186,7 @@ const ProfileScreen = () => {
                                             <TouchableOpacity onPress={() => { }}>
 
                                                 <SCText color={COLORS.white}>
-                                                    <SCText varient='bold'>{currentUser?.following?.length}</SCText>
+                                                    <SCText varient='bold'>{getUserProfileDetails?.following?.length}</SCText>
                                                     <SCText> Following</SCText>
                                                 </SCText>
 
@@ -204,7 +195,7 @@ const ProfileScreen = () => {
                                             <TouchableOpacity onPress={() => { }}>
 
                                                 <SCText color={COLORS.white}>
-                                                    <SCText varient='bold'>{currentUser?.followers?.length}</SCText>
+                                                    <SCText varient='bold'>{getUserProfileDetails?.followers?.length}</SCText>
                                                     <SCText> Followers</SCText>
                                                 </SCText>
 
@@ -216,7 +207,7 @@ const ProfileScreen = () => {
 
                                     />
 
-                                    <ImagePreviewModal imageUrl={currentUser?.profilePicture} visible={visibleModal} onClose={() => setVisibleModal(false)} />
+                                    <ImagePreviewModal imageUrl={getUserProfileDetails?.profilePicture} visible={visibleModal} onClose={() => setVisibleModal(false)} />
 
                                 </View>
                             )
@@ -226,17 +217,16 @@ const ProfileScreen = () => {
                         }}
                         showsVerticalScrollIndicator={false}
 
-                        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={invalidateCurrentUser} />}
+                        refreshControl={<RefreshControl refreshing={isLoadingProfileDetails} onRefresh={onRefetchUserProfileData} />}
                     />
                 </View>
-
-                <UpdateProfileModal
-                    show={openModal}
-                    close={() => setIsModal(false)}
-                />
             </SafeAreaView>
-        </GradientWrapper >
+
+
+        </GradientWrapper>
     )
 }
 
-export default ProfileScreen
+export default ProfileDetails
+
+const styles = StyleSheet.create({})

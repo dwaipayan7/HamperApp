@@ -13,7 +13,8 @@ const QueryKeys = {
   },
   UserProfile: {
     followProfile: "followProfile",
-    user: 'user'
+    user: "user",
+    username: "username",
   },
 };
 

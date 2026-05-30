@@ -11,6 +11,13 @@ export interface CreatePostPayload {
 
 const apiUtility = ApiUtility.getInstance();
 
+// export const getUserProfileByUsername = (username: string) => {
+//   return useQuery({
+//     queryKey: [QueryKeys.PostKey.username],
+//     queryFn: async () => await apiUtility.get(`/posts/profile/${username}`),
+//   });
+// };
+
 export const useLikePost = (username?: string) => {
   const api = useApi();
 

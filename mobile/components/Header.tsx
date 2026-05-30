@@ -78,13 +78,14 @@ const Header = ({
             <View style={{
                 // flexDirection: 'row',
                 // alignItems: 'center',
-                // flex: 1
+                flex: 1,
                 justifyContent: 'center',
-                flexDirection: 'row'
+                flexDirection: 'row',
+
 
             }}>
 
-                {!isUserPosts && leftTitle && (
+                {/* {!isUserPosts && leftTitle && (
                     <SCText color='white' size={16} varient='semibold'>{leftTitle}</SCText>
                 )}
 
@@ -101,10 +102,12 @@ const Header = ({
                         <Ionicons
                             name="arrow-back"
                             size={24}
-                            color="#000"
+                            color={COLORS.white}
                         />
                     </TouchableOpacity>
                 )}
+
+                {showBackButton && leftTitle}
 
                 {showCloseButton && (
                     <TouchableOpacity onPress={onClose}>
@@ -114,6 +117,41 @@ const Header = ({
                             color="#000"
                         />
                     </TouchableOpacity>
+                )} */}
+
+                {showBackButton && (
+                    <TouchableOpacity
+                        onPress={onBack}
+                        style={{ marginRight: 16 }}
+                    >
+                        <Ionicons
+                            name="arrow-back"
+                            size={24}
+                            color={COLORS.white}
+                        />
+                    </TouchableOpacity>
+                )}
+
+                {(leftTitle || isUserPosts) && (
+                    <View>
+                        <SCText
+                            color="white"
+                            size={16}
+                            varient="semibold"
+                        >
+                            {leftTitle}
+                        </SCText>
+
+                        {isUserPosts && (
+                            <SCText
+                                color="white"
+                                size={12}
+                                varient="regular"
+                            >
+                                {userPosts} {userPosts === 1 ? 'Post' : 'Posts'}
+                            </SCText>
+                        )}
+                    </View>
                 )}
 
                 {showIcon && (

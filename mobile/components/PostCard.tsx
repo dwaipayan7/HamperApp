@@ -13,6 +13,10 @@ import Loader from './Loader';
 import { globalStyles } from '@/utils/globalStyles';
 import RequestRepostModal from '@/modal/RequestRepostModal';
 import { useFollowUser } from '@/services/PostService';
+import { getUserProfileByUsername } from '@/services/UserService';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 interface PostCardProps {
     post: Post;
     onLike: (postId: string) => void;
@@ -43,6 +47,18 @@ const PostCard = ({
     const isOwnPost = post?.user?._id === currentUser?._id;
     // const isFollowingUser = currentUser?.following?.includes(post.user._id);
     const isFollowingUser = currentUser?.following?.includes(post.user._id);
+
+    // const [selectUsername, setSelectUsername] = useState<string>("")
+
+
+    // const { data: getUserProfileDetails } = getUserProfileByUsername(post?.user?.username);
+
+    // console.log("The User Profile Details is: ", getUserProfileDetails);
+
+
+    const isOwnProfile = currentUser?.username === post?.user?.username;
+
+    const router = useRouter();
 
     const handleDelete = () => {
         Alert.alert(
@@ -97,13 +113,28 @@ const PostCard = ({
         }
     };
 
+    // const navigation = useNavigation();
+
+    const navigate = () => {
+        return router.push({
+            pathname: isOwnPost ? '/(drawer)/(tabs)/profile' : '/(drawer)/profile-details', params: {
+                username: post?.user?.username,
+                source: "post",
+            }
+        })
+
+
+        // return navigation.navigate('/drawer')
+    }
+
     return (
         <View style={{ borderColor: COLORS.divider2, paddingHorizontal: 12 }}>
             <Loader show={isDeleting || false} />
             <View style={{ flexDirection: 'row', borderBottomWidth: 0.2, borderColor: COLORS.divider2 }}>
 
 
-                <View style={{ flexDirection: 'row', paddingTop: 12, }}>
+                <TouchableOpacity style={{ flexDirection: 'row', paddingTop: 12, }} activeOpacity={0.8} onPress={navigate} >
+
                     <Image
                         source={{ uri: post.user.profilePicture || "" }}
                         style={{
@@ -112,14 +143,14 @@ const PostCard = ({
                             borderRadius: 48 / 2
                         }}
                     />
-                </View>
+                </TouchableOpacity>
                 <View style={{ flex: 1, marginTop: 20, marginLeft: 10 }}>
 
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
 
 
                         <View style={{ ...globalStyles.rowBetweeen, gap: 5 }}>
-                            <View style={{ alignItems: 'flex-start' }}>
+                            <TouchableOpacity activeOpacity={0.8} onPress={navigate} style={{ alignItems: 'flex-start' }}>
                                 <SCText varient='medium' color={COLORS.white}>
                                     {post.user.firstName}  {post.user.lastName}
                                 </SCText>
@@ -148,7 +179,7 @@ const PostCard = ({
                                         </SCText>
                                     </View>
                                 )}
-                            </View>
+                            </TouchableOpacity>
                             {!isOwnPost && <TouchableOpacity
                                 disabled={isFollowing}
                                 onPress={() => followUser(post.user._id)}
