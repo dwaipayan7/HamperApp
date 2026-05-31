@@ -18,6 +18,7 @@ import PostsList from '@/components/PostsList'
 import UpdateProfileModal from '@/modal/UpdateProfileModal'
 import ImagePreviewModal from '@/modal/ImagePreviewModal'
 import { useLocalSearchParams } from 'expo-router'
+import FollowingFollowersModal from '@/modal/FollowingFollowersModal'
 
 const ProfileScreen = () => {
 
@@ -35,7 +36,8 @@ const ProfileScreen = () => {
 
     const [visibleModal, setVisibleModal] = useState<boolean>(false)
 
-
+    const [isViewFollowers, setViewFollowers] = useState<boolean>(false)
+    const [isViewFollowing, setViewFollowing] = useState<boolean>(false)
 
     // const { mutateAsync: deletePost, isPending: isDeletePending } = useDeletePost(currentUser?.username);
 
@@ -192,7 +194,7 @@ const ProfileScreen = () => {
 
                                         <View style={{ flexDirection: 'row', gap: 10, paddingTop: 4 }}>
 
-                                            <TouchableOpacity onPress={() => { }}>
+                                            <TouchableOpacity onPress={() => setViewFollowing(true)}>
 
                                                 <SCText color={COLORS.white}>
                                                     <SCText varient='bold'>{currentUser?.following?.length}</SCText>
@@ -201,7 +203,7 @@ const ProfileScreen = () => {
 
                                             </TouchableOpacity>
                                             <SCText color={COLORS.white}>•</SCText>
-                                            <TouchableOpacity onPress={() => { }}>
+                                            <TouchableOpacity onPress={() => setViewFollowers(true)}>
 
                                                 <SCText color={COLORS.white}>
                                                     <SCText varient='bold'>{currentUser?.followers?.length}</SCText>
@@ -217,6 +219,19 @@ const ProfileScreen = () => {
                                     />
 
                                     <ImagePreviewModal imageUrl={currentUser?.profilePicture} visible={visibleModal} onClose={() => setVisibleModal(false)} />
+
+                                    <FollowingFollowersModal
+
+                                        show={isViewFollowers || isViewFollowing}
+                                        close={() => {
+                                            setViewFollowers(false);
+                                            setViewFollowing(false);
+                                        }}
+                                        username={item.username}
+                                        isFollowing={!!isViewFollowing}
+
+
+                                    />
 
                                 </View>
                             )

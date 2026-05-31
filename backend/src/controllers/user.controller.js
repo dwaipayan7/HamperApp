@@ -125,3 +125,48 @@ export const followUser = asyncHandler(async (req, res) => {
     message: "User followed successfully",
   });
 });
+
+// export const followingUser = asyncHandler(async (req, res) => {
+//   const { userId } = getAuth(req);
+//   const { username } = req.params;
+// });
+
+export const getFollowersByUsername = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+
+  const user = await User.findOne({ username }).populate(
+    "followers",
+    "username firstName lastName profilePicture",
+  );
+
+  if (!user) {
+    return res.status(404).json({
+      error: "User not found",
+    });
+  }
+
+  res.status(200).json({
+    followers: user.followers,
+    // totalFollowers: user.followers.length,
+  });
+});
+
+export const getFollowingByUsername = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+
+  const user = await User.findOne({ username }).populate(
+    "following",
+    "username firstName lastName profilePicture",
+  );
+
+  if (!user) {
+    return res.status(404).json({
+      error: "User not found",
+    });
+  }
+
+  res.status(200).json({
+    following: user.following,
+    totalFollowing: user.following.length,
+  });
+});

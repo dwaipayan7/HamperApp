@@ -15,6 +15,8 @@ const QueryKeys = {
     followProfile: "followProfile",
     user: "user",
     username: "username",
+    following: "following",
+    followers: "followers",
   },
 };
 

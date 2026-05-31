@@ -13,3 +13,24 @@ export const getUserProfileByUsername = (username: string) => {
     },
   });
 };
+
+export const getFollowersByUsername = (username: string) => {
+  return useQuery({
+    queryKey: [QueryKeys.UserProfile.followers],
+    queryFn: async () => {
+      const response = await apiUtility.get(`users/followers/${username}`);
+
+      return response?.followers;
+    },
+  });
+};
+export const getFollowingByUsername = (username: string) => {
+  return useQuery({
+    queryKey: [QueryKeys.UserProfile.following],
+    queryFn: async () => {
+      const response = await apiUtility.get(`users/following/${username}`);
+
+      return response?.following;
+    },
+  });
+};

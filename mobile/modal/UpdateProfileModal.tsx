@@ -86,7 +86,7 @@ const UpdateProfileModal = ({
             onRequestClose={close}
             containerStyle={{
                 height: '80%',
-                backgroundColor: '#12051F',
+                backgroundColor: 'black',
                 borderTopLeftRadius: 20,
                 borderTopRightRadius: 20,
             }}
