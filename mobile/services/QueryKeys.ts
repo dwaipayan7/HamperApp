@@ -18,6 +18,11 @@ const QueryKeys = {
     following: "following",
     followers: "followers",
   },
+  Messages: {
+    chatList: '"chatList"',
+    messages: "messages",
+    searchUsers: "searchUsers",
+  },
 };
 
 export default QueryKeys;

@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "HamperApp",
+    "slug": "HamperApp",
     "version": "1.0.0",
 
     "orientation": "portrait",
 
     "icon": "./assets/images/icon.png",
 
-    "scheme": "mobile",
+    "scheme": "HamperApp",
 
     "userInterfaceStyle": "automatic",
 
@@ -49,6 +49,20 @@
             "./assets/fonts/Figtree-SemiBold.ttf",
             "./assets/fonts/Figtree-Bold.ttf"
           ]
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "extraPods": [
+              {
+                "name": "simdjson",
+                "path": "../node_modules/@nozbe/simdjson",
+                "modular_headers": true
+              }
+            ]
+          }
         }
       ],
 
