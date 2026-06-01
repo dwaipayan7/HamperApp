@@ -6,15 +6,23 @@ import { Feather } from '@expo/vector-icons';
 import Header from '@/components/Header';
 import GradientWrapper from '@/components/GradientWrapper';
 import SCText from '@/components/CustomText';
+import { useGetChatList } from '@/services/ChatService';
+import dayjs from 'dayjs';
 
 const MessageScreen = () => {
 
     const insets = useSafeAreaInsets();
     const [searchText, setSearchText] = useState("");
-    const [conversationList, setConversationList] = useState(CONVERSATIONS);
-    const [selectedConversation, setSelectedConversation] = useState<ConversationType | null>(null)
-    const [isChatOpen, setIsChatOpen] = useState(false);
-    const [newMessage, setNewMessage] = useState("")
+    const [conversationList, setConversationList] = useState(CONVERSATIONS); // hard coded
+    // const [selectedConversation, setSelectedConversation] = useState<ConversationType | null>(null)
+    // const [isChatOpen, setIsChatOpen] = useState(false);
+    // const [newMessage, setNewMessage] = useState("")
+
+
+    const { data: chatList, isLoading: isLoadingChatList, refetch: refetchChatList } = useGetChatList();
+
+    console.log("The ChatList is: ", chatList);
+
 
 
     const deleteConversation = (conversationId: number) => {
@@ -30,34 +38,6 @@ const MessageScreen = () => {
         ])
     }
 
-    const openConversation = (conversation: ConversationType) => {
-        setSelectedConversation(conversation);
-        setIsChatOpen(true);
-    }
-
-    const closeChatModal = () => {
-        setIsChatOpen(false);
-        setSelectedConversation(null);
-        setNewMessage("");
-    }
-
-    const sendMessage = () => {
-        if (newMessage.trim() && selectedConversation) {
-            // update last message in conversation
-            setConversationList((prev) =>
-                prev.map((conv) =>
-                    conv.id === selectedConversation.id
-                        ? { ...conv, lastMessage: newMessage, time: "now" }
-                        : conv
-                )
-            );
-            setNewMessage("");
-            Alert.alert(
-                "Message Sent!",
-                `Your message has been sent to ${selectedConversation.user.name}`
-            );
-        }
-    };
 
 
 
@@ -99,11 +79,11 @@ const MessageScreen = () => {
                             paddingBottom: 100 + insets.bottom
                         }}
                     >
-                        {conversationList.map((conversation) => (
+                        {chatList.map((chats: any) => (
                             <TouchableOpacity
-                                key={conversation.id}
-                                onPress={() => openConversation(conversation)}
-                                onLongPress={() => deleteConversation(conversation.id)}
+                                key={chats?.user?.id}
+                                onPress={() => { }}
+                                onLongPress={() => deleteConversation(chats?.user?.id)}
                                 style={{
                                     flexDirection: 'row',
                                     alignItems: 'center',
@@ -112,7 +92,7 @@ const MessageScreen = () => {
                                 }}
                             >
                                 <Image
-                                    source={{ uri: conversation.user.avatar }}
+                                    source={{ uri: chats?.user?.profilePicture }}
                                     style={{
                                         width: 48,
                                         height: 48,
@@ -145,10 +125,10 @@ const MessageScreen = () => {
 
                                                 }}
                                             >
-                                                {conversation.user.name}
+                                                {chats?.user?.firstName}
                                             </SCText>
 
-                                            {conversation.user?.verified === true && (
+                                            {/* {conversation.user?.verified === true && (
                                                 <Feather
                                                     name="check-circle"
                                                     size={16}
@@ -157,13 +137,13 @@ const MessageScreen = () => {
                                                         marginLeft: 6,
                                                     }}
                                                 />
-                                            )}
+                                            )} */}
                                         </View>
 
                                         <Text style={{
                                             color: '#6B7280',
                                             fontSize: 12
-                                        }} >{conversation.time}</Text>
+                                        }} >{dayjs(chats?.lastMessage?.createdAt,).format('DD-MM-YYYY')}</Text>
                                     </View>
 
                                     <Text
@@ -173,7 +153,7 @@ const MessageScreen = () => {
                                             marginTop: 4,
                                         }}
                                     >
-                                        {conversation.lastMessage}
+                                        {chats?.lastMessage?.text}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
@@ -186,131 +166,7 @@ const MessageScreen = () => {
                         </SCText>
                     </View>
 
-                    <Modal
-                        visible={isChatOpen}
-                        animationType='slide'
-                        presentationStyle='pageSheet'
-                        onDismiss={closeChatModal}
-                        onRequestClose={closeChatModal}
 
-                    >
-                        {selectedConversation && (
-                            <SafeAreaView style={{ flex: 1, }}>
-                                {/* {Header} */}
-                                <View style={{
-                                    flexDirection: 'row', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 12, backgroundColor: 'F3F4F6', gap: 5
-                                }}>
-
-                                    <TouchableOpacity onPress={closeChatModal} >
-                                        <Feather name='arrow-left' size={24} color={'#1da1f2'} />
-                                    </TouchableOpacity>
-
-                                    <Image
-
-                                        source={{ uri: selectedConversation.user.avatar }}
-                                        style={{
-                                            width: 48,
-                                            height: 48,
-                                            borderRadius: 24,
-                                            marginRight: 12,
-                                        }}
-                                    />
-
-                                    <View>
-                                        <Text style={{
-                                            fontSize: 15,
-                                            fontWeight: '700'
-                                        }}>{selectedConversation.user.name}</Text>
-                                        <Text style={{
-                                            color: '#6B7280',
-                                            fontSize: 12
-                                        }}> {selectedConversation.user.username}</Text>
-                                    </View>
-
-                                </View>
-                                <View style={{ flex: 1, }}>
-                                    <View style={{
-                                        justifyContent: 'center', alignItems: 'center',
-                                        paddingVertical: 10
-                                    }}>
-                                        <Text style={{
-                                            textAlign: 'center',
-
-                                            fontSize: 12,
-                                            color: '#6B7280',
-                                        }}>
-                                            This is the beginning of your conversation with {selectedConversation.user.name}
-                                        </Text>
-                                    </View>
-                                    <ScrollView style={{ flex: 1, }}>
-
-                                        {selectedConversation.messages.map((message) => (
-                                            <View
-                                                key={message.id}
-                                                style={{
-                                                    flexDirection: 'row',
-                                                    marginBottom: 16,
-                                                    justifyContent: message.fromUser ? "flex-end" : 'flex-start',
-                                                    alignItems: 'flex-end',
-                                                    paddingHorizontal: 12
-                                                }}
-                                            >
-
-                                                {!message.fromUser && (
-                                                    <Image
-                                                        source={{ uri: selectedConversation.user.avatar }}
-                                                        style={{
-                                                            width: 32,
-                                                            height: 32,
-                                                            borderRadius: 16,
-                                                            marginRight: 8,
-                                                        }}
-                                                    />
-                                                )}
-
-
-                                                <View style={{
-                                                    maxWidth: '75%',
-                                                    alignItems: message.fromUser ? 'flex-end' : 'flex-start'
-                                                }}>
-
-                                                    <View style={{
-                                                        backgroundColor: message.fromUser ? "#3b82f6" : "#E5E7EB",
-                                                        paddingHorizontal: 14,
-                                                        paddingVertical: 10,
-                                                        borderRadius: 16,
-                                                        borderBottomRightRadius: message.fromUser ? 4 : 16,
-                                                        borderBottomLeftRadius: message.fromUser ? 16 : 4,
-                                                    }}>
-                                                        <Text style={{
-                                                            color: message.fromUser ? "#FFFFFF" : "#1F2937",
-                                                            fontSize: 14,
-                                                            lineHeight: 20
-                                                        }}>
-                                                            {message.text}
-                                                        </Text>
-                                                    </View>
-
-
-                                                    <Text style={{
-                                                        fontSize: 11,
-                                                        color: "#9CA3AF",
-                                                        marginTop: 4,
-                                                        marginHorizontal: 4
-                                                    }}>
-                                                        {message.time}
-                                                    </Text>
-                                                </View>
-
-                                            </View>
-                                        ))}
-                                    </ScrollView>
-                                </View>
-
-
-                            </SafeAreaView>
-                        )}
-                    </Modal>
                 </View>
 
             </SafeAreaView>

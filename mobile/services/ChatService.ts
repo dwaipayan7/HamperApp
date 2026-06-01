@@ -62,3 +62,16 @@ export const useSearchUsers = (searchText: string) => {
     enabled: searchText.length > 0,
   });
 };
+
+export const useDeleteConversation = () => {
+  return useMutation({
+    mutationFn: async (receiverId: string) =>
+      apiUtility.delete(`/messages/conversation/${receiverId}`),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.Messages.chatList],
+      });
+    },
+  });
+};

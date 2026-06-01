@@ -1,8 +1,12 @@
 import { getAuth } from "@clerk/express";
 import asyncHandler from "express-async-handler";
-import User from "../models/user.model";
-import { encryptedMessage, decryptedMessage } from "../helpers/crypto.helper";
-import Message from "../models/message.model";
+import User from "../models/user.model.js";
+import {
+  encryptedMessage,
+  decryptedMessage,
+} from "../helpers/crypto.helper.js";
+import Message from "../models/message.model.js";
+import { getIO, onlineUsers } from "../socket/socket.js";
 
 export const sendMessage = asyncHandler(async (req, res) => {
   const { userId } = getAuth(req);
@@ -12,7 +16,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   const { receiverId, text } = req.body;
 
-  const receiver = await User.findById(receiverId);
+  const receiver = await User.findById(receiverId); // getting the receiver --> clerk Id
   if (!receiver) return res.status(404).json({ error: "Receiver not found" });
 
   const encrypted = encryptedMessage(text);
@@ -23,7 +27,22 @@ export const sendMessage = asyncHandler(async (req, res) => {
     text: encrypted,
   });
 
-  res.status(201).json({ message });
+  const populatedMessages = await Message.findById(message._id)
+    .populate("sender", "firstName lastName username profilePicture")
+    .populate("receiver", "firstName lastName username profilePicture");
+
+  const receiverSocketId = onlineUsers.get(receiver.clerkId);
+
+  if (receiverSocketId) {
+    getIO()
+      .to(receiverSocketId)
+      .emit("new-message", {
+        ...populatedMessages.toObject(),
+        text,
+      });
+  }
+
+  res.status(201).json({ message: populatedMessages });
 });
 
 export const getMessages = asyncHandler(async (req, res) => {
@@ -101,24 +120,25 @@ export const getAllChatList = asyncHandler(async (req, res) => {
 
 export const searchChats = asyncHandler(async (req, res) => {
   const { name } = req.query;
+  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
   const users = await User.find({
     $or: [
       {
         username: {
-          $regex: name,
+          $regex: escapedName,
           $options: "i",
         },
       },
       {
         firstName: {
-          $regex: name,
+          $regex: escapedName,
           $options: "i",
         },
       },
       {
         lastName: {
-          $regex: name,
+          $regex: escapedName,
           $options: "i",
         },
       },
@@ -126,4 +146,33 @@ export const searchChats = asyncHandler(async (req, res) => {
   }).select("firstName lastName username profilePicture");
 
   res.status(200).json({ users });
+});
+
+export const deleteConversation = asyncHandler(async (req, res) => {
+  const { userId } = getAuth(req);
+
+  const currentUser = await User.findOne({ clerkId: userId });
+  if (!currentUser) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const { receiverId } = req.params;
+
+  await Message.deleteMany({
+    $or: [
+      {
+        sender: currentUser?._id,
+        receiver: receiverId,
+      },
+      {
+        receiver: currentUser?._id,
+        sender: receiverId,
+      },
+    ],
+  });
+
+  res.status(200).json({
+    status: true,
+    message: "Conversation deleted successfully",
+  });
 });

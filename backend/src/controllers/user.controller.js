@@ -30,7 +30,7 @@ export const syncUser = asyncHandler(async (req, res) => {
 
   // check if user already exists in mongodb
   const existingUser = await User.findOne({ clerkId: userId });
-  console.log("Thw user id is", userId);
+  console.log("The user id is", userId);
   if (existingUser) {
     return res.status(200).json({ user: existingUser });
   }
