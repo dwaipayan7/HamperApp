@@ -139,8 +139,19 @@ export const useFollowUser = () => {
       });
 
       queryClient.invalidateQueries({
-        queryKey: [QueryKeys.UserProfile.user],
+        queryKey: [QueryKeys.UserProfile],
       });
+
+      // queryClient.invalidateQueries({
+      //   queryKey: [QueryKeys.UserProfile.user],
+      // });
+
+      // queryClient.invalidateQueries({
+      //   queryKey: [QueryKeys.UserProfile.followers],
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: [QueryKeys.UserProfile.following],
+      // });
     },
   });
 };

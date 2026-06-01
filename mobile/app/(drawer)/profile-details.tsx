@@ -1,4 +1,4 @@
-import { Alert, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import { useRoute } from '@react-navigation/native';
 import { useLocalSearchParams, router, useRouter } from 'expo-router';
@@ -14,6 +14,9 @@ import { Feather } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import PostsList from '@/components/PostsList';
 import ImagePreviewModal from '@/modal/ImagePreviewModal';
+import { useFollowUser } from '@/services/PostService';
+import FollowingFollowersModal from '@/modal/FollowingFollowersModal';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 const ProfileDetails = () => {
 
@@ -31,7 +34,14 @@ const ProfileDetails = () => {
 
     const { data: getUserProfileDetails, isLoading: isLoadingProfileDetails, refetch: onRefetchUserProfileData } = getUserProfileByUsername(username);
 
-    const { posts: userPosts, isLoading, checkIsLiked, refetch, error } = usePosts(username);
+    console.log("The User Profile Details is: ", getUserProfileDetails);
+
+
+    const { currentUser } = useCurrentUser();
+
+    const { posts: userPosts, } = usePosts(username);
+    const { mutateAsync: followUser, isPending: isFollowing } = useFollowUser();
+
 
     const insets = useSafeAreaInsets();
 
@@ -39,8 +49,27 @@ const ProfileDetails = () => {
 
     const [visibleModal, setVisibleModal] = useState<boolean>(false)
 
+    const [isViewFollowers, setViewFollowers] = useState<boolean>(false)
+    const [isViewFollowing, setViewFollowing] = useState<boolean>(false)
 
-    console.log("The User Profile Details is: ", getUserProfileDetails);
+    const isFollowingUser = currentUser?.following?.includes(getUserProfileDetails?._id);
+
+
+
+
+    // console.log("The User Profile Details is: ", getUserProfileDetails);
+
+
+    const handleFollow = async (targetUserId: string) => {
+
+        await followUser(targetUserId);
+
+        await Promise.all([
+            onRefetchUserProfileData()
+        ])
+
+    }
+
 
     return (
         <GradientWrapper hideGlow style={{ flex: 1 }}>
@@ -131,6 +160,42 @@ const ProfileDetails = () => {
                                             </SCText>
                                         </TouchableOpacity> */}
 
+                                        <TouchableOpacity
+                                            disabled={isFollowing}
+                                            onPress={() => handleFollow(item._id)}
+                                            style={{
+                                                backgroundColor: isFollowingUser
+                                                    ? "transparent"
+                                                    : COLORS.lightBlue,
+
+                                                borderWidth: isFollowingUser ? 1 : 0,
+                                                borderColor: COLORS.gray500,
+
+                                                paddingHorizontal: 16,
+                                                paddingVertical: 8,
+                                                borderRadius: 20,
+                                                minWidth: 95,
+                                                alignItems: "center",
+                                                marginTop: 10
+                                            }}
+                                        >
+                                            {isFollowing ? <ActivityIndicator
+                                                size={'small'}
+                                                color={'white'}
+                                            /> : <SCText
+                                                color={
+                                                    isFollowingUser
+                                                        ? COLORS.white
+                                                        : COLORS.white
+                                                }
+                                                varient="semibold"
+                                            >
+                                                {isFollowingUser
+                                                    ? "Following"
+                                                    : "Follow"}
+                                            </SCText>}
+                                        </TouchableOpacity>
+
 
 
                                     </View>
@@ -183,7 +248,7 @@ const ProfileDetails = () => {
 
                                         <View style={{ flexDirection: 'row', gap: 10, paddingTop: 4 }}>
 
-                                            <TouchableOpacity onPress={() => { }}>
+                                            <TouchableOpacity onPress={() => setViewFollowing(true)}>
 
                                                 <SCText color={COLORS.white}>
                                                     <SCText varient='bold'>{getUserProfileDetails?.following?.length}</SCText>
@@ -192,7 +257,7 @@ const ProfileDetails = () => {
 
                                             </TouchableOpacity>
                                             <SCText color={COLORS.white}>•</SCText>
-                                            <TouchableOpacity onPress={() => { }}>
+                                            <TouchableOpacity onPress={() => setViewFollowers(true)}>
 
                                                 <SCText color={COLORS.white}>
                                                     <SCText varient='bold'>{getUserProfileDetails?.followers?.length}</SCText>
@@ -208,6 +273,19 @@ const ProfileDetails = () => {
                                     />
 
                                     <ImagePreviewModal imageUrl={getUserProfileDetails?.profilePicture} visible={visibleModal} onClose={() => setVisibleModal(false)} />
+
+                                    <FollowingFollowersModal
+
+                                        show={isViewFollowers || isViewFollowing}
+                                        close={() => {
+                                            setViewFollowers(false);
+                                            setViewFollowing(false);
+                                        }}
+                                        username={item.username}
+                                        isFollowing={!!isViewFollowing}
+
+
+                                    />
 
                                 </View>
                             )

@@ -13,7 +13,7 @@ import SCText from '@/components/CustomText'
 import { Feather } from '@expo/vector-icons'
 import dayjs from 'dayjs'
 import { usePosts } from '@/hooks/usePosts'
-import { useDeletePost, useLikePost } from '@/services/PostService'
+import { useDeletePost, useFollowUser, useLikePost } from '@/services/PostService'
 import PostsList from '@/components/PostsList'
 import UpdateProfileModal from '@/modal/UpdateProfileModal'
 import ImagePreviewModal from '@/modal/ImagePreviewModal'
@@ -34,16 +34,38 @@ const ProfileScreen = () => {
 
     console.log("The userPosts are: ", userPosts);
 
+    const { mutateAsync: followUser, isPending: isFollowing } = useFollowUser();
+
+
     const [visibleModal, setVisibleModal] = useState<boolean>(false)
 
     const [isViewFollowers, setViewFollowers] = useState<boolean>(false)
     const [isViewFollowing, setViewFollowing] = useState<boolean>(false)
+
+    const isFollowingUser = currentUser?.following?.includes(currentUser._id);
+
 
     // const { mutateAsync: deletePost, isPending: isDeletePending } = useDeletePost(currentUser?.username);
 
     // const { mutateAsync: likePost, isPending: isLikePending } = useLikePost(currentUser?.username)
 
     const [openModal, setIsModal] = useState<boolean>(false)
+
+    //  : (
+    // {!isOwnPost && <TouchableOpacity
+    //     disabled={isFollowing}
+    //     onPress={() => followUser(post.user._id)}
+    // >
+    //     <SCText
+    //         color={isFollowingUser ? COLORS.gray500 : COLORS.lightBlue}
+    //         size={14}
+    //         varient='bold'
+    //     >
+    //         {isFollowing ? '...' : isFollowingUser ? 'Following' : 'Follow'}
+    //     </SCText>
+
+    // </TouchableOpacity>}
+    //                                     )}
 
 
     return (
@@ -72,7 +94,7 @@ const ProfileScreen = () => {
                         data={currentUser ? [currentUser] : []}
                         renderItem={({ item, index }) => {
 
-                            // console.log("The Item is: ", item);
+                            console.log("The Item is: ", item);
 
 
                             return (
@@ -121,7 +143,7 @@ const ProfileScreen = () => {
                                             />
                                         </TouchableOpacity>
 
-                                        <TouchableOpacity
+                                        {currentUser && <TouchableOpacity
                                             style={{
                                                 marginTop: 12,
                                                 paddingVertical: 8,
@@ -141,6 +163,8 @@ const ProfileScreen = () => {
                                                 Edit Profile
                                             </SCText>
                                         </TouchableOpacity>
+                                        }
+
 
 
 
@@ -249,7 +273,7 @@ const ProfileScreen = () => {
                     show={openModal}
                     close={() => setIsModal(false)}
                 />
-            </SafeAreaView>
+            </SafeAreaView >
         </GradientWrapper >
     )
 }

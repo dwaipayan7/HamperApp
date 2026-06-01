@@ -16,7 +16,7 @@ export const getUserProfileByUsername = (username: string) => {
 
 export const getFollowersByUsername = (username: string) => {
   return useQuery({
-    queryKey: [QueryKeys.UserProfile.followers],
+    queryKey: [QueryKeys.UserProfile.followers, username],
     queryFn: async () => {
       const response = await apiUtility.get(`users/followers/${username}`);
 
@@ -26,7 +26,7 @@ export const getFollowersByUsername = (username: string) => {
 };
 export const getFollowingByUsername = (username: string) => {
   return useQuery({
-    queryKey: [QueryKeys.UserProfile.following],
+    queryKey: [QueryKeys.UserProfile.following, username],
     queryFn: async () => {
       const response = await apiUtility.get(`users/following/${username}`);
 

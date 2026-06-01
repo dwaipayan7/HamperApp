@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useRef } from 'react'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import ActionSheet, { ActionSheetRef, FlatList } from 'react-native-actions-sheet';
@@ -9,6 +9,7 @@ import SCText from "@/components/CustomText";
 import { COLORS } from "@/constants/colors";
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useFollowUser } from '@/services/PostService';
+import { Feather } from '@expo/vector-icons';
 
 
 interface iProps {
@@ -36,13 +37,25 @@ const FollowingFollowersModal = ({
 
     const { currentUser, refetch: invalidateCurrentUser } = useCurrentUser();
 
-    const { data: followers, isLoading: isLoadingFollowers } = getFollowersByUsername(username);
-    const { data: following, isLoading: isLoadingFollowing } = getFollowingByUsername(username);
+    const { data: followers, isLoading: isLoadingFollowers, refetch: refetchFollowers, } = getFollowersByUsername(username);
+    const { data: following, isLoading: isLoadingFollowing, refetch: refetchFollowing, } = getFollowingByUsername(username);
 
     const { mutateAsync: followUser, isPending: isFollowingUser } = useFollowUser();
 
 
     const data = isFollowing ? following : followers;
+
+    const handleFollow = async (targetUserId: string) => {
+
+        await followUser(targetUserId);
+
+        await Promise.all([
+            invalidateCurrentUser(),
+            refetchFollowers(),
+            refetchFollowing()
+        ])
+
+    }
 
 
     console.log("The following and followers data are: ", followers, following);
@@ -79,6 +92,7 @@ const FollowingFollowersModal = ({
                         contentContainerStyle={{
                             paddingHorizontal: 16,
                             paddingTop: 16,
+                            flexGrow: 1
                         }}
                         renderItem={({ item }) => {
                             const isFollowingUser =
@@ -135,13 +149,9 @@ const FollowingFollowersModal = ({
                                         </View>
                                     </View>
 
-                                    {/* Follow Button */}
-                                    <TouchableOpacity
-                                        onPress={() =>
-                                            // handleFollow(item._id)
-                                            followUser(item._id)
 
-                                        }
+                                    <TouchableOpacity
+                                        onPress={() => handleFollow(item._id)}
                                         style={{
                                             backgroundColor: isFollowingUser
                                                 ? "transparent"
@@ -173,6 +183,68 @@ const FollowingFollowersModal = ({
                                 </View>
                             );
                         }}
+
+                        ListEmptyComponent={() => {
+                            if (isLoadingFollowers || isLoadingFollowing) {
+                                return (
+                                    <View
+                                        style={{
+                                            flex: 1,
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                        }}
+                                    >
+                                        <ActivityIndicator
+                                            size="large"
+                                            color={COLORS.lightBlue}
+                                        />
+                                    </View>
+                                );
+                            }
+
+                            return (
+                                <View
+                                    style={{
+                                        flex: 1,
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        marginTop: '70%'
+                                    }}
+                                >
+                                    <SCText
+                                        color={COLORS.gray500}
+                                        size={16}
+                                    >
+                                        {isFollowing
+                                            ? 'No following found'
+                                            : 'No followers found'}
+                                    </SCText>
+
+                                    <TouchableOpacity
+                                        style={{
+                                            marginTop: 12,
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            gap: 8,
+                                        }}
+                                        onPress={() => {
+                                            refetchFollowers();
+                                            refetchFollowing();
+                                        }}
+                                    >
+                                        <Feather
+                                            name="refresh-ccw"
+                                            size={18}
+                                            color={COLORS.lightBlue}
+                                        />
+                                        <SCText color={COLORS.lightBlue}>
+                                            Retry
+                                        </SCText>
+                                    </TouchableOpacity>
+                                </View>
+                            );
+                        }}
+
                     />
 
                 </View>
