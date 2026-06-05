@@ -117,7 +117,7 @@ const PostCard = ({
 
     const navigate = () => {
         return router.push({
-            pathname: isOwnPost ? '/(drawer)/(tabs)/profile' : '/(drawer)/profile-details', params: {
+            pathname: isOwnPost ? '/(drawer)/(tabs)/profile' : '/profile-details', params: {
                 username: post?.user?.username,
                 source: "post",
             }

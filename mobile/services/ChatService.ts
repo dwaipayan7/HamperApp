@@ -33,11 +33,12 @@ export const useSendMessage = () => {
 
 export const useGetMessages = (receiverId: string) => {
   return useQuery({
-    queryKey: [QueryKeys.Messages.chatList],
+    queryKey: [QueryKeys.Messages.messages, receiverId],
     queryFn: async () => {
-      const res = apiUtility.get(`/messages/chats/${receiverId}`);
+      const res = await apiUtility.get(`/messages/chats/${receiverId}`);
       return res?.messages;
     },
+    enabled: !!receiverId,
   });
 };
 

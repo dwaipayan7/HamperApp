@@ -8,12 +8,13 @@ import GradientWrapper from '@/components/GradientWrapper';
 import SCText from '@/components/CustomText';
 import { useGetChatList } from '@/services/ChatService';
 import dayjs from 'dayjs';
+import { router } from 'expo-router';
 
 const MessageScreen = () => {
 
     const insets = useSafeAreaInsets();
     const [searchText, setSearchText] = useState("");
-    const [conversationList, setConversationList] = useState(CONVERSATIONS); // hard coded
+    // const [conversationList, setConversationList] = useState(CONVERSATIONS); // hard coded
     // const [selectedConversation, setSelectedConversation] = useState<ConversationType | null>(null)
     // const [isChatOpen, setIsChatOpen] = useState(false);
     // const [newMessage, setNewMessage] = useState("")
@@ -32,7 +33,7 @@ const MessageScreen = () => {
                 text: "Delete",
                 style: 'destructive',
                 onPress: () => {
-                    setConversationList((prev) => prev.filter((conv) => conv.id !== conversationId));
+                    // setConversationList((prev) => prev.filter((conv) => conv.id !== conversationId));
                 }
             }
         ])
@@ -79,10 +80,17 @@ const MessageScreen = () => {
                             paddingBottom: 100 + insets.bottom
                         }}
                     >
-                        {chatList.map((chats: any) => (
+                        {chatList?.map((chats: any) => (
                             <TouchableOpacity
                                 key={chats?.user?.id}
-                                onPress={() => { }}
+                                onPress={() => router.push({
+                                    pathname: '/chat-details',
+                                    params: {
+                                        userId: chats?.user?._id,
+                                        userName: `${chats?.user?.firstName} ${chats?.user?.lastName}`,
+                                        userAvatar: chats?.user?.profilePicture,
+                                    }
+                                })}
                                 onLongPress={() => deleteConversation(chats?.user?.id)}
                                 style={{
                                     flexDirection: 'row',
@@ -127,6 +135,19 @@ const MessageScreen = () => {
                                             >
                                                 {chats?.user?.firstName}
                                             </SCText>
+                                            <SCText
+                                                numberOfLines={1}
+                                                size={16}
+                                                color='white'
+                                                style={{
+                                                    // fontSize: 16,
+                                                    // fontWeight: '700',
+                                                    // color: '#000',
+
+                                                }}
+                                            >
+                                                {' '}{chats?.user?.lastName}
+                                            </SCText>
 
                                             {/* {conversation.user?.verified === true && (
                                                 <Feather
@@ -140,13 +161,13 @@ const MessageScreen = () => {
                                             )} */}
                                         </View>
 
-                                        <Text style={{
-                                            color: '#6B7280',
-                                            fontSize: 12
-                                        }} >{dayjs(chats?.lastMessage?.createdAt,).format('DD-MM-YYYY')}</Text>
+                                        <View>
+                                            {/* <SCText color={'#6B7280'} size={12}>{dayjs(chats?.lastMessage?.createdAt,).format('DD-MM-YYYY')}</SCText> */}
+                                            <SCText color={'#6B7280'} size={12}>{dayjs(chats?.lastMessage?.createdAt,).format('hh-mm A')}</SCText>
+                                        </View>
                                     </View>
 
-                                    <Text
+                                    <SCText
                                         numberOfLines={1}
                                         style={{
                                             color: '#6B7280',
@@ -154,7 +175,7 @@ const MessageScreen = () => {
                                         }}
                                     >
                                         {chats?.lastMessage?.text}
-                                    </Text>
+                                    </SCText>
                                 </View>
                             </TouchableOpacity>
                         ))}

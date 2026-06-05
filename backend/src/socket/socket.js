@@ -14,14 +14,16 @@ export const initializeSocket = (server) => {
   io.on("connection", (socket) => {
     console.log("Connected:", socket.id);
 
-    // User comes online
     socket.on("join", (userId) => {
-      onlineUsers.set(userId, socket.id);
+      if (!userId) return;
+      console.log(`${userId} joined their private room.`);
 
+      socket.join(userId.toString());
+
+      onlineUsers.set(userId.toString(), socket.id);
       io.emit("online-users", [...onlineUsers.keys()]);
     });
 
-    // Typing
     socket.on("typing", ({ senderId, receiverId }) => {
       const receiverSocketId = onlineUsers.get(receiverId);
 
@@ -32,7 +34,6 @@ export const initializeSocket = (server) => {
       }
     });
 
-    // Stop typing
     socket.on("stop-typing", ({ senderId, receiverId }) => {
       const receiverSocketId = onlineUsers.get(receiverId);
 

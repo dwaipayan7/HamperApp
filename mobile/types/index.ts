@@ -51,3 +51,9 @@ export interface Notification {
 }
 
 export type TSnackbarVariant = "success" | "warning" | "error" | "info";
+
+export interface ChatProps {
+  receiverId: string;
+  text: string;
+  senderId: string;
+}

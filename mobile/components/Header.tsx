@@ -1,9 +1,10 @@
 import { StyleSheet, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
 import React from 'react';
 import SCText from './CustomText';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { Icon } from '@/utils/Icons';
 import { COLORS } from '@/constants/colors';
+import { formatText } from '@/utils/AllContext';
 
 interface HeaderProps {
     title?: string;
@@ -25,9 +26,11 @@ interface HeaderProps {
     rightIconSignOut?: boolean
     isUserPosts?: boolean
     userPosts?: number,
+    isVerticalThreeDots?: boolean;
+    showProfileImage?: string
+    subTitle?: string
 
-
-
+    onVerticalThreeDots?: () => void;
     onRightSignOut?: () => void
     onEdit?: () => void;
     onBack?: () => void;
@@ -55,9 +58,14 @@ const Header = ({
     rightIconSignOut,
     isUserPosts,
     userPosts,
+    isVerticalThreeDots,
+    showProfileImage,
+    subTitle,
 
+
+
+    onVerticalThreeDots,
     onRightSignOut,
-
     onCustomPost,
     onSettingAction,
     onEdit,
@@ -132,7 +140,7 @@ const Header = ({
                     </TouchableOpacity>
                 )}
 
-                {(leftTitle || isUserPosts) && (
+                {(leftTitle && isUserPosts) && (
                     <View>
                         <SCText
                             color="white"
@@ -145,31 +153,43 @@ const Header = ({
                         {isUserPosts && (
                             <SCText
                                 color="white"
-                                size={12}
                                 varient="regular"
+                                size={12}
                             >
                                 {userPosts} {userPosts === 1 ? 'Post' : 'Posts'}
                             </SCText>
                         )}
                     </View>
                 )}
+                {(leftTitle && showProfileImage || leftTitle && subTitle) && (
+                    <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+                        <Image source={{ uri: showProfileImage }}
+                            style={{ height: 40, width: 40, borderRadius: 20 }}
+                        />
+                        <View style={{ gap: 4 }}>
+                            <SCText
+                                color="white"
+                                size={16}
+                                varient="semibold"
+                            >
+                                {formatText(leftTitle, 20)}
+                            </SCText>
+
+                            <SCText
+                                color="white"
+                                varient="regular"
+                                size={12}>
+                                {subTitle}
+                            </SCText>
+
+                        </View>
+
+                        <View />
+                    </View>
+                )}
 
                 {showIcon && (
                     <TouchableOpacity onPress={onLeftActions}>
-                        {/* <Ionicons
-                            name="logo-twitter"
-                            size={24}
-                            color="#1DA1F2"
-                        /> */}
-                        {/* <Image
-                            source={require('../assets/images/hamper_logo.png')}
-                            resizeMode="contain"
-                            style={{
-                                width: 34,
-                                height: 34,
-                            }}
-                        /> */}
-
                         <View
                             style={{
                                 width: 26,
@@ -334,6 +354,10 @@ const Header = ({
                         <TouchableOpacity onPress={onEdit}>
                             <Feather name='edit' size={20} color={'#657786'} />
                         </TouchableOpacity>
+                    )}
+
+                    {isVerticalThreeDots && (
+                        <FontAwesome onPress={onVerticalThreeDots} color={COLORS.white} size={24} name='ellipsis-v' />
                     )}
 
                     {/* {showEdit && (

@@ -99,7 +99,7 @@ const SnackBar = () => {
                                         flex: 1,
                                     }}
                                 >
-                                    {message}
+                                    {typeof message === 'string' ? message : JSON.stringify(message)}
                                 </SCText>
                             </View>
 

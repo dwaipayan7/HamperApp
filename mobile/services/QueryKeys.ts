@@ -19,7 +19,7 @@ const QueryKeys = {
     followers: "followers",
   },
   Messages: {
-    chatList: '"chatList"',
+    chatList: "chatList",
     messages: "messages",
     searchUsers: "searchUsers",
   },

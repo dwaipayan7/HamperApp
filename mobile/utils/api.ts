@@ -103,12 +103,12 @@ export class ApiUtility {
       (response) => {
         // SUCCESS MESSAGE
         if (response?.data?.message) {
-          store.dispatch(
-            showSnackbar({
-              message: response.data.message,
-              variant: "success",
-            }),
-          );
+          // store.dispatch(
+          //   showSnackbar({
+          //     message: response.data.message,
+          //     variant: "success",
+          //   }),
+          // );
         }
 
         return response;
@@ -123,9 +123,14 @@ export class ApiUtility {
           message =
             error?.response?.data?.error ||
             error?.response?.data?.message ||
-            error.message ||
-            error;
+            error?.message ||
+            "Something went wrong";
         }
+
+        // Ensure message is always a string
+        // if (typeof message !== "string") {
+        //   message = JSON.stringify(message);
+        // }
 
         store.dispatch(
           setMessage({

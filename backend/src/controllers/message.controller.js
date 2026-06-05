@@ -16,7 +16,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   const { receiverId, text } = req.body;
 
-  const receiver = await User.findById(receiverId); // getting the receiver --> clerk Id
+  const receiver = await User.findById(receiverId);
   if (!receiver) return res.status(404).json({ error: "Receiver not found" });
 
   const encrypted = encryptedMessage(text);
@@ -31,16 +31,17 @@ export const sendMessage = asyncHandler(async (req, res) => {
     .populate("sender", "firstName lastName username profilePicture")
     .populate("receiver", "firstName lastName username profilePicture");
 
-  const receiverSocketId = onlineUsers.get(receiver.clerkId);
+  // const receiverSocketId = onlineUsers.get(receiver.clerkId);
+  // const receiverSocketId = onlineUsers.get(receiverId);
 
-  if (receiverSocketId) {
-    getIO()
-      .to(receiverSocketId)
-      .emit("new-message", {
-        ...populatedMessages.toObject(),
-        text,
-      });
-  }
+  // if (receiverSocketId) {
+  getIO()
+    .to(receiverId.toString())
+    .emit("new-message", {
+      ...populatedMessages.toObject(),
+      text,
+    });
+  // }
 
   res.status(201).json({ message: populatedMessages });
 });

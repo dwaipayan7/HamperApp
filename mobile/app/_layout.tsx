@@ -16,6 +16,7 @@ import { useSyncAuth } from '@/hooks/useSyncAuth';
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import SnackBar from '@/components/Snackbar';
+import { useSocket } from '@/hooks/useSocket';
 
 export const queryClient = new QueryClient();
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
@@ -64,10 +65,35 @@ export default function RootLayout() {
 
 function RootContent() {
   useSyncAuth();
+  useSocket()
   return (
     <>
       <StatusBar style='light' />
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen
+          name="(drawer)"
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="profile-details"
+          options={{
+            headerShown: false,
+            presentation: "card",
+            animation: "slide_from_right",
+          }}
+        />
+
+        <Stack.Screen
+          name="chat-details"
+          options={{
+            headerShown: false,
+            presentation: "card",
+            animation: "slide_from_right",
+          }}
+        />
+
+      </Stack>
       <SnackBar />
     </>
   );
