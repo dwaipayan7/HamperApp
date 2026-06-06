@@ -13,7 +13,9 @@ const router = express.Router();
 router.post("/send-message", protectRoute, sendMessage);
 router.get("/chats/:receiverId", protectRoute, getMessages);
 router.get("/conversations", protectRoute, getAllChatList);
+
 router.get("/search", protectRoute, searchChats);
+
 router.delete("/conversation/:receiverId", protectRoute, deleteConversation);
 
 export default router;

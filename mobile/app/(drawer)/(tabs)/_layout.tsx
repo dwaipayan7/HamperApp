@@ -53,11 +53,11 @@ const TabsLayout = () => {
                 }}
             />
             <Tabs.Screen
-                name="notifications"
+                name="addVideo"
                 options={{
                     title: "",
 
-                    tabBarIcon: ({ color, size }) => <Feather name="bell" size={size} color={color} />,
+                    tabBarIcon: ({ color, size }) => <Feather name="plus-circle" size={size} color={color} />,
                 }}
             />
             <Tabs.Screen

@@ -164,31 +164,76 @@ export const getAllChatList = asyncHandler(async (req, res) => {
 //TODO Search User to Chat
 
 export const searchChats = asyncHandler(async (req, res) => {
+  const { userId } = getAuth(req);
+
+  const currentUser = await User.findOne({ clerkId: userId });
+
   const { name } = req.query;
   const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+  // const users = await User.find({
+  //   $or: [
+  //     {
+  //       username: {
+  //         $regex: escapedName,
+  //         $options: "i",
+  //       },
+  //     },
+  //     {
+  //       firstName: {
+  //         $regex: escapedName,
+  //         $options: "i",
+  //       },
+  //     },
+  //     {
+  //       lastName: {
+  //         $regex: escapedName,
+  //         $options: "i",
+  //       },
+  //     },
+  //   ],
+  // }).select("firstName lastName username profilePicture");
+
+  // const messages = await Message.find({
+  //   $or: [{ sender: currentUser._id }, { receiver: currentUser._id }],
+  // }).select("sender receiver")
+
+  const chatUserIds = await Message.aggregate([
+    {
+      $match: {
+        $or: [{ sender: currentUser._id }, { receiver: currentUser._id }],
+      },
+    },
+    {
+      $project: {
+        otherUser: {
+          $cond: [
+            { $eq: ["$sender", currentUser._id] },
+            "$receiver",
+            "$sender",
+          ],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: "$otherUser",
+      },
+    },
+  ]);
+
   const users = await User.find({
+    _id: {
+      $in: chatUserIds.map((u) => u._id),
+    },
     $or: [
-      {
-        username: {
-          $regex: escapedName,
-          $options: "i",
-        },
-      },
-      {
-        firstName: {
-          $regex: escapedName,
-          $options: "i",
-        },
-      },
-      {
-        lastName: {
-          $regex: escapedName,
-          $options: "i",
-        },
-      },
+      { firstName: { $regex: escapedName, $options: "i" } },
+      { lastName: { $regex: escapedName, $options: "i" } },
+      { username: { $regex: escapedName, $options: "i" } },
     ],
   }).select("firstName lastName username profilePicture");
+
+  console.log("The users are: ", users);
 
   res.status(200).json({ users });
 });

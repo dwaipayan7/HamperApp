@@ -12,7 +12,7 @@ import { useSignOut } from '@/hooks/useSignOut'
 import { LinearGradient } from 'expo-linear-gradient'
 import GradientWrapper from '@/components/GradientWrapper'
 
-import { useNavigation } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
 import { DrawerActions } from '@react-navigation/native';
 
 
@@ -24,6 +24,8 @@ const HomeScreen = () => {
         navigation.dispatch(DrawerActions.openDrawer());
     };
 
+    const router = useRouter();
+
     useUserSync();
 
     return (
@@ -33,6 +35,8 @@ const HomeScreen = () => {
                     title="Home"
                     showIcon
                     onLeftActions={openDrawer}
+                    showNotification
+                    onPressNotification={() => router.push('/notifications')}
                 // rightActionLabel="sign out"
                 // onRightActions={handleSignOut}
                 />

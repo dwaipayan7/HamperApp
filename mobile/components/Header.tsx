@@ -29,7 +29,9 @@ interface HeaderProps {
     isVerticalThreeDots?: boolean;
     showProfileImage?: string
     subTitle?: string
+    showNotification?: boolean
 
+    onPressNotification?: () => void;
     onVerticalThreeDots?: () => void;
     onRightSignOut?: () => void
     onEdit?: () => void;
@@ -61,9 +63,10 @@ const Header = ({
     isVerticalThreeDots,
     showProfileImage,
     subTitle,
+    showNotification,
 
 
-
+    onPressNotification,
     onVerticalThreeDots,
     onRightSignOut,
     onCustomPost,
@@ -358,6 +361,10 @@ const Header = ({
 
                     {isVerticalThreeDots && (
                         <FontAwesome onPress={onVerticalThreeDots} color={COLORS.white} size={24} name='ellipsis-v' />
+                    )}
+
+                    {showNotification && (
+                        <Feather name="bell" size={20} color={COLORS.white} onPress={onPressNotification} />
                     )}
 
                     {/* {showEdit && (

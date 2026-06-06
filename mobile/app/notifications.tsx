@@ -12,6 +12,7 @@ import GradientWrapper from '@/components/GradientWrapper';
 import { Notification } from '@/types';
 import NotificationCard from '@/components/NotificationCard';
 import LoaderModal from '@/components/LoaderModal';
+import { router } from 'expo-router';
 
 const NotificationsScreen = () => {
 
@@ -52,7 +53,10 @@ const NotificationsScreen = () => {
                 </TouchableOpacity>
             </View> */}
 
-                <Header leftTitle='Notifications' showSettingsIcon onSettingAction={() => { }} />
+                <Header
+                    showBackButton
+                    onBack={() => router.back()}
+                    leftTitle='Notifications' showSettingsIcon onSettingAction={() => { }} />
 
                 <FlatList
                     data={notifications || []}
