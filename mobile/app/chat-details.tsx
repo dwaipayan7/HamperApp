@@ -1,7 +1,7 @@
-import { StyleSheet, View, ActivityIndicator, Text } from 'react-native'
-import React, { useState, useEffect, useCallback } from 'react'
+import { StyleSheet, View, ActivityIndicator, Text, FlatList, SectionList, Platform, TouchableOpacity } from 'react-native'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import GradientWrapper from '@/components/GradientWrapper';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '@/components/Header';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSendMessage, useGetMessages } from '@/services/ChatService';
@@ -11,6 +11,15 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { GiftedChat, IMessage, InputToolbar, Send } from 'react-native-gifted-chat';
 import { socket } from '@/sockets/socket';
 import { useChatSocket } from '@/hooks/useChatSocket';
+import SCText from '@/components/CustomText';
+import dayjs from 'dayjs';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import TypingIndicator from '@/components/TypingIndicator';
+import { SCTextInput } from '@/utils/CustomInputStore';
+import { Formik } from 'formik';
+import * as yup from 'yup';
+import { isPending } from '@reduxjs/toolkit';
+
 
 interface ChatMessage {
     _id: string;
@@ -44,6 +53,19 @@ const ChatDetails = () => {
 
     const [liveMessages, setLiveMessages] = useState<IMessage[]>([]);
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+
+    const insets = useSafeAreaInsets()
+
+
+    const sectionListRef = useRef<SectionList<any>>(null);
+
+    const sortedMessages = [...liveMessages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+
+    const validationSchema = yup.object().shape({
+        text: yup.string().trim(),
+    });
+
 
     useEffect(() => {
         const handleOnlineUsers = (users: string[]) => setOnlineUsers(users);
@@ -85,7 +107,7 @@ const ChatDetails = () => {
 
     const handleNewMessage = useCallback((message: ChatMessage) => {
         setLiveMessages(prev => {
-            // Guard: skip if this exact _id already exists (hard duplicate)
+
             if (prev.some(m => m._id === message._id)) return prev;
 
             const incoming: IMessage = {
@@ -99,7 +121,7 @@ const ChatDetails = () => {
                 },
             };
 
-            // If this is the sender's own message echoed back → replace temp bubble
+
             const isMine = message.sender._id.toString() === currentUser?._id?.toString();
             if (isMine) {
                 const tempIndex = prev.findIndex(m =>
@@ -113,10 +135,15 @@ const ChatDetails = () => {
                 }
             }
 
-            // Otherwise append (message from receiver)
-            return GiftedChat.append(prev, [incoming]);
+
+            // return GiftedChat.append(prev, [incoming]);
+            // return (prev, [incoming]);
+            return [incoming, ...prev];
         });
     }, [currentUser?._id]);
+
+
+
 
     const { isReceiverTyping, onTyping, onStopTyping } = useChatSocket({
         currentUserId: currentUser?._id ?? "",
@@ -124,44 +151,129 @@ const ChatDetails = () => {
         onNewMessage: handleNewMessage,
     });
 
-    // ─── 5. Send message ──────────────────────────────────────────────────────
-    const onSendHandler = useCallback(async (newMessages: IMessage[] = []) => {
-        const message = newMessages[0];
 
-        // Stop typing indicator immediately on send
+    // const onSendHandler = useCallback(async (newMessages: IMessage[] = []) => {
+    //     const message = newMessages[0];
+
+
+    //     onStopTyping();
+    //     const optimisticMessage: IMessage = {
+    //         ...message,
+    //         _id: `temp_${Date.now()}`,
+    //     };
+
+    //     // setLiveMessages(prev => GiftedChat.append(prev, [optimisticMessage]));
+    //     // setLiveMessages(prev, [optimisticMessage]);
+    //     setLiveMessages(prev => [optimisticMessage, ...prev]);
+
+    //     try {
+    //         await sendMessage({
+    //             receiverId: userId,
+    //             text: message.text,
+    //         });
+
+    //     } catch (error) {
+    //         console.error("Failed to send message:", error);
+
+    //         setLiveMessages(prev =>
+    //             prev.filter(m => m._id !== optimisticMessage._id)
+    //         );
+    //     }
+    // }, [userId, onStopTyping]);
+
+    const onSendHandler = async (text: string) => {
+        if (!text.trim()) return;
+
         onStopTyping();
 
-        // Optimistic bubble with a temp ID — will be swapped out when
-        // "new-message" arrives back from the server via socket
         const optimisticMessage: IMessage = {
-            ...message,
             _id: `temp_${Date.now()}`,
+            text,
+            createdAt: new Date(),
+            user: {
+                _id: currentUser?._id || "",
+                name: `${currentUser?.firstName} ${currentUser?.lastName}`,
+                avatar: currentUser?.profilePicture,
+            },
         };
 
-        setLiveMessages(prev => GiftedChat.append(prev, [optimisticMessage]));
+        setLiveMessages(prev => [optimisticMessage, ...prev]);
 
         try {
             await sendMessage({
                 receiverId: userId,
-                text: message.text,
+                text,
             });
-            // Socket echo will replace the temp bubble via handleNewMessage
         } catch (error) {
-            console.error("Failed to send message:", error);
-            // Roll back the optimistic bubble on failure
             setLiveMessages(prev =>
                 prev.filter(m => m._id !== optimisticMessage._id)
             );
         }
-    }, [userId, onStopTyping]);
+    };
+
 
 
     const isOnline = onlineUsers.includes(userId);
 
+    const groupedMessages = React.useMemo(() => {
+        const groups: Record<string, IMessage[]> = {};
+
+        liveMessages.forEach((message) => {
+            let label = "";
+            if (dayjs(message.createdAt).isSame(dayjs(), 'day')) {
+                label = "Today";
+            } else if (dayjs(message.createdAt).isSame(dayjs().subtract(1, 'day'), 'day')) {
+                label = "Yesterday";
+            } else {
+                label = dayjs(message.createdAt).format("DD/MM/YYYY");
+            }
+
+            if (!groups[label]) groups[label] = [];
+            groups[label].push(message);
+        });
+
+        const parseTitle = (t: string) => {
+            if (t === "Today") return dayjs();
+            if (t === "Yesterday") return dayjs().subtract(1, 'day');
+            return dayjs(t, "DD/MM/YYYY");
+        };
+
+        return Object.entries(groups)
+            .sort(([a], [b]) =>
+                parseTitle(b).valueOf() - parseTitle(a).valueOf()
+            )
+            .map(([title, data]) => ({
+                title,
+                data: [...data].sort(
+                    (a, b) => new Date(b.createdAt as any).getTime() - new Date(a.createdAt as any).getTime()
+                ),
+            }));
+    }, [liveMessages]);
+
+    useEffect(() => {
+        if (groupedMessages.length === 0) return;
+        sectionListRef.current?.scrollToLocation({
+            sectionIndex: 0,
+            itemIndex: 0,
+            viewOffset: 0,
+            animated: true
+        });
+    }, [liveMessages])
+
 
     return (
         <GradientWrapper style={{ flex: 1 }}>
-            <SafeAreaView style={{ flex: 1 }}>
+            {/* <SafeAreaView style={{ flex: 1 }}> */}
+            <KeyboardAvoidingView
+                style={{ flex: 1, marginTop: insets.top }}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+
+                keyboardVerticalOffset={
+                    Platform.OS === 'ios'
+                        ? insets.top - 80
+                        : 0
+                }
+            >
                 <Header
                     showBackButton
                     onBack={() => router.back()}
@@ -175,73 +287,171 @@ const ChatDetails = () => {
                         <ActivityIndicator size="large" color={COLORS.lightBlue} />
                     </View>
                 ) : (
-                    <GiftedChat
-                        messages={liveMessages}
-                        user={{
-                            _id: currentUser?._id || '',
-                            name: `${currentUser?.firstName} ${currentUser?.lastName}`,
-                            avatar: currentUser?.profilePicture,
-                        }}
-                        onSend={onSendHandler}
 
-                        // ── Typing detection ────────────────────────────────
-                        onInputTextChanged={(text) => {
-                            if (text.length > 0) {
-                                onTyping();         // self-debouncing, safe to call every keystroke
-                            } else {
-                                onStopTyping();     // user cleared the input
-                            }
+                    <SectionList
+                        stickySectionHeadersEnabled={false}
+                        ref={sectionListRef}
+                        style={{ flex: 1 }}
+                        sections={groupedMessages}
+                        inverted
+                        keyExtractor={(item: any) => item._id.toString()}
+                        contentContainerStyle={{
+                            paddingHorizontal: 12,
+                            paddingVertical: 10,
                         }}
 
-                        // ── Typing indicator footer ─────────────────────────
-                        renderFooter={() =>
-                            isReceiverTyping ? (
-                                <View style={styles.typingContainer}>
-                                    <View style={styles.typingBubble}>
-                                        <View style={styles.dotRow}>
-                                            <View style={[styles.dot, styles.dot1]} />
-                                            <View style={[styles.dot, styles.dot2]} />
-                                            <View style={[styles.dot, styles.dot3]} />
-                                        </View>
-                                    </View>
-                                    <Text style={styles.typingLabel}>
-                                        {userName} is typing…
-                                    </Text>
-                                </View>
-                            ) : null
+                        ListHeaderComponent={
+                            <TypingIndicator visible={isReceiverTyping} />
                         }
-
-                        // ── Custom send button ──────────────────────────────
-                        renderSend={(props) => (
-                            <Send {...props}>
-                                <View style={styles.sendButtonContainer}>
-                                    <Feather
-                                        name="send"
-                                        size={18}
+                        renderSectionFooter={({ section }: any) => (
+                            <View
+                                style={{
+                                    alignItems: "center",
+                                    marginVertical: 12,
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        backgroundColor: "#202C33",
+                                        paddingHorizontal: 12,
+                                        paddingVertical: 4,
+                                        borderRadius: 10,
+                                    }}
+                                >
+                                    <SCText
                                         color="white"
-                                        style={styles.sendIcon}
-                                    />
+                                        style={{
+                                            fontSize: 12,
+                                        }}
+                                    >
+                                        {section.title}
+                                    </SCText>
                                 </View>
-                            </Send>
+                            </View>
                         )}
+                        renderItem={({ item }: any) => {
+                            const isMe =
+                                item.user._id.toString() ===
+                                currentUser?._id?.toString();
 
-                        // ── Custom input toolbar ────────────────────────────
-                        renderInputToolbar={(props) => (
-                            <InputToolbar
-                                {...props}
-                                containerStyle={styles.inputToolbar}
-                            />
-                        )}
+                            return (
+                                <View
+                                    style={{
+                                        alignItems: isMe
+                                            ? "flex-end"
+                                            : "flex-start",
+                                        marginVertical: 3,
+                                    }}
+                                >
+                                    <View
+                                        style={{
+                                            maxWidth: "80%",
+                                            backgroundColor: isMe
+                                                ? COLORS.lightBlue
+                                                : "#1F2937",
+                                            paddingHorizontal: 14,
+                                            paddingVertical: 10,
+                                            // borderRadius: 18,
+                                            gap: 4,
+                                            borderTopLeftRadius: isMe ? 0 : 18,
+                                            borderTopRightRadius: !isMe ? 0 : 18,
+                                            borderBottomLeftRadius: !isMe ? 0 : 18,
+                                        }}
+                                    >
+                                        <SCText color="white">
+                                            {item.text}
+                                        </SCText>
+
+                                        <SCText
+                                            color={COLORS.white}
+                                            style={{
+                                                alignSelf: "flex-end",
+                                                fontSize: 10,
+                                                marginTop: 4,
+                                                opacity: 0.7,
+                                            }}
+                                        >
+                                            {dayjs(item.createdAt).format(
+                                                "hh:mm A"
+                                            )}
+                                        </SCText>
+                                    </View>
+                                </View>
+                            );
+                        }}
                     />
+
                 )}
-            </SafeAreaView>
-        </GradientWrapper>
+                {/* {'Chat Input'} */}
+                <Formik
+                    initialValues={{ text: '' }}
+                    validationSchema={validationSchema}
+                    onSubmit={async (values, { resetForm }) => {
+                        try {
+                            // await mutateAsync({
+                            //     postId: selectedPost._id,
+                            //     content: values.content,
+                            // });
+                            // handleNewMessage(values)
+
+                            onSendHandler(values.text)
+
+
+                            resetForm();
+                        } catch (error) {
+                            console.log(error);
+                        }
+                    }}
+                >
+                    {({ handleChange, handleBlur, handleSubmit, values }) => (
+                        <View style={styles.inputBar}>
+                            <View style={{ flex: 1, marginRight: 10 }}>
+                                <SCTextInput
+                                    placeholder="Write a message..."
+                                    value={values.text}
+                                    onChangeText={(text) => {
+                                        handleChange('text')(text);
+
+                                        if (text.trim().length > 0) {
+                                            onTyping();
+                                        } else {
+                                            onStopTyping();
+                                        }
+                                    }}
+                                    onBlur={handleBlur('text')}
+                                    extendingField
+                                />
+                            </View>
+
+                            <TouchableOpacity
+                                disabled={!values.text.trim()}
+                                activeOpacity={0.8}
+                                onPress={() => handleSubmit()}
+                                style={styles.sendButton}
+                            >
+                                <Feather
+                                    name="send"
+                                    size={20}
+                                    color={COLORS.white}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </Formik>
+                {/* <View>
+                        <SCTextInput
+
+                        />
+                    </View> */}
+            </KeyboardAvoidingView>
+            {/* </SafeAreaView> */}
+        </GradientWrapper >
     );
 };
 
 export default ChatDetails;
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+
 
 const styles = StyleSheet.create({
     loaderContainer: {
@@ -250,7 +460,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
 
-    // ── Typing indicator ──────────────────────────────────────────────────────
+
     typingContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -275,8 +485,8 @@ const styles = StyleSheet.create({
         borderRadius: 3,
         backgroundColor: '#9CA3AF',
     },
-    // Animated dots would need Animated.View; these are static placeholders.
-    // Swap these for Animated.View with looping opacity/scale for full effect.
+
+
     dot1: { opacity: 1 },
     dot2: { opacity: 0.6 },
     dot3: { opacity: 0.3 },
@@ -284,8 +494,17 @@ const styles = StyleSheet.create({
         color: '#6B7280',
         fontSize: 12,
     },
+    sendButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 24,
+        backgroundColor: COLORS.lightBlue,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10
+    },
 
-    // ── Input ─────────────────────────────────────────────────────────────────
+
     sendButtonContainer: {
         marginRight: 10,
         marginBottom: 8,
@@ -301,9 +520,20 @@ const styles = StyleSheet.create({
     },
     inputToolbar: {
         backgroundColor: '#111827',
-        borderTopWidth: 1,
-        borderTopColor: '#374151',
+        // borderTopWidth: 1,
+        // borderTopColor: '#374151',
         marginHorizontal: 12,
         borderRadius: 20,
+    },
+    inputBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        paddingBottom: 16,
+        justifyContent: 'center',
+        // borderTopWidth: 0.2,
+        // borderColor: COLORS.gray100,
+        backgroundColor: '#12051F',
     },
 });

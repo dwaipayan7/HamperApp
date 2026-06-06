@@ -19,6 +19,7 @@
     },
 
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "package": "com.x.clone",
 
       "adaptiveIcon": {
