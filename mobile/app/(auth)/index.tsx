@@ -31,24 +31,36 @@ export default function Index() {
     selectIsAuthenticated
   );
 
+  // useEffect(() => {
+
+  //   if (!isLoaded) {
+  //     return;
+  //   }
+
+  //   if (!isSignedIn) {
+  //     dispatch(setAuthenticated(false))
+  //   } else {
+  //     dispatch(setAuthenticated(true))
+
+  //   }
+
+
+  //   if (isAuthenticated) {
+  //     router.replace("/(drawer)/(tabs)");
+  //   }
+  // }, [isSignedIn, isAuthenticated]);
+
+
   useEffect(() => {
+    if (!isLoaded) return;
 
-    if (!isLoaded) {
-      return;
-    }
-
-    if (!isSignedIn) {
-      dispatch(setAuthenticated(false))
-    } else {
-      dispatch(setAuthenticated(true))
-
-    }
-
-
-    if (isAuthenticated) {
+    if (isSignedIn) {
+      dispatch(setAuthenticated(true));
       router.replace("/(drawer)/(tabs)");
+    } else {
+      dispatch(setAuthenticated(false));
     }
-  }, [isSignedIn, isAuthenticated]);
+  }, [isSignedIn, isLoaded]);
 
   return (
     <LinearGradient
@@ -183,39 +195,39 @@ export default function Index() {
               )}
             </TouchableOpacity>
 
-            {Platform.OS === "ios" && (
-              <TouchableOpacity
+            {/* {Platform.OS === "ios" && ( */}
+            <TouchableOpacity
+              style={{
+                width: "100%",
+                height: 54,
+                borderRadius: 30,
+                backgroundColor: "#FFFFFF",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "row",
+                gap: 10,
+              }}
+              onPress={() => handleSocialAuth("oauth_apple")}
+              disabled={isLoading}
+            >
+              <Image
+                source={require("../../assets/images/apple.png")}
                 style={{
-                  width: "100%",
-                  height: 54,
-                  borderRadius: 30,
-                  backgroundColor: "#FFFFFF",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  flexDirection: "row",
-                  gap: 10,
+                  width: 22,
+                  height: 28,
                 }}
-                onPress={() => handleSocialAuth("oauth_apple")}
-                disabled={isLoading}
-              >
-                <Image
-                  source={require("../../assets/images/apple.png")}
-                  style={{
-                    width: 22,
-                    height: 28,
-                  }}
-                />
+              />
 
-                <Text
-                  style={{
-                    fontWeight: "700",
-                    fontSize: 16,
-                  }}
-                >
-                  Continue with Apple
-                </Text>
-              </TouchableOpacity>
-            )}
+              <Text
+                style={{
+                  fontWeight: "700",
+                  fontSize: 16,
+                }}
+              >
+                Continue with Apple
+              </Text>
+            </TouchableOpacity>
+            {/* )} */}
           </View>
 
           {/* Footer */}

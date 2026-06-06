@@ -1,5 +1,5 @@
-import { StyleSheet, View, ActivityIndicator } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import { StyleSheet, View, ActivityIndicator, Text } from 'react-native'
+import React, { useState, useEffect, useCallback } from 'react'
 import GradientWrapper from '@/components/GradientWrapper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/Header';
@@ -10,6 +10,7 @@ import { COLORS } from '@/constants/colors';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { GiftedChat, IMessage, InputToolbar, Send } from 'react-native-gifted-chat';
 import { socket } from '@/sockets/socket';
+import { useChatSocket } from '@/hooks/useChatSocket';
 
 interface ChatMessage {
     _id: string;
@@ -29,57 +30,45 @@ interface ChatMessage {
     };
 }
 
+
 const ChatDetails = () => {
     const { userId, userName, userAvatar } = useLocalSearchParams<{
         userId: string;
+        userName: string;
+        userAvatar: string;
     }>();
 
     const { currentUser } = useCurrentUser();
     const { data: messages, isLoading: isLoadingMessages } = useGetMessages(userId);
     const { mutateAsync: sendMessage } = useSendMessage();
 
-    const [liveMessage, setLiveMessage] = useState<IMessage[]>([]);
+    const [liveMessages, setLiveMessages] = useState<IMessage[]>([]);
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
-    // 1. FIX: Dynamic Connection & Re-join Handler
     useEffect(() => {
-        if (!currentUser?._id) return;
+        const handleOnlineUsers = (users: string[]) => setOnlineUsers(users);
+        socket.on("online-users", handleOnlineUsers);
 
-        const handleConnect = () => {
-            console.log("Socket connected/reconnected. Joining room for:", currentUser._id);
-            socket.emit("join", currentUser._id);
-            socket.emit("get-online-users"); // Refresh online list instantly
-        };
-
-        // If already connected, join immediately
         if (socket.connected) {
-            handleConnect();
+            socket.emit("get-online-users");
+        } else {
+
+            const onConnect = () => socket.emit("get-online-users");
+            socket.once("connect", onConnect);
+            return () => {
+                socket.off("online-users", handleOnlineUsers);
+                socket.off("connect", onConnect);
+            };
         }
 
-        // Listen for reconnects or delayed connections
-        socket.on("connect", handleConnect);
-
-        return () => {
-            socket.off("connect", handleConnect);
-        };
-    }, [currentUser?._id]);
-
-    // 2. Manage Global Online Status Lists
-    useEffect(() => {
-        socket.on("online-users", (users: string[]) => {
-            setOnlineUsers(users);
-        });
-
-        return () => {
-            socket.off("online-users");
-        };
+        return () => { socket.off("online-users", handleOnlineUsers); };
     }, []);
 
-    // 3. Sync Database History with Local State
+
     useEffect(() => {
         if (!messages) return;
 
-        const formatted = messages.map((msg: ChatMessage) => ({
+        const formatted: IMessage[] = messages.map((msg: ChatMessage) => ({
             _id: msg._id,
             text: msg.text,
             createdAt: new Date(msg.createdAt),
@@ -90,99 +79,85 @@ const ChatDetails = () => {
             },
         }));
 
-        setLiveMessage(formatted);
+        setLiveMessages(formatted);
     }, [messages]);
 
-    // 4. Listen for Incoming Real-Time Messages
-    // useEffect(() => {
-    //     const handleNewMessage = (message: ChatMessage) => {
-    //         // Ensure message belongs to the currently open conversation
-    //         const isCurrentChat = message.sender._id === userId || message.receiver._id === userId;
-    //         if (!isCurrentChat) return;
 
-    //         // Check if message is already appended to prevent duplicates
-    //         setLiveMessage(prev => {
-    //             if (prev.some(m => m._id === message._id)) return prev;
+    const handleNewMessage = useCallback((message: ChatMessage) => {
+        setLiveMessages(prev => {
+            // Guard: skip if this exact _id already exists (hard duplicate)
+            if (prev.some(m => m._id === message._id)) return prev;
 
-    //             return GiftedChat.append(prev, [{
-    //                 _id: message._id,
-    //                 text: message.text,
-    //                 createdAt: new Date(message.createdAt),
-    //                 user: {
-    //                     _id: message.sender._id,
-    //                     name: `${message.sender.firstName} ${message.sender.lastName}`,
-    //                     avatar: message.sender.profilePicture,
-    //                 },
-    //             }]);
-    //         });
-    //     };
+            const incoming: IMessage = {
+                _id: message._id,
+                text: message.text,
+                createdAt: new Date(message.createdAt),
+                user: {
+                    _id: message.sender._id,
+                    name: `${message.sender.firstName} ${message.sender.lastName}`,
+                    avatar: message.sender.profilePicture,
+                },
+            };
 
-    //     socket.on("new-message", handleNewMessage);
+            // If this is the sender's own message echoed back → replace temp bubble
+            const isMine = message.sender._id.toString() === currentUser?._id?.toString();
+            if (isMine) {
+                const tempIndex = prev.findIndex(m =>
+                    m._id.toString().startsWith("temp_") &&
+                    m.user._id.toString() === currentUser?._id?.toString()
+                );
+                if (tempIndex !== -1) {
+                    const updated = [...prev];
+                    updated[tempIndex] = incoming;
+                    return updated;
+                }
+            }
 
-    //     return () => {
-    //         socket.off("new-message", handleNewMessage);
-    //     };
-    // }, [userId]);
-    // Inside ChatDetails.tsx -> Locate your handleNewMessage useEffect block:
+            // Otherwise append (message from receiver)
+            return GiftedChat.append(prev, [incoming]);
+        });
+    }, [currentUser?._id]);
 
-    useEffect(() => {
-        const handleNewMessage = (message: ChatMessage) => {
-            if (!userId || !message.sender?._id || !message.receiver?._id) return;
+    const { isReceiverTyping, onTyping, onStopTyping } = useChatSocket({
+        currentUserId: currentUser?._id ?? "",
+        receiverId: userId ?? "",
+        onNewMessage: handleNewMessage,
+    });
 
-            // Normalize everything to clean strings to prevent object/string comparison mismatches
-            const incomingSenderId = message.sender._id.toString();
-            const incomingReceiverId = message.receiver._id.toString();
-            const currentChatTargetId = userId.toString();
-
-            // Verify if the incoming message belongs to this active room
-            const isCurrentChat =
-                incomingSenderId === currentChatTargetId ||
-                incomingReceiverId === currentChatTargetId;
-
-            if (!isCurrentChat) return;
-
-            setLiveMessage(prev => {
-                // Deduplication guard: ensure the message isn't already appended
-                if (prev.some(m => m._id === message._id)) return prev;
-
-                return GiftedChat.append(prev, [{
-                    _id: message._id,
-                    text: message.text,
-                    createdAt: new Date(message.createdAt),
-                    user: {
-                        _id: message.sender._id,
-                        name: `${message.sender.firstName} ${message.sender.lastName}`,
-                        avatar: message.sender.profilePicture,
-                    },
-                }]);
-            });
-        };
-
-        socket.on("new-message", handleNewMessage);
-
-        return () => {
-            socket.off("new-message", handleNewMessage);
-        };
-    }, [userId]);
-    const isOnline = onlineUsers.includes(userId);
-
-    // 5. Handlers for sending messages (Optimistic updates + API sync)
-    const onSendHandler = async (newMessages: IMessage[] = []) => {
+    // ─── 5. Send message ──────────────────────────────────────────────────────
+    const onSendHandler = useCallback(async (newMessages: IMessage[] = []) => {
         const message = newMessages[0];
 
-        // Path A: Append to UI instantly
-        setLiveMessage((previous) => GiftedChat.append(previous, newMessages));
+        // Stop typing indicator immediately on send
+        onStopTyping();
 
-        // Path B: Fire off to backend DB
+        // Optimistic bubble with a temp ID — will be swapped out when
+        // "new-message" arrives back from the server via socket
+        const optimisticMessage: IMessage = {
+            ...message,
+            _id: `temp_${Date.now()}`,
+        };
+
+        setLiveMessages(prev => GiftedChat.append(prev, [optimisticMessage]));
+
         try {
             await sendMessage({
                 receiverId: userId,
                 text: message.text,
             });
+            // Socket echo will replace the temp bubble via handleNewMessage
         } catch (error) {
-            console.error("Failed to send message to database:", error);
+            console.error("Failed to send message:", error);
+            // Roll back the optimistic bubble on failure
+            setLiveMessages(prev =>
+                prev.filter(m => m._id !== optimisticMessage._id)
+            );
         }
-    };
+    }, [userId, onStopTyping]);
+
+
+    const isOnline = onlineUsers.includes(userId);
+
 
     return (
         <GradientWrapper style={{ flex: 1 }}>
@@ -196,25 +171,61 @@ const ChatDetails = () => {
                 />
 
                 {isLoadingMessages ? (
-                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <View style={styles.loaderContainer}>
                         <ActivityIndicator size="large" color={COLORS.lightBlue} />
                     </View>
                 ) : (
                     <GiftedChat
-                        messages={liveMessage}
+                        messages={liveMessages}
                         user={{
                             _id: currentUser?._id || '',
                             name: `${currentUser?.firstName} ${currentUser?.lastName}`,
                             avatar: currentUser?.profilePicture,
                         }}
                         onSend={onSendHandler}
+
+                        // ── Typing detection ────────────────────────────────
+                        onInputTextChanged={(text) => {
+                            if (text.length > 0) {
+                                onTyping();         // self-debouncing, safe to call every keystroke
+                            } else {
+                                onStopTyping();     // user cleared the input
+                            }
+                        }}
+
+                        // ── Typing indicator footer ─────────────────────────
+                        renderFooter={() =>
+                            isReceiverTyping ? (
+                                <View style={styles.typingContainer}>
+                                    <View style={styles.typingBubble}>
+                                        <View style={styles.dotRow}>
+                                            <View style={[styles.dot, styles.dot1]} />
+                                            <View style={[styles.dot, styles.dot2]} />
+                                            <View style={[styles.dot, styles.dot3]} />
+                                        </View>
+                                    </View>
+                                    <Text style={styles.typingLabel}>
+                                        {userName} is typing…
+                                    </Text>
+                                </View>
+                            ) : null
+                        }
+
+                        // ── Custom send button ──────────────────────────────
                         renderSend={(props) => (
                             <Send {...props}>
                                 <View style={styles.sendButtonContainer}>
-                                    <Feather name="send" size={18} color="white" style={styles.sendIcon} />
+                                    <Feather
+                                        name="send"
+                                        size={18}
+                                        color="white"
+                                        style={styles.sendIcon}
+                                    />
                                 </View>
                             </Send>
                         )}
+
+                        // ── Custom input toolbar ────────────────────────────
                         renderInputToolbar={(props) => (
                             <InputToolbar
                                 {...props}
@@ -230,7 +241,51 @@ const ChatDetails = () => {
 
 export default ChatDetails;
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
+    loaderContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    // ── Typing indicator ──────────────────────────────────────────────────────
+    typingContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingBottom: 8,
+        gap: 8,
+    },
+    typingBubble: {
+        backgroundColor: '#1F2937',
+        borderRadius: 16,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+    },
+    dotRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    dot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#9CA3AF',
+    },
+    // Animated dots would need Animated.View; these are static placeholders.
+    // Swap these for Animated.View with looping opacity/scale for full effect.
+    dot1: { opacity: 1 },
+    dot2: { opacity: 0.6 },
+    dot3: { opacity: 0.3 },
+    typingLabel: {
+        color: '#6B7280',
+        fontSize: 12,
+    },
+
+    // ── Input ─────────────────────────────────────────────────────────────────
     sendButtonContainer: {
         marginRight: 10,
         marginBottom: 8,
@@ -250,5 +305,5 @@ const styles = StyleSheet.create({
         borderTopColor: '#374151',
         marginHorizontal: 12,
         borderRadius: 20,
-    }
+    },
 });

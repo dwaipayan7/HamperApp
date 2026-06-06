@@ -8,42 +8,84 @@ import {
 import Message from "../models/message.model.js";
 import { getIO, onlineUsers } from "../socket/socket.js";
 
+// export const sendMessage = asyncHandler(async (req, res) => {
+//   const { userId } = getAuth(req);
+
+//   const sender = await User.findOne({ clerkId: userId });
+//   if (!sender) return res.status(404).json({ error: "Sender not found" });
+
+//   const { receiverId, text } = req.body;
+
+//   const receiver = await User.findById(receiverId);
+//   if (!receiver) return res.status(404).json({ error: "Receiver not found" });
+
+//   const encrypted = encryptedMessage(text);
+
+//   const message = await Message.create({
+//     sender: sender._id,
+//     receiver: receiver._id,
+//     text: encrypted,
+//   });
+
+//   const populatedMessages = await Message.findById(message._id)
+//     .populate("sender", "firstName lastName username profilePicture")
+//     .populate("receiver", "firstName lastName username profilePicture");
+
+//   // const receiverSocketId = onlineUsers.get(receiver.clerkId);
+//   // const receiverSocketId = onlineUsers.get(receiverId);
+
+//   // if (receiverSocketId) {
+//   getIO()
+//     .to(receiverId.toString())
+//     .emit("new-message", {
+//       ...populatedMessages.toObject(),
+//       text,
+//     });
+//   // }
+
+//   res.status(201).json({ message: populatedMessages });
+// });
+
+// message.controller.js
+
+// message.controller.js
 export const sendMessage = asyncHandler(async (req, res) => {
   const { userId } = getAuth(req);
+
+  const { receiverId, text } = req.body;
+
+  if (!receiverId || !text) {
+    return res.status(400).json({
+      error:
+        `Missing fields: ${!receiverId ? "receiverId" : ""} ${!text ? "text" : ""}`.trim(),
+    });
+  }
 
   const sender = await User.findOne({ clerkId: userId });
   if (!sender) return res.status(404).json({ error: "Sender not found" });
 
-  const { receiverId, text } = req.body;
-
   const receiver = await User.findById(receiverId);
   if (!receiver) return res.status(404).json({ error: "Receiver not found" });
 
-  const encrypted = encryptedMessage(text);
+  // const encrypted = encryptedMessage(text);
 
   const message = await Message.create({
     sender: sender._id,
     receiver: receiver._id,
-    text: encrypted,
+    // text: encrypted,
+    text: text,
   });
 
-  const populatedMessages = await Message.findById(message._id)
+  const populated = await Message.findById(message._id)
     .populate("sender", "firstName lastName username profilePicture")
     .populate("receiver", "firstName lastName username profilePicture");
 
-  // const receiverSocketId = onlineUsers.get(receiver.clerkId);
-  // const receiverSocketId = onlineUsers.get(receiverId);
+  const payload = { ...populated.toObject(), text };
 
-  // if (receiverSocketId) {
-  getIO()
-    .to(receiverId.toString())
-    .emit("new-message", {
-      ...populatedMessages.toObject(),
-      text,
-    });
-  // }
+  getIO().to(receiver._id.toString()).emit("new-message", payload);
+  getIO().to(sender._id.toString()).emit("new-message", payload);
 
-  res.status(201).json({ message: populatedMessages });
+  res.status(201).json({ message: populated });
 });
 
 export const getMessages = asyncHandler(async (req, res) => {
@@ -72,7 +114,8 @@ export const getMessages = asyncHandler(async (req, res) => {
 
   const decrypted = messages.map((msg) => ({
     ...msg.toObject(),
-    text: decryptedMessage(msg.text),
+    // text: decryptedMessage(msg.text),
+    text: msg.text,
   }));
 
   res.status(200).json({ messages: decrypted });
@@ -102,7 +145,8 @@ export const getAllChatList = asyncHandler(async (req, res) => {
       chatMap.set(otherUserId, {
         user: otherUser,
         lastMessage: {
-          text: decryptedMessage(message.text),
+          // text: decryptedMessage(message.text),
+          text: message.text,
           createdAt: message.createdAt,
           senderId: message.sender._id,
         },
