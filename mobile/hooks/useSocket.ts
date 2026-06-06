@@ -12,7 +12,6 @@ export const useSocket = () => {
 
     const userId = currentUser._id;
 
-    // ── Handlers ──────────────────────────────────────────────────────
     const emitJoin = () => {
       console.log("[Socket] Connected ✅  socketId:", socket.id);
       console.log("[Socket] Emitting 'join' for userId:", userId);
@@ -43,7 +42,6 @@ export const useSocket = () => {
       console.error("[Socket] Reconnection failed — all attempts exhausted");
     };
 
-    // ── Connect ───────────────────────────────────────────────────────
     if (socket.connected) {
       emitJoin();
     } else {
@@ -51,7 +49,6 @@ export const useSocket = () => {
       socket.connect();
     }
 
-    // ── Register listeners ────────────────────────────────────────────
     socket.on("connect", emitJoin);
     socket.on("disconnect", handleDisconnect);
     socket.on("connect_error", handleConnectError);
@@ -60,7 +57,6 @@ export const useSocket = () => {
     socket.io.on("reconnect_error", handleReconnectError);
     socket.io.on("reconnect_failed", handleReconnectFailed);
 
-    // ── App state: reconnect when app comes back to foreground ────────
     const appStateSub = AppState.addEventListener("change", (nextState) => {
       if (
         appStateRef.current.match(/inactive|background/) &&
@@ -74,7 +70,6 @@ export const useSocket = () => {
       appStateRef.current = nextState;
     });
 
-    // ── Cleanup ───────────────────────────────────────────────────────
     return () => {
       console.log("[Socket] Cleaning up listeners for userId:", userId);
       socket.off("connect", emitJoin);
