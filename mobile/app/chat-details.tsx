@@ -59,7 +59,7 @@ const ChatDetails = () => {
 
     const sectionListRef = useRef<SectionList<any>>(null);
 
-    const sortedMessages = [...liveMessages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    // const sortedMessages = [...liveMessages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
 
     const validationSchema = yup.object().shape({
@@ -151,35 +151,6 @@ const ChatDetails = () => {
         onNewMessage: handleNewMessage,
     });
 
-
-    // const onSendHandler = useCallback(async (newMessages: IMessage[] = []) => {
-    //     const message = newMessages[0];
-
-
-    //     onStopTyping();
-    //     const optimisticMessage: IMessage = {
-    //         ...message,
-    //         _id: `temp_${Date.now()}`,
-    //     };
-
-    //     // setLiveMessages(prev => GiftedChat.append(prev, [optimisticMessage]));
-    //     // setLiveMessages(prev, [optimisticMessage]);
-    //     setLiveMessages(prev => [optimisticMessage, ...prev]);
-
-    //     try {
-    //         await sendMessage({
-    //             receiverId: userId,
-    //             text: message.text,
-    //         });
-
-    //     } catch (error) {
-    //         console.error("Failed to send message:", error);
-
-    //         setLiveMessages(prev =>
-    //             prev.filter(m => m._id !== optimisticMessage._id)
-    //         );
-    //     }
-    // }, [userId, onStopTyping]);
 
     const onSendHandler = async (text: string) => {
         if (!text.trim()) return;

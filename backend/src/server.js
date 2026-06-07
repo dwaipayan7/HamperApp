@@ -7,6 +7,7 @@ import postRoutes from "./routes/post.route.js";
 import commentRoutes from "./routes/comment.route.js";
 import notificationRoutes from "./routes/notification.route.js";
 import messageRoutes from "./routes/message.route.js";
+import videoRoutes from "./routes/video.route.js";
 
 import { ENV } from "./config/env.js";
 import { connectDB } from "./config/db.js";
@@ -33,6 +34,7 @@ app.use("/api/posts", postRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/videos", videoRoutes);
 
 // error handling middleware
 app.use((err, req, res, next) => {
