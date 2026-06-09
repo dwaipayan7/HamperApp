@@ -3,44 +3,40 @@
     "name": "HamperApp",
     "slug": "HamperApp",
     "version": "1.0.0",
-
     "orientation": "portrait",
-
     "icon": "./assets/images/icon.png",
-
-  "scheme": "hamperapp",
-
+    "scheme": "hamperapp",
     "userInterfaceStyle": "automatic",
-
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.x.clone",
       "appleTeamId": "DC4Y42C595"
     },
-
     "android": {
       "softwareKeyboardLayoutMode": "resize",
       "package": "com.x.clone",
-
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/adaptive-icon.png"
       },
-
       "predictiveBackGestureEnabled": false
     },
-
     "web": {
       "output": "static",
-
       "favicon": "./assets/images/favicon.png",
-
       "bundler": "metro"
     },
-
     "plugins": [
+      
       "expo-router",
-
+      [
+        "expo-video",
+        {
+          "supportsBackgroundPlayback": true,
+          "supportsPictureInPicture": true
+        }
+      ]
+    ,
       [
         "expo-font",
         {
@@ -66,40 +62,30 @@
           }
         }
       ],
-
       [
         "expo-image-picker",
         {
           "photosPermission": "Allow $(PRODUCT_NAME) to access your photos to share images.",
-
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to take photos."
         }
       ],
-
       "expo-secure-store",
-
       "@clerk/expo",
-
       "expo-web-browser",
-
       [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-
           "imageWidth": 200,
-
           "resizeMode": "contain",
-
           "backgroundColor": "#ffffff",
-
           "dark": {
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-video"
     ],
-
     "experiments": {
       "typedRoutes": true
     }

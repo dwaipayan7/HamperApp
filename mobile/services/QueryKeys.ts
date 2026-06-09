@@ -23,6 +23,10 @@ const QueryKeys = {
     messages: "messages",
     searchUsers: "searchUsers",
   },
+  Videos: {
+    allVideos: "allVideos",
+    videoById: "videoById",
+  },
 };
 
 export default QueryKeys;

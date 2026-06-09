@@ -225,6 +225,16 @@ export class ApiUtility {
     return null;
   }
 
+  async put<T = IApiResponse>(endpoint: string, body?: any): Promise<T> {
+    try {
+      const response = await this.api.put<T>(endpoint, body);
+
+      return response.data;
+    } catch (error: any) {
+      return error?.response?.data as T;
+    }
+  }
+
   async post<T = IApiResponse>(
     endpoint: string,
     body: any,
