@@ -18,6 +18,8 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import SnackBar from '@/components/Snackbar';
 import { useSocket } from '@/hooks/useSocket';
 import * as WebBrowser from "expo-web-browser";
+import { useEffect } from 'react';
+import { database } from '@/database';
 
 
 export const queryClient = new QueryClient();
@@ -35,14 +37,32 @@ export default function RootLayout() {
 
   // "reactCompiler": true
 
+  useEffect(() => {
+    const initDB = async () => {
+      try {
+
+        await database.write(async () => {
+          console.log("Database initialize successful");
+
+        })
+
+      } catch (error) {
+        console.log("Database init error", error);
+
+      }
+    }
+
+    initDB();
+  }, [])
+
 
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
-        <BottomSheetModalProvider>
-          <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-            <StoreProvider store={store}>
+        <StoreProvider store={store}>
+          <BottomSheetModalProvider>
+            <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
               <PaperProvider>
                 <QueryClientProvider client={queryClient}>
                   <PersistGate
@@ -61,9 +81,9 @@ export default function RootLayout() {
                   <StatusBar style="dark" />
                 </QueryClientProvider>
               </PaperProvider>
-            </StoreProvider>
-          </ClerkProvider>
-        </BottomSheetModalProvider>
+            </ClerkProvider>
+          </BottomSheetModalProvider>
+        </StoreProvider>
       </KeyboardProvider>
     </GestureHandlerRootView>
   );

@@ -48,7 +48,10 @@ const ChatDetails = () => {
     }>();
 
     const { currentUser } = useCurrentUser();
-    const { data: messages, isLoading: isLoadingMessages } = useGetMessages(userId);
+    // const { data: messages, isLoading: isLoadingMessages } = useGetMessages(userId);
+
+    const { data: messages = [], isLoading: isLoadingMessages } = useGetMessages(userId);
+
     const { mutateAsync: sendMessage } = useSendMessage();
 
     const [liveMessages, setLiveMessages] = useState<IMessage[]>([]);

@@ -1,6 +1,7 @@
-import { View, Text, Alert, TouchableOpacity, TextInput, ScrollView, Image, Modal } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, Alert, TouchableOpacity, TextInput, ScrollView, Image, Modal, RefreshControl } from 'react-native'
+import React, { useState, useEffect } from 'react'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useFocusEffect } from '@react-navigation/native'
 import { CONVERSATIONS, ConversationType } from '@/data/conversations';
 import { Feather } from '@expo/vector-icons';
 import Header from '@/components/Header';
@@ -29,6 +30,20 @@ const MessageScreen = () => {
     const { mutateAsync: deleteMessage, isPending } = useDeleteConversation()
 
     const [searchText, setSearchText] = useState("");
+    const [refreshing, setRefreshing] = useState(false);
+
+    // Refetch chat list when screen is focused
+    useFocusEffect(
+        React.useCallback(() => {
+            refetchChatList();
+        }, [refetchChatList])
+    );
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await refetchChatList();
+        setRefreshing(false);
+    };
 
     const [debouncedSearch] = useDebounce(searchText, 500);
 
@@ -119,9 +134,23 @@ const MessageScreen = () => {
                         contentContainerStyle={{
                             paddingBottom: 100 + insets.bottom
                         }}
+                        refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                        }
                     >
 
-                        {isSearching ? (
+                        {isLoadingChatList && !isSearching ? (
+                            <View
+                                style={{
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    paddingVertical: 40,
+                                    flex: 1
+                                }}
+                            >
+                                <SCText color={COLORS.white}>Loading chats...</SCText>
+                            </View>
+                        ) : isSearching ? (
                             <>
 
 
@@ -192,92 +221,109 @@ const MessageScreen = () => {
                             </>
                         ) :
                             <>
-                                {chatList?.map((chats: any) => (
-                                    <TouchableOpacity
-                                        key={chats?.user?.id}
-                                        onPress={() => router.push({
-                                            pathname: '/chat-details',
-                                            params: {
-                                                userId: chats?.user?._id,
-                                                userName: `${chats?.user?.firstName} ${chats?.user?.lastName}`,
-                                                userAvatar: chats?.user?.profilePicture,
-                                            }
-                                        })}
-                                        onLongPress={() => deleteConversation(chats?.user?.id)}
-                                        style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            paddingVertical: 14,
-                                            paddingHorizontal: 10,
-                                        }}
-                                    >
-                                        <Image
-                                            source={{ uri: chats?.user?.profilePicture }}
+                                {chatList && chatList.length > 0 ? (
+                                    chatList.map((chats: any) => (
+                                        <TouchableOpacity
+                                            key={chats?.user?.id}
+                                            onPress={() => router.push({
+                                                pathname: '/chat-details',
+                                                params: {
+                                                    userId: chats?.user?._id,
+                                                    userName: `${chats?.user?.firstName} ${chats?.user?.lastName}`,
+                                                    userAvatar: chats?.user?.profilePicture,
+                                                }
+                                            })}
+                                            onLongPress={() => deleteConversation(chats?.user?.id)}
                                             style={{
-                                                width: 48,
-                                                height: 48,
-                                                borderRadius: 24,
-                                                marginRight: 12,
-                                            }}
-                                        />
-
-                                        <View style={{ flex: 1 }}>
-
-
-                                            <View style={{
                                                 flexDirection: 'row',
-                                                justifyContent: 'space-between'
-                                            }}>
-                                                <View
+                                                alignItems: 'center',
+                                                paddingVertical: 14,
+                                                paddingHorizontal: 10,
+                                            }}
+                                        >
+                                            <Image
+                                                source={{ uri: chats?.user?.profilePicture }}
+                                                style={{
+                                                    width: 48,
+                                                    height: 48,
+                                                    borderRadius: 24,
+                                                    marginRight: 12,
+                                                }}
+                                            />
+
+                                            <View style={{ flex: 1 }}>
+
+
+                                                <View style={{
+                                                    flexDirection: 'row',
+                                                    justifyContent: 'space-between'
+                                                }}>
+                                                    <View
+                                                        style={{
+                                                            flexDirection: 'row',
+                                                            alignItems: 'center',
+                                                        }}
+                                                    >
+                                                        <SCText
+                                                            numberOfLines={1}
+                                                            size={16}
+                                                            color='white'
+                                                            style={{
+                                                                // fontSize: 16,
+                                                                // fontWeight: '700',
+                                                                // color: '#000',
+
+                                                            }}
+                                                        >
+                                                            {chats?.user?.firstName}
+                                                        </SCText>
+                                                        <SCText
+                                                            numberOfLines={1}
+                                                            size={16}
+                                                            color='white'
+                                                            style={{
+
+
+                                                            }}
+                                                        >
+                                                            {' '}{chats?.user?.lastName}
+                                                        </SCText>
+                                                    </View>
+
+                                                    <View>
+
+                                                        <SCText color={'#6B7280'} size={12}>{dayjs(chats?.lastMessage?.createdAt,).format('hh-mm A')}</SCText>
+                                                    </View>
+                                                </View>
+
+                                                <SCText
+                                                    numberOfLines={1}
                                                     style={{
-                                                        flexDirection: 'row',
-                                                        alignItems: 'center',
+                                                        color: '#6B7280',
+                                                        marginTop: 4,
                                                     }}
                                                 >
-                                                    <SCText
-                                                        numberOfLines={1}
-                                                        size={16}
-                                                        color='white'
-                                                        style={{
-                                                            // fontSize: 16,
-                                                            // fontWeight: '700',
-                                                            // color: '#000',
-
-                                                        }}
-                                                    >
-                                                        {chats?.user?.firstName}
-                                                    </SCText>
-                                                    <SCText
-                                                        numberOfLines={1}
-                                                        size={16}
-                                                        color='white'
-                                                        style={{
-
-
-                                                        }}
-                                                    >
-                                                        {' '}{chats?.user?.lastName}
-                                                    </SCText>
-                                                </View>
-
-                                                <View>
-
-                                                    <SCText color={'#6B7280'} size={12}>{dayjs(chats?.lastMessage?.createdAt,).format('hh-mm A')}</SCText>
-                                                </View>
+                                                    {chats?.lastMessage?.text}
+                                                </SCText>
                                             </View>
-
-                                            <SCText
-                                                numberOfLines={1}
-                                                style={{
-                                                    color: '#6B7280',
-                                                    marginTop: 4,
-                                                }}
-                                            >
-                                                {chats?.lastMessage?.text}
-                                            </SCText>
-                                        </View>
-                                    </TouchableOpacity>
-                                ))}
+                                        </TouchableOpacity>
+                                    ))
+                                ) : (
+                                    <View
+                                        style={{
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            paddingVertical: 40,
+                                            flexDirection: 'row',
+                                            gap: 10
+                                        }}
+                                    >
+                                        <Feather name="message-circle" size={24} color="#6B7280" />
+                                        <SCText color={COLORS.white}>
+                                            No conversations yet
+                                        </SCText>
+                                    </View>
+                                )}
                             </>}
 
 
