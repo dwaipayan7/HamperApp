@@ -12,7 +12,7 @@ export const getComments = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 })
     .populate("user", "username firstName lastName profilePicture");
 
-  res.status(200).json({ comments });
+  res.status(200).json({ comments }); //
 });
 
 export const createComment = asyncHandler(async (req, res) => {

@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import AddUploadComponent from '@/components/AddUploadComponent';
 import { deviceHeight, deviceWidth } from '@/utils/AllContext';
@@ -7,6 +7,7 @@ import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useGetAllVideos } from '@/services/VideoService';
 import GradientWrapper from '@/components/GradientWrapper';
+import SCText from '@/components/CustomText';
 
 
 interface Props {
@@ -131,44 +132,186 @@ const AddVideo = () => {
                         </View>
                     )}
 
-                    <View
+
+                </TouchableOpacity>
+                <View
+                    style={{
+                        position: "absolute",
+                        bottom: 90,
+                        left: 15,
+                    }}
+                >
+
+                    <SCText
+                        size={18}
+                        ellipsizeMode='tail'
+                        color='white'
+                        varient='bold'
+                    >
+                        {item.title}
+                    </SCText>
+
+                    <SCText
                         style={{
-                            position: "absolute",
-                            bottom: 80,
-                            left: 15,
+                            color: "white",
+
+                            fontWeight: "600",
                         }}
                     >
-                        <Text
-                            style={{
-                                color: "white",
-                                fontSize: 16,
-                                fontWeight: "600",
-                            }}
-                        >
-                            {item.caption}
-                        </Text>
+                        {item.caption}
+                    </SCText>
+                </View>
+
+                <TouchableOpacity onPress={() => setModal(true)} style={{
+                    position: "absolute",
+                    bottom: 20,
+                    left: deviceWidth / 2.4,
+                }}>
+
+                    <View style={{ padding: 10, }}>
+                        <MaterialIcons size={50} name='add-circle' color={'red'} />
                     </View>
+
                 </TouchableOpacity>
             </View>
         );
     };
 
+    if (!isLoading && videos?.length === 0) {
+        return (
+            <GradientWrapper>
+                <View
+                    style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <MaterialIcons
+                        name="video-library"
+                        size={100}
+                        color="white"
+                    />
+
+                    <Text
+                        style={{
+                            color: "white",
+                            fontSize: 20,
+                            marginTop: 12,
+                        }}
+                    >
+                        No Videos Yet
+                    </Text>
+
+                    <Text
+                        style={{
+                            color: "gray",
+                            marginTop: 5,
+                        }}
+                    >
+                        Be the first to upload
+                    </Text>
+
+                    <TouchableOpacity
+                        onPress={() => setModal(true)}
+                        style={{
+                            marginTop: 20,
+                            backgroundColor: "#8B5CF6",
+                            paddingHorizontal: 24,
+                            paddingVertical: 14,
+                            borderRadius: 30,
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: "white",
+                                fontWeight: "bold",
+                            }}
+                        >
+                            Upload Video
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+                <AddUploadComponent
+                    show={addModal}
+                    close={() => setModal(false)}
+                    onUploadSuccess={() => refetch()}
+                />
+            </GradientWrapper>
+        );
+    }
+
+    if (isLoading) {
+        return (
+            <View
+                style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
+            >
+                <ActivityIndicator size="large" />
+            </View>
+        );
+    }
+
     return (
         <View style={{ flex: 1 }}>
             <FlatList
-                data={videos}
+                data={videos ?? []}
                 keyExtractor={(item: any) => item._id || item.id}
                 renderItem={renderItem}
                 pagingEnabled
-                showsVerticalScrollIndicator={false}
                 decelerationRate="fast"
                 snapToInterval={deviceHeight}
                 snapToAlignment="start"
-                onScroll={(e: any) => {
+                onScroll={(e) => {
                     setCurrentIndex(
                         Math.round(e.nativeEvent.contentOffset.y / deviceHeight)
                     );
                 }}
+                ListEmptyComponent={() => (
+                    <View
+                        style={{
+                            flex: 1,
+                            height: deviceHeight,
+                            justifyContent: "center",
+                            alignItems: "center",
+                        }}
+                    >
+                        <MaterialIcons
+                            name="video-library"
+                            size={80}
+                            color="gray"
+                        />
+
+                        <Text
+                            style={{
+                                color: "gray",
+                                fontSize: 18,
+                                marginTop: 10,
+                            }}
+                        >
+                            No videos uploaded yet
+                        </Text>
+
+                        <TouchableOpacity
+                            onPress={() => setModal(true)}
+                            style={{
+                                marginTop: 20,
+                                paddingHorizontal: 20,
+                                paddingVertical: 12,
+                                backgroundColor: "#6C5CE7",
+                                borderRadius: 10,
+                            }}
+                        >
+                            <Text style={{ color: "#fff" }}>
+                                Upload First Video
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             />
 
             <AddUploadComponent show={addModal} close={() => setModal(false)}

@@ -17,6 +17,8 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import SnackBar from '@/components/Snackbar';
 import { useSocket } from '@/hooks/useSocket';
+import * as WebBrowser from "expo-web-browser";
+
 
 export const queryClient = new QueryClient();
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
@@ -25,11 +27,15 @@ if (!publishableKey) {
   throw new Error('Add your Clerk Publishable Key to the .env file')
 }
 
+WebBrowser.maybeCompleteAuthSession();
+
 export default function RootLayout() {
 
   // useSyncAuth();
 
   // "reactCompiler": true
+
+
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

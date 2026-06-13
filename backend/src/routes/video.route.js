@@ -14,7 +14,7 @@ router.get("/", getAllVideos);
 
 router.get("/:username", getVideoById);
 
-router.post("/", protectRoute, upload.single("file"), createVideo);
+router.post("/", protectRoute, upload.single("video"), createVideo);
 router.put("/:videoId/like", protectRoute, toggleLikeVideo);
 
 export default router;

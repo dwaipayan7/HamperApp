@@ -275,7 +275,11 @@ export class ApiUtility {
     }
   }
 
-  async postForm<T = IApiResponse>(endpoint: string, params: any): Promise<T> {
+  async postForm<T = IApiResponse>(
+    endpoint: string,
+    params: any,
+    onProgress?: (progress: number) => void,
+  ): Promise<T> {
     const formData =
       params instanceof FormData
         ? params
@@ -289,6 +293,12 @@ export class ApiUtility {
       const response = await this.api.post<T>(endpoint, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: (event) => {
+          if (event.total) {
+            const progress = Math.round((event.loaded * 100) / event.total);
+            onProgress?.(progress);
+          }
         },
       });
 

@@ -9,7 +9,7 @@ export const useGetAllVideos = () => {
   return useQuery({
     queryKey: [QueryKeys.Videos.allVideos],
     queryFn: async () => {
-      await apiUtility.get("/videos");
+      return await apiUtility.get("/videos");
     },
   });
 };
@@ -32,8 +32,13 @@ export const useLikeVideo = () => {
 
 export const useCreateVideo = () => {
   return useMutation({
-    mutationFn: async (formData: FormData) =>
-      apiUtility.postForm("/videos", formData),
+    mutationFn: async ({
+      formData,
+      onProgress,
+    }: {
+      formData: FormData;
+      onProgress?: (progress: number) => void;
+    }) => apiUtility.postForm("/videos", formData, onProgress),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QueryKeys.Videos.allVideos],

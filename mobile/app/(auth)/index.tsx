@@ -195,39 +195,39 @@ export default function Index() {
               )}
             </TouchableOpacity>
 
-            {/* {Platform.OS === "ios" && ( */}
-            <TouchableOpacity
-              style={{
-                width: "100%",
-                height: 54,
-                borderRadius: 30,
-                backgroundColor: "#FFFFFF",
-                justifyContent: "center",
-                alignItems: "center",
-                flexDirection: "row",
-                gap: 10,
-              }}
-              onPress={() => handleSocialAuth("oauth_apple")}
-              disabled={isLoading}
-            >
-              <Image
-                source={require("../../assets/images/apple.png")}
+            {Platform.OS === "ios" && (
+              <TouchableOpacity
                 style={{
-                  width: 22,
-                  height: 28,
+                  width: "100%",
+                  height: 54,
+                  borderRadius: 30,
+                  backgroundColor: "#FFFFFF",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  flexDirection: "row",
+                  gap: 10,
                 }}
-              />
-
-              <Text
-                style={{
-                  fontWeight: "700",
-                  fontSize: 16,
-                }}
+                onPress={() => handleSocialAuth("oauth_apple")}
+                disabled={isLoading}
               >
-                Continue with Apple
-              </Text>
-            </TouchableOpacity>
-            {/* )} */}
+                <Image
+                  source={require("../../assets/images/apple.png")}
+                  style={{
+                    width: 22,
+                    height: 28,
+                  }}
+                />
+
+                <Text
+                  style={{
+                    fontWeight: "700",
+                    fontSize: 16,
+                  }}
+                >
+                  Continue with Apple
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Footer */}
