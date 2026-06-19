@@ -6562,6 +6562,11 @@ loose-envify@^1.0.0, loose-envify@^1.4.0:
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
+lottie-react-native@~7.3.1:
+  version "7.3.8"
+  resolved "https://registry.yarnpkg.com/lottie-react-native/-/lottie-react-native-7.3.8.tgz#266a9630f5009a83fdff489a9d6ae3b01c2d2eb8"
+  integrity sha512-GAOl99TKi0c6xCcB1AJ+o70mgOPIAI/7K2G+Gs+o4po/qBhgvWijPNCKH8h6yNmlwFTg+RN3DmzRvHNFGxZMKQ==
+
 lru-cache@^10.0.1:
   version "10.4.3"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-10.4.3.tgz#410fc8a17b70e598013df257c2446b7f3383f119"
@@ -7804,7 +7809,7 @@ pirates@^4.0.1, pirates@^4.0.4:
   resolved "https://registry.yarnpkg.com/pirates/-/pirates-4.0.7.tgz#643b4a18c4257c8a65104b73f3049ce9a0a15e22"
   integrity sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==
 
-plist@^3.0.5:
+plist@^3.0.5, plist@^3.1.0:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/plist/-/plist-3.1.1.tgz#fa6099e1e3cf6ea180258ebe6378ea3878c2c841"
   integrity sha512-ZIfcLJC+7E7FBFnDxm9MPmt7D+DidyQ26lewieO75AdhA2ayMtsJSES0iWzqJQbcVRSrTufQoy0DR94xHue0oA==
@@ -8252,6 +8257,16 @@ react-native-navigation-mode@^1.2.9:
   version "1.2.9"
   resolved "https://registry.yarnpkg.com/react-native-navigation-mode/-/react-native-navigation-mode-1.2.9.tgz#fcbd270b23b028202c043f98e8228345663812c3"
   integrity sha512-Lpa/TwUIHAzI2puULeGiryfymt7vUWdaubiymSh0i4t3li2G3EVaWgLFPCMzEkcybeNnse5eoFl6qmSMY13wVw==
+
+react-native-notify-kit@^10.4.4:
+  version "10.4.4"
+  resolved "https://registry.yarnpkg.com/react-native-notify-kit/-/react-native-notify-kit-10.4.4.tgz#1f6e858562f10f5d472c0d9d88abd38cc7daf3f5"
+  integrity sha512-vpDyhmsqUT9v4IswvXXvekajfi2wh3yeRjbM+IVVjMUGQw3TrKc3qAfS8iaeAvXfIXSoHoL4g2eOkMgYdBOowg==
+  optionalDependencies:
+    chalk "^4.1.0"
+    commander "^12.0.0"
+    plist "^3.1.0"
+    xcode "^3.0.1"
 
 react-native-paper@^5.15.2:
   version "5.15.3"
