@@ -54,8 +54,12 @@ const userSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    fcmToken: {
+      type: String,
+      default: "",
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const User = mongoose.model("User", userSchema);

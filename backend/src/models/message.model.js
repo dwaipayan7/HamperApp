@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 
 const MessageSchema = new mongoose.Schema(
   {
@@ -34,6 +34,11 @@ const MessageSchema = new mongoose.Schema(
         },
       },
     ],
+    replyTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Message",
+      default: null,
+    },
   },
   { timestamps: true },
 );

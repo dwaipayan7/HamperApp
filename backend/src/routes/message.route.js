@@ -6,6 +6,8 @@ import {
   sendMessage,
   searchChats,
   deleteConversation,
+  reactToMessage,
+  replyToMessage,
 } from "../controllers/message.controller.js";
 
 const router = express.Router();
@@ -13,6 +15,7 @@ const router = express.Router();
 router.post("/send-message", protectRoute, sendMessage);
 router.get("/chats/:receiverId", protectRoute, getMessages);
 router.get("/conversations", protectRoute, getAllChatList);
+router.post("/:messageId/reaction", protectRoute, reactToMessage);
 
 router.get("/search", protectRoute, searchChats);
 

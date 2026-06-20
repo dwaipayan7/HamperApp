@@ -225,3 +225,102 @@ export const deleteConversation = asyncHandler(async (req, res) => {
     message: "Conversation deleted successfully",
   });
 });
+
+export const reactToMessage = asyncHandler(async (req, res) => {
+  const { userId } = getAuth(req);
+
+  const currentUser = await User.findOne({ clerkId: userId });
+
+  const { messageId } = req.params;
+
+  const { emoji } = req.body;
+
+  const message = await Message.findById(messageId);
+
+  if (!message) {
+    return res.status(404).json({ error: "Message not found" });
+  }
+
+  // const existingReaction = message.reactions.find(
+  //   (r) => r.user._id === currentUser._id,
+  // );
+
+  const existingReaction = message.reactions.find(
+    (r) => r.user.toString() === currentUser._id.toString(),
+  );
+
+  if (existingReaction) {
+    existingReaction.emoji = emoji;
+  } else {
+    message.reactions.push({
+      user: currentUser._id,
+      emoji,
+    });
+  }
+
+  await message.save();
+
+  res.status(200).json(message);
+});
+
+export const replyToMessage = asyncHandler(async (req, res) => {
+  const { userId } = getAuth(req);
+
+  const currentUser = await User.findOne({ clerkId: userId });
+
+  if (!currentUser) {
+    return res.status(404).json({
+      error: "User not found",
+    });
+  }
+
+  const { receiverId, text, replyTo } = req.body;
+
+  if (!receiverId || !text || !replyTo) {
+    return res.status(400).json({
+      error: "receiverId, text and replyTo are required",
+    });
+  }
+
+  const receiver = await User.findById(receiverId);
+
+  // const message = await Message.create({
+  //   sender:
+  // })
+
+  if (!receiver) {
+    return res.status(404).json({ error: "Receiver not found" });
+  }
+
+  const originalMessage = await Message.findById(replyTo);
+
+  if (!originalMessage) {
+    return res.status(404).json({ error: "Original message not found" });
+  }
+
+  const message = await Message.create({
+    sender: currentUser._id,
+    receiver: receiver._id,
+    text,
+    replyTo: originalMessage._id,
+  });
+
+  const populatedMessage = await Message.findById(message._id)
+    .populate("sender", "firstName lastName username profilePicture")
+    .populate("receiver", "firstName lastName username profilePicture")
+    .populate({
+      path: "replyTo",
+      select: "text sender createdAt",
+      populate: {
+        path: "sender",
+        select: "firstName lastName username profilePicture",
+      },
+    });
+
+  getIO().to(receiver._id.toString()).emit("new-message", populatedMessage);
+  getIO().to(currentUser._id.toString()).emit("new-message", populatedMessage);
+
+  res.status(201).json({
+    message: populatedMessage,
+  });
+});

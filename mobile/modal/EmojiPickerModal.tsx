@@ -1,6 +1,8 @@
-import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import LottieView from 'lottie-react-native';
+import { SCTextInput } from '@/utils/CustomInputStore';
+import { deviceWidth } from '@/utils/AllContext';
 
 export const codePointToEmoji = (codepoint: string) => {
     return String.fromCodePoint(parseInt(codepoint, 16));
@@ -37,7 +39,9 @@ const EmojiPicker = ({ show, close, onSelect }: {
             transparent
             animationType="slide"
             onRequestClose={close}
+            onDismiss={close}
         >
+
             <View
                 style={{
                     flex: 1,
@@ -51,8 +55,16 @@ const EmojiPicker = ({ show, close, onSelect }: {
                         backgroundColor: 'white',
                         borderTopLeftRadius: 20,
                         borderTopRightRadius: 20,
+                        alignItems: 'center',
+                        paddingTop: 20
                     }}
                 >
+
+                    <SCTextInput
+                        wrapperStyle={{ width: deviceWidth - 40 }}
+                        placeholder='Search Emoji'
+                    />
+
                     <FlatList
                         data={emojis}
                         numColumns={9}
@@ -87,6 +99,7 @@ const EmojiPicker = ({ show, close, onSelect }: {
                     />
                 </View>
             </View>
+
         </Modal>
     )
 }

@@ -1,11 +1,11 @@
-import { StyleSheet, View, ActivityIndicator, Text, FlatList, SectionList, Platform, TouchableOpacity } from 'react-native'
+import { StyleSheet, View, ActivityIndicator, Text, FlatList, SectionList, Platform, TouchableOpacity, useWindowDimensions } from 'react-native'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import GradientWrapper from '@/components/GradientWrapper';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '@/components/Header';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSendMessage, useGetMessages } from '@/services/ChatService';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { GiftedChat, IMessage, InputToolbar, Send } from 'react-native-gifted-chat';
@@ -19,6 +19,10 @@ import { SCTextInput } from '@/utils/CustomInputStore';
 import { Formik } from 'formik';
 import * as yup from 'yup';
 import { isPending } from '@reduxjs/toolkit';
+import { Icon } from '@/utils/Icons';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import EmojiPicker from '@/modal/EmojiPickerModal';
 
 
 interface ChatMessage {
@@ -56,6 +60,45 @@ const ChatDetails = () => {
 
     const [liveMessages, setLiveMessages] = useState<IMessage[]>([]);
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+
+    const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false)
+
+    const [replyMessage, setReplyMessage] = useState(null);
+
+    const onSwipeToReply = (message: any) => {
+        setReplyMessage(message);
+    }
+
+
+    const translateX = useSharedValue(0);
+    const isDragging = useSharedValue(false);
+
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ translateX: translateX.value }],
+    }));
+
+
+
+
+
+    const longPress = Gesture.LongPress()
+        .minDuration(500)
+        .onStart(() => {
+            runOnJS(() => setShowEmojiPicker(true))();
+        });
+
+    // const gesture = Gesture.Simultaneous(longPress, panGesture);
+
+    // const animatedStyle = useAnimatedStyle(() => ({
+    //     transform: [{ translateX: translateX.value }],
+    //     opacity: isDragging.value ? 0.8 : 1,
+    // }));
+
+    const iconStyle = useAnimatedStyle(() => ({
+        opacity: Math.min(Math.abs(translateX.value) / 50, 1),
+        transform: [{ scale: Math.min(Math.abs(translateX.value) / 50, 1) }],
+    }));
 
     const insets = useSafeAreaInsets()
 
@@ -308,49 +351,73 @@ const ChatDetails = () => {
                                 item.user._id.toString() ===
                                 currentUser?._id?.toString();
 
-                            return (
-                                <View
-                                    style={{
-                                        alignItems: isMe
-                                            ? "flex-end"
-                                            : "flex-start",
-                                        marginVertical: 3,
-                                    }}
-                                >
-                                    <View
-                                        style={{
-                                            maxWidth: "80%",
-                                            backgroundColor: isMe
-                                                ? COLORS.lightBlue
-                                                : "#1F2937",
-                                            paddingHorizontal: 14,
-                                            paddingVertical: 10,
-                                            // borderRadius: 18,
-                                            gap: 4,
-                                            borderTopLeftRadius: isMe ? 0 : 18,
-                                            borderTopRightRadius: !isMe ? 0 : 18,
-                                            borderBottomLeftRadius: !isMe ? 0 : 18,
-                                        }}
-                                    >
-                                        <SCText color="white">
-                                            {item.text}
-                                        </SCText>
 
-                                        <SCText
-                                            color={COLORS.white}
+                            // const panGesture = Gesture.Pan()
+                            //     .activeOffsetX([-10, 10])
+                            //     .onUpdate((event) => {
+                            //         if (event.translationX > 0) {
+                            //             translateX.value = Math.min(event.translationX, 80);
+                            //         }
+                            //     })
+                            //     .onEnd(() => {
+                            //         if (translateX.value > 60) {
+                            //             runOnJS(onSwipeToReply)(item);
+                            //         }
+
+                            //         translateX.value = withSpring(0);
+                            //     });
+
+
+                            return (
+                                <GestureDetector gesture={panGesture}>
+                                    <Animated.View
+                                        style={
+                                            [{
+                                                alignItems: isMe
+                                                    ? "flex-end"
+                                                    : "flex-start",
+                                                marginVertical: 3,
+                                            }, animatedStyle]
+                                        }
+                                    >
+                                        <View
                                             style={{
-                                                alignSelf: "flex-end",
-                                                fontSize: 10,
-                                                marginTop: 4,
-                                                opacity: 0.7,
+                                                maxWidth: "80%",
+                                                backgroundColor: isMe
+                                                    ? COLORS.lightBlue
+                                                    : "#1F2937",
+                                                paddingHorizontal: 14,
+                                                paddingVertical: 10,
+                                                // borderRadius: 18,
+                                                gap: 4,
+                                                borderTopLeftRadius: isMe ? 0 : 18,
+                                                borderTopRightRadius: !isMe ? 0 : 18,
+                                                borderBottomLeftRadius: !isMe ? 0 : 18,
                                             }}
                                         >
-                                            {dayjs(item.createdAt).format(
-                                                "hh:mm A"
-                                            )}
-                                        </SCText>
-                                    </View>
-                                </View>
+                                            <SCText color="white">
+                                                {item.text}
+                                            </SCText>
+
+                                            <SCText
+                                                color={COLORS.white}
+                                                style={{
+                                                    alignSelf: "flex-end",
+                                                    fontSize: 10,
+                                                    marginTop: 4,
+                                                    opacity: 0.7,
+                                                }}
+                                            >
+                                                {dayjs(item.createdAt).format(
+                                                    "hh:mm A"
+                                                )}
+                                            </SCText>
+                                        </View>
+                                    </Animated.View>
+
+
+
+                                </GestureDetector>
                             );
                         }}
                     />
@@ -379,7 +446,7 @@ const ChatDetails = () => {
                 >
                     {({ handleChange, handleBlur, handleSubmit, values }) => (
                         <View style={styles.inputBar}>
-                            <View style={{ flex: 1, marginRight: 10 }}>
+                            <View style={{ flex: 1, marginRight: 10, }}>
                                 <SCTextInput
                                     placeholder="Write a message..."
                                     value={values.text}
@@ -392,10 +459,38 @@ const ChatDetails = () => {
                                             onStopTyping();
                                         }
                                     }}
+
+
+                                    wrapperStyle={{
+                                        paddingLeft: 40,
+                                    }}
                                     onBlur={handleBlur('text')}
                                     extendingField
                                 />
                             </View>
+
+                            <View style={{
+                                position: 'absolute',
+                                left: 14,
+                                bottom: 32
+                            }}>
+                                <MaterialCommunityIcons
+
+                                    onPress={() => setShowEmojiPicker(true)}
+
+                                    color={COLORS.white} size={30} name='emoticon-outline' />
+                            </View>
+
+                            <View style={{
+                                position: 'absolute',
+
+                                bottom: 32,
+                                right: 70
+                            }}>
+                                <Feather onPress={() => { }} name='plus' size={30} />
+                            </View>
+
+
 
                             <TouchableOpacity
                                 disabled={!values.text.trim()}
@@ -409,6 +504,18 @@ const ChatDetails = () => {
                                     color={COLORS.white}
                                 />
                             </TouchableOpacity>
+                            <EmojiPicker
+                                show={showEmojiPicker}
+                                close={() => setShowEmojiPicker(false)}
+                                onSelect={(emoji) => {
+
+                                    console.log("The Selected Emoji is: ", emoji);
+
+                                    // onEmojiReact(emoji);
+                                    setShowEmojiPicker(false);
+                                }}
+                            />
+
                         </View>
                     )}
                 </Formik>
