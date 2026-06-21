@@ -69,6 +69,15 @@ export const getMessages = asyncHandler(async (req, res) => {
   })
     .populate("sender", "firstName lastName  profilePicture")
     .populate("receiver", "firstName lastName  profilePicture")
+    .populate("reactions.user", "firstName lastName profilePicture")
+    .populate({
+      path: "replyTo",
+      select: "text sender createdAt",
+      populate: {
+        path: "sender",
+        select: "firstName lastName profilePicture",
+      },
+    })
     .sort({ createdAt: -1 });
 
   const decrypted = messages.map((msg) => ({

@@ -20,7 +20,7 @@ import { useSocket } from '@/hooks/useSocket';
 import * as WebBrowser from "expo-web-browser";
 import { useEffect } from 'react';
 import { database } from '@/database';
-
+import { ReanimatedTrueSheetProvider } from '@lodev09/react-native-true-sheet/reanimated';
 
 export const queryClient = new QueryClient();
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
@@ -59,33 +59,36 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <KeyboardProvider>
-        <StoreProvider store={store}>
-          <BottomSheetModalProvider>
-            <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-              <PaperProvider>
-                <QueryClientProvider client={queryClient}>
-                  <PersistGate
+      <ReanimatedTrueSheetProvider>
 
-                    loading={<View style={{ flex: 1, backgroundColor: '#fff' }} />}
-                    persistor={persistor}
-                  >
-                    {/* <Stack screenOptions={{ headerShown: false }} /> */}
+        <KeyboardProvider>
+          <StoreProvider store={store}>
+            <BottomSheetModalProvider>
+              <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+                <PaperProvider>
+                  <QueryClientProvider client={queryClient}>
+                    <PersistGate
 
-                    {/* <CustomDrawerContent /> */}
-                    {/* <Drawer /> */}
-                    {/* <Stack /> */}
+                      loading={<View style={{ flex: 1, backgroundColor: '#fff' }} />}
+                      persistor={persistor}
+                    >
+                      {/* <Stack screenOptions={{ headerShown: false }} /> */}
 
-                    <RootContent />
-                  </PersistGate>
-                  <StatusBar style="dark" />
-                </QueryClientProvider>
-              </PaperProvider>
-            </ClerkProvider>
-          </BottomSheetModalProvider>
-        </StoreProvider>
-      </KeyboardProvider>
-    </GestureHandlerRootView>
+                      {/* <CustomDrawerContent /> */}
+                      {/* <Drawer /> */}
+                      {/* <Stack /> */}
+
+                      <RootContent />
+                    </PersistGate>
+                    <StatusBar style="dark" />
+                  </QueryClientProvider>
+                </PaperProvider>
+              </ClerkProvider>
+            </BottomSheetModalProvider>
+          </StoreProvider>
+        </KeyboardProvider>
+      </ReanimatedTrueSheetProvider>
+    </GestureHandlerRootView >
   );
 }
 

@@ -4,7 +4,7 @@ import GradientWrapper from '@/components/GradientWrapper';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '@/components/Header';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useSendMessage, useGetMessages } from '@/services/ChatService';
+import { useSendMessage, useGetMessages, useReactToMessage, useReplyToMessage } from '@/services/ChatService';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -22,7 +22,8 @@ import { isPending } from '@reduxjs/toolkit';
 import { Icon } from '@/utils/Icons';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import EmojiPicker from '@/modal/EmojiPickerModal';
+import EmojiPicker, { codePointToEmoji } from '@/modal/EmojiPickerModal';
+import ChatMessageItem from '@/components/ChatMessageItem';
 
 
 interface ChatMessage {
@@ -56,49 +57,49 @@ const ChatDetails = () => {
 
     const { data: messages = [], isLoading: isLoadingMessages } = useGetMessages(userId);
 
+    console.log("The messages are: ", messages);
+
+
     const { mutateAsync: sendMessage } = useSendMessage();
 
     const [liveMessages, setLiveMessages] = useState<IMessage[]>([]);
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
-    const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false)
+    // const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false)
+
+    const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+
+    const [reactionTargetMessage, setReactionTargetMessage] = useState(null);
+    const [showReactionPicker, setShowReactionPicker] = useState(false)
+
+
+    const { mutateAsync: reactToMessage } = useReactToMessage();
+    const { mutateAsync: replyToMessage } = useReplyToMessage();
+
+    const onLongPressMessage = useCallback((message: any) => {
+        setReactionTargetMessage(message);
+        setShowReactionPicker(true);
+    }, [])
+
+
+    const handleScroll = useCallback((event: any) => {
+        const offsetY = event.nativeEvent.contentOffset.y;
+        setShowScrollToBottom(offsetY > 100);
+    }, []);
+
+    const scrollToBottom = useCallback(() => {
+        sectionListRef.current?.scrollToLocation({
+            sectionIndex: 0,
+            itemIndex: 0,
+            animated: true,
+        });
+    }, []);
 
     const [replyMessage, setReplyMessage] = useState(null);
 
     const onSwipeToReply = (message: any) => {
         setReplyMessage(message);
     }
-
-
-    const translateX = useSharedValue(0);
-    const isDragging = useSharedValue(false);
-
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{ translateX: translateX.value }],
-    }));
-
-
-
-
-
-    const longPress = Gesture.LongPress()
-        .minDuration(500)
-        .onStart(() => {
-            runOnJS(() => setShowEmojiPicker(true))();
-        });
-
-    // const gesture = Gesture.Simultaneous(longPress, panGesture);
-
-    // const animatedStyle = useAnimatedStyle(() => ({
-    //     transform: [{ translateX: translateX.value }],
-    //     opacity: isDragging.value ? 0.8 : 1,
-    // }));
-
-    const iconStyle = useAnimatedStyle(() => ({
-        opacity: Math.min(Math.abs(translateX.value) / 50, 1),
-        transform: [{ scale: Math.min(Math.abs(translateX.value) / 50, 1) }],
-    }));
 
     const insets = useSafeAreaInsets()
 
@@ -136,7 +137,7 @@ const ChatDetails = () => {
     useEffect(() => {
         if (!messages) return;
 
-        const formatted: IMessage[] = messages.map((msg: ChatMessage) => ({
+        const formatted: IMessage[] = messages.map((msg: any) => ({
             _id: msg._id,
             text: msg.text,
             createdAt: new Date(msg.createdAt),
@@ -145,6 +146,8 @@ const ChatDetails = () => {
                 name: `${msg.sender.firstName} ${msg.sender.lastName}`,
                 avatar: msg.sender.profilePicture,
             },
+            ...(msg.replyTo && { replyTo: msg.replyTo }),
+            ...(msg.reactions && { reactions: msg.reactions }),
         }));
 
         setLiveMessages(formatted);
@@ -165,6 +168,8 @@ const ChatDetails = () => {
                     name: `${message.sender.firstName} ${message.sender.lastName}`,
                     avatar: message.sender.profilePicture,
                 },
+                ...((message as any).replyTo && { replyTo: (message as any).replyTo }),
+                ...((message as any).reactions && { reactions: (message as any).reactions }),
             };
 
 
@@ -208,19 +213,43 @@ const ChatDetails = () => {
             text,
             createdAt: new Date(),
             user: {
-                _id: currentUser?._id || "",
+                _id: currentUser?._id || '',
                 name: `${currentUser?.firstName} ${currentUser?.lastName}`,
                 avatar: currentUser?.profilePicture,
             },
+
+            ...(replyMessage && {
+                replyTo: {
+                    _id: replyMessage._id,
+                    text: replyMessage.text,
+                    sender: {
+                        _id: replyMessage.user?._id,
+                        firstName: replyMessage.user?.name?.split(' ')[0] || '',
+                    },
+                    createdAt: replyMessage.createdAt,
+                },
+            }),
         };
 
         setLiveMessages(prev => [optimisticMessage, ...prev]);
+        setReplyMessage(null);
 
         try {
-            await sendMessage({
-                receiverId: userId,
-                text,
-            });
+
+            if (replyMessage) {
+                await replyToMessage({
+                    receiverId: userId,
+                    text,
+                    replyTo: replyMessage._id
+                });
+            } else {
+                await sendMessage({ receiverId: userId, text });
+            }
+
+            // await sendMessage({
+            //     receiverId: userId,
+            //     text,
+            // });
         } catch (error) {
             setLiveMessages(prev =>
                 prev.filter(m => m._id !== optimisticMessage._id)
@@ -297,6 +326,8 @@ const ChatDetails = () => {
                     leftTitle={userName || 'Chat'}
                     showProfileImage={userAvatar}
                     subTitle={isOnline ? 'Online' : 'Offline'}
+                    isVerticalThreeDots
+                    onVerticalThreeDots={() => { }}
                 />
 
                 {isLoadingMessages ? (
@@ -306,6 +337,8 @@ const ChatDetails = () => {
                 ) : (
 
                     <SectionList
+                        onScroll={handleScroll}
+                        scrollEventThrottle={16}
                         stickySectionHeadersEnabled={false}
                         ref={sectionListRef}
                         style={{ flex: 1 }}
@@ -347,81 +380,48 @@ const ChatDetails = () => {
                             </View>
                         )}
                         renderItem={({ item }: any) => {
-                            const isMe =
-                                item.user._id.toString() ===
-                                currentUser?._id?.toString();
+
+                            return <ChatMessageItem
+                                item={item}
+                                onSwipeToReply={onSwipeToReply}
+                                currentUserId={currentUser?._id}
+                                onLongPress={onLongPressMessage}
+                            />
 
 
-                            // const panGesture = Gesture.Pan()
-                            //     .activeOffsetX([-10, 10])
-                            //     .onUpdate((event) => {
-                            //         if (event.translationX > 0) {
-                            //             translateX.value = Math.min(event.translationX, 80);
-                            //         }
-                            //     })
-                            //     .onEnd(() => {
-                            //         if (translateX.value > 60) {
-                            //             runOnJS(onSwipeToReply)(item);
-                            //         }
-
-                            //         translateX.value = withSpring(0);
-                            //     });
-
-
-                            return (
-                                <GestureDetector gesture={panGesture}>
-                                    <Animated.View
-                                        style={
-                                            [{
-                                                alignItems: isMe
-                                                    ? "flex-end"
-                                                    : "flex-start",
-                                                marginVertical: 3,
-                                            }, animatedStyle]
-                                        }
-                                    >
-                                        <View
-                                            style={{
-                                                maxWidth: "80%",
-                                                backgroundColor: isMe
-                                                    ? COLORS.lightBlue
-                                                    : "#1F2937",
-                                                paddingHorizontal: 14,
-                                                paddingVertical: 10,
-                                                // borderRadius: 18,
-                                                gap: 4,
-                                                borderTopLeftRadius: isMe ? 0 : 18,
-                                                borderTopRightRadius: !isMe ? 0 : 18,
-                                                borderBottomLeftRadius: !isMe ? 0 : 18,
-                                            }}
-                                        >
-                                            <SCText color="white">
-                                                {item.text}
-                                            </SCText>
-
-                                            <SCText
-                                                color={COLORS.white}
-                                                style={{
-                                                    alignSelf: "flex-end",
-                                                    fontSize: 10,
-                                                    marginTop: 4,
-                                                    opacity: 0.7,
-                                                }}
-                                            >
-                                                {dayjs(item.createdAt).format(
-                                                    "hh:mm A"
-                                                )}
-                                            </SCText>
-                                        </View>
-                                    </Animated.View>
-
-
-
-                                </GestureDetector>
-                            );
                         }}
                     />
 
+
+
+                )}
+
+                {showScrollToBottom && (
+                    <TouchableOpacity
+                        onPress={scrollToBottom}
+                        style={styles.scrollArrowButton}
+                        activeOpacity={0.8}
+                    >
+                        <Feather name="chevron-down" size={22} color={COLORS.white} />
+                    </TouchableOpacity>
+                )}
+                {replyMessage && (
+                    <View style={styles.replyBar}>
+                        <View style={styles.replyBarContent}>
+                            <View style={styles.replyBarAccent} />
+                            <View style={{ flex: 1 }}>
+                                <SCText color={COLORS.lightBlue} >
+                                    {replyMessage.user?.name?.split(' ')[0]}
+                                </SCText>
+                                <SCText color={COLORS.textBlack} style={{ opacity: 0.7 }} numberOfLines={1}>
+                                    {replyMessage.text}
+                                </SCText>
+                            </View>
+                        </View>
+                        <TouchableOpacity onPress={() => setReplyMessage(null)}>
+                            <Feather name="x" size={18} color={COLORS.textBlack} />
+                        </TouchableOpacity>
+                    </View>
                 )}
                 {/* {'Chat Input'} */}
                 <Formik
@@ -444,79 +444,78 @@ const ChatDetails = () => {
                         }
                     }}
                 >
-                    {({ handleChange, handleBlur, handleSubmit, values }) => (
-                        <View style={styles.inputBar}>
-                            <View style={{ flex: 1, marginRight: 10, }}>
-                                <SCTextInput
-                                    placeholder="Write a message..."
-                                    value={values.text}
-                                    onChangeText={(text) => {
-                                        handleChange('text')(text);
+                    {({ handleChange, handleBlur, handleSubmit, values, setFieldValue }) => (
 
-                                        if (text.trim().length > 0) {
-                                            onTyping();
-                                        } else {
-                                            onStopTyping();
-                                        }
-                                    }}
+                        <>
+
+                            <View style={styles.inputBar}>
+                                <View style={{ flex: 1, marginRight: 10, }}>
+                                    <SCTextInput
+                                        placeholder="Write a message..."
+                                        value={values.text}
+                                        onChangeText={(text) => {
+                                            handleChange('text')(text);
+
+                                            if (text.trim().length > 0) {
+                                                onTyping();
+                                            } else {
+                                                onStopTyping();
+                                            }
+                                        }}
+
+                                        style={{
+                                            paddingRight: 35
+                                        }}
 
 
-                                    wrapperStyle={{
-                                        paddingLeft: 40,
-                                    }}
-                                    onBlur={handleBlur('text')}
-                                    extendingField
-                                />
+                                        wrapperStyle={{
+                                            paddingLeft: 40,
+                                        }}
+                                        onBlur={handleBlur('text')}
+                                        extendingField
+                                    />
+                                </View>
+
+                                <View style={{
+                                    position: 'absolute',
+                                    left: 14,
+                                    bottom: 32
+                                }}>
+                                    <MaterialCommunityIcons
+
+                                        onPress={() => setShowReactionPicker(true)}
+
+                                        color={COLORS.white} size={30} name='emoticon-outline' />
+                                </View>
+
+                                {!replyMessage && <View style={{
+                                    position: 'absolute',
+
+                                    bottom: 32,
+                                    right: 70
+                                }}>
+                                    <Feather onPress={() => { }} name='plus' size={30} />
+                                </View>}
+
+
+
+                                <TouchableOpacity
+                                    disabled={!values.text.trim()}
+                                    activeOpacity={0.8}
+                                    onPress={() => handleSubmit()}
+                                    style={styles.sendButton}
+                                >
+                                    <Feather
+                                        name="send"
+                                        size={20}
+                                        color={COLORS.white}
+                                    />
+                                </TouchableOpacity>
+
                             </View>
 
-                            <View style={{
-                                position: 'absolute',
-                                left: 14,
-                                bottom: 32
-                            }}>
-                                <MaterialCommunityIcons
 
-                                    onPress={() => setShowEmojiPicker(true)}
-
-                                    color={COLORS.white} size={30} name='emoticon-outline' />
-                            </View>
-
-                            <View style={{
-                                position: 'absolute',
-
-                                bottom: 32,
-                                right: 70
-                            }}>
-                                <Feather onPress={() => { }} name='plus' size={30} />
-                            </View>
-
-
-
-                            <TouchableOpacity
-                                disabled={!values.text.trim()}
-                                activeOpacity={0.8}
-                                onPress={() => handleSubmit()}
-                                style={styles.sendButton}
-                            >
-                                <Feather
-                                    name="send"
-                                    size={20}
-                                    color={COLORS.white}
-                                />
-                            </TouchableOpacity>
-                            <EmojiPicker
-                                show={showEmojiPicker}
-                                close={() => setShowEmojiPicker(false)}
-                                onSelect={(emoji) => {
-
-                                    console.log("The Selected Emoji is: ", emoji);
-
-                                    // onEmojiReact(emoji);
-                                    setShowEmojiPicker(false);
-                                }}
-                            />
-
-                        </View>
+                        </>
                     )}
                 </Formik>
                 {/* <View>
@@ -524,6 +523,40 @@ const ChatDetails = () => {
 
                         />
                     </View> */}
+
+                <EmojiPicker
+                    show={showReactionPicker}
+                    close={() => setShowReactionPicker(false)}
+                    onSelect={async (codepoint) => {
+                        const emojiChar = codePointToEmoji(codepoint);
+                        setShowReactionPicker(false);
+                        if (!reactionTargetMessage) return;
+                        try {
+                            await reactToMessage({
+                                messageId: reactionTargetMessage._id,
+                                emoji: emojiChar,
+                            });
+
+                            setLiveMessages(prev => prev.map(m => {
+                                if (m._id !== reactionTargetMessage._id) return m;
+                                const existing = (m as any).reactions ?? [];
+                                const idx = existing.findIndex(
+                                    (r: any) => r.user._id === currentUser?._id
+                                );
+                                const updated = [...existing];
+                                if (idx !== -1) {
+                                    updated[idx] = { ...updated[idx], emoji: emojiChar };
+                                } else {
+                                    updated.push({ user: { _id: currentUser?._id }, emoji: emojiChar });
+                                }
+                                return { ...m, reactions: updated };
+                            }));
+                        } catch (e) {
+                            console.warn('Reaction failed', e);
+                        }
+                        setReactionTargetMessage(null);
+                    }}
+                />
             </KeyboardAvoidingView>
             {/* </SafeAreaView> */}
         </GradientWrapper >
@@ -616,5 +649,47 @@ const styles = StyleSheet.create({
         // borderTopWidth: 0.2,
         // borderColor: COLORS.gray100,
         backgroundColor: '#12051F',
+    },
+
+
+    scrollArrowButton: {
+        position: 'absolute',
+        bottom: 90,
+        right: 16,
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        backgroundColor: COLORS.lightBlue,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+
+    replyBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: COLORS.modalBackgroundColor,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(255,255,255,0.08)',
+        justifyContent: 'space-between',
+    },
+    replyBarContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        gap: 8,
+        marginRight: 12,
+    },
+    replyBarAccent: {
+        width: 3,
+        height: 36,
+        backgroundColor: COLORS.lightBlue,
+        borderRadius: 2,
     },
 });

@@ -58,7 +58,7 @@ const FollowingFollowersModal = ({
     }
 
 
-    console.log("The following and followers data are: ", followers, following);
+    // console.log("The following and followers data are: ", followers, following);
 
 
     return (

@@ -94,7 +94,7 @@ const ProfileScreen = () => {
                         data={currentUser ? [currentUser] : []}
                         renderItem={({ item, index }) => {
 
-                            console.log("The Item is: ", item);
+                            // console.log("The Item is: ", item);
 
 
                             return (

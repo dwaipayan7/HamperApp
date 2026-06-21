@@ -16,6 +16,7 @@ router.post("/send-message", protectRoute, sendMessage);
 router.get("/chats/:receiverId", protectRoute, getMessages);
 router.get("/conversations", protectRoute, getAllChatList);
 router.post("/:messageId/reaction", protectRoute, reactToMessage);
+router.post("/reply-message", protectRoute, replyToMessage);
 
 router.get("/search", protectRoute, searchChats);
 

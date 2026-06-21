@@ -27,7 +27,7 @@ const PostsList = ({ username }: { username?: string }) => {
 
     const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
 
-    console.log("THe currentUser data is: ", currentUser);
+    // console.log("THe currentUser data is: ", currentUser);
 
     // console.log("THe posts are: ", posts);
 

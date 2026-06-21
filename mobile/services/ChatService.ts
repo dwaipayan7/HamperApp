@@ -147,3 +147,37 @@ export const useDeleteConversation = () => {
     },
   });
 };
+
+export const useReactToMessage = () => {
+  return useMutation({
+    mutationFn: ({ messageId, emoji }: { messageId: string; emoji: string }) =>
+      api.post(`/messages/${messageId}/reaction`, { emoji }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.Messages.chatList],
+      });
+    },
+  });
+};
+
+export const useReplyToMessage = () => {
+  return useMutation({
+    mutationFn: ({
+      receiverId,
+      text,
+      replyTo,
+    }: {
+      receiverId: string;
+      text: string;
+      replyTo: string;
+    }) => api.post(`/messages/reply-message`, { receiverId, text, replyTo }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.Messages.chatList],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.Messages.messages, variables.receiverId],
+      });
+    },
+  });
+};
