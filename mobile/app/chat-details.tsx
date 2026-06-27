@@ -65,6 +65,13 @@ const ChatDetails = () => {
     const [liveMessages, setLiveMessages] = useState<IMessage[]>([]);
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
+    const setFieldValueRef = useRef<((field: string, value: any) => void) | null>(null);
+    const currentTextRef = useRef<string>('');
+
+
+    const [emojiMode, setEmojiMode] = useState<'input' | 'reaction'>('input');
+
+
     // const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false)
 
     const [showScrollToBottom, setShowScrollToBottom] = useState(false);
@@ -78,6 +85,7 @@ const ChatDetails = () => {
 
     const onLongPressMessage = useCallback((message: any) => {
         setReactionTargetMessage(message);
+        setEmojiMode('reaction')
         setShowReactionPicker(true);
     }, [])
 
@@ -444,79 +452,89 @@ const ChatDetails = () => {
                         }
                     }}
                 >
-                    {({ handleChange, handleBlur, handleSubmit, values, setFieldValue }) => (
+                    {({ handleChange, handleBlur, handleSubmit, values, setFieldValue }) => {
 
-                        <>
+                        setFieldValueRef.current = setFieldValue;
+                        currentTextRef.current = values.text;
 
-                            <View style={styles.inputBar}>
-                                <View style={{ flex: 1, marginRight: 10, }}>
-                                    <SCTextInput
-                                        placeholder="Write a message..."
-                                        value={values.text}
-                                        onChangeText={(text) => {
-                                            handleChange('text')(text);
+                        return (
 
-                                            if (text.trim().length > 0) {
-                                                onTyping();
-                                            } else {
-                                                onStopTyping();
-                                            }
-                                        }}
+                            <>
 
-                                        style={{
-                                            paddingRight: 35
-                                        }}
+                                <View style={styles.inputBar}>
+                                    <View style={{ flex: 1, marginRight: 10, }}>
+                                        <SCTextInput
+                                            placeholder="Write a message..."
+                                            value={values.text}
+                                            onChangeText={(text) => {
+                                                handleChange('text')(text);
+
+                                                if (text.trim().length > 0) {
+                                                    onTyping();
+                                                } else {
+                                                    onStopTyping();
+                                                }
+                                            }}
+
+                                            style={{
+                                                paddingRight: 35
+                                            }}
 
 
-                                        wrapperStyle={{
-                                            paddingLeft: 40,
-                                        }}
-                                        onBlur={handleBlur('text')}
-                                        extendingField
-                                    />
+                                            wrapperStyle={{
+                                                paddingLeft: 40,
+                                            }}
+                                            onBlur={handleBlur('text')}
+                                            extendingField
+                                        />
+                                    </View>
+
+                                    <View style={{
+                                        position: 'absolute',
+                                        left: 14,
+                                        bottom: 32
+                                    }}>
+                                        <MaterialCommunityIcons
+
+                                            onPress={() => {
+                                                setEmojiMode('input');
+                                                setReactionTargetMessage(null)
+                                                setShowReactionPicker(true)
+                                            }}
+
+                                            color={COLORS.white} size={30} name='emoticon-outline' />
+                                    </View>
+
+                                    {!replyMessage && <View style={{
+                                        position: 'absolute',
+
+                                        bottom: 32,
+                                        right: 70
+                                    }}>
+                                        <Feather onPress={() => { }} name='plus' size={30} />
+                                    </View>}
+
+
+
+                                    <TouchableOpacity
+                                        disabled={!values.text.trim()}
+                                        activeOpacity={0.8}
+                                        onPress={() => handleSubmit()}
+                                        style={styles.sendButton}
+                                    >
+                                        <Feather
+                                            name="send"
+                                            size={20}
+                                            color={COLORS.white}
+                                        />
+                                    </TouchableOpacity>
+
                                 </View>
 
-                                <View style={{
-                                    position: 'absolute',
-                                    left: 14,
-                                    bottom: 32
-                                }}>
-                                    <MaterialCommunityIcons
 
-                                        onPress={() => setShowReactionPicker(true)}
-
-                                        color={COLORS.white} size={30} name='emoticon-outline' />
-                                </View>
-
-                                {!replyMessage && <View style={{
-                                    position: 'absolute',
-
-                                    bottom: 32,
-                                    right: 70
-                                }}>
-                                    <Feather onPress={() => { }} name='plus' size={30} />
-                                </View>}
-
-
-
-                                <TouchableOpacity
-                                    disabled={!values.text.trim()}
-                                    activeOpacity={0.8}
-                                    onPress={() => handleSubmit()}
-                                    style={styles.sendButton}
-                                >
-                                    <Feather
-                                        name="send"
-                                        size={20}
-                                        color={COLORS.white}
-                                    />
-                                </TouchableOpacity>
-
-                            </View>
-
-
-                        </>
-                    )}
+                            </>
+                        )
+                    }}
                 </Formik>
                 {/* <View>
                         <SCTextInput
@@ -530,7 +548,20 @@ const ChatDetails = () => {
                     onSelect={async (codepoint) => {
                         const emojiChar = codePointToEmoji(codepoint);
                         setShowReactionPicker(false);
+                        // if (!reactionTargetMessage) return;
+
+                        if (emojiMode === 'input') {
+
+                            setFieldValueRef.current?.(
+                                'text',
+                                currentTextRef.current + emojiChar
+                            );
+                            return;
+                        }
+
+                        // ✅ Reaction mode — only runs on long press
                         if (!reactionTargetMessage) return;
+
                         try {
                             await reactToMessage({
                                 messageId: reactionTargetMessage._id,
