@@ -1,9 +1,25 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/user.model.js";
 import Notification from "../models/notification.model.js";
+import { sendPushNotification } from "../helpers/notification.helper.js";
 
 import { getAuth } from "@clerk/express";
 import { clerkClient } from "@clerk/express";
+
+export const saveFCMToken = asyncHandler(async (req, res) => {
+    const { userId } = getAuth(req);
+
+    const { fcmToken } = req.body;
+
+    await User.findOneAndUpdate(
+        { clerkId: userId },
+        { fcmToken }
+    );
+
+    res.json({
+        success: true
+    });
+});
 
 export const getUserProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
@@ -120,6 +136,15 @@ export const followUser = asyncHandler(async (req, res) => {
     to: targetUserId,
     type: "follow",
   });
+
+  if (targetUser?.fcmToken) {
+    await sendPushNotification(
+      targetUser.fcmToken,
+      "New Follower",
+      `${currentUser.firstName} ${currentUser.lastName} started following you`,
+      { type: "follow", userId: currentUser._id.toString() }
+    );
+  }
 
   res.status(200).json({
     message: "User followed successfully",

@@ -4,6 +4,7 @@ import Comment from "../models/comment.model.js";
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import Notification from "../models/notification.model.js";
+import { sendPushNotification } from "../helpers/notification.helper.js";
 
 export const getComments = asyncHandler(async (req, res) => {
   const { postId } = req.params;
@@ -50,6 +51,16 @@ export const createComment = asyncHandler(async (req, res) => {
       post: postId,
       comment: comment._id,
     });
+
+    const postOwner = await User.findById(post.user);
+    if (postOwner?.fcmToken) {
+      await sendPushNotification(
+        postOwner.fcmToken,
+        "New Comment",
+        `${user.firstName} ${user.lastName} commented on your post`,
+        { type: "comment", postId: postId.toString() }
+      );
+    }
   }
 
   res.status(201).json({ comment, message: "Comment added successfully" });
@@ -119,6 +130,18 @@ export const likedComment = asyncHandler(async (req, res) => {
       type: "comment_like",
       post: comment.post,
     });
+
+    if (!isLiked) {
+      const commentOwner = await User.findById(comment.user);
+      if (commentOwner?.fcmToken) {
+        await sendPushNotification(
+          commentOwner.fcmToken,
+          "New Like",
+          `${user.firstName} ${user.lastName} liked your comment`,
+          { type: "comment_like", postId: comment.post.toString() }
+        );
+      }
+    }
   }
 
   res.status(200).json({

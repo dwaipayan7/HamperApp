@@ -7,6 +7,7 @@ import {
 } from "../helpers/crypto.helper.js";
 import Message from "../models/message.model.js";
 import { getIO, onlineUsers } from "../socket/socket.js";
+import { sendPushNotification } from "../helpers/notification.helper.js";
 
 export const sendMessage = asyncHandler(async (req, res) => {
   const { userId } = getAuth(req);
@@ -43,6 +44,15 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   getIO().to(receiver._id.toString()).emit("new-message", payload);
   getIO().to(sender._id.toString()).emit("new-message", payload);
+
+  if (receiver.fcmToken) {
+    await sendPushNotification(
+      receiver.fcmToken,
+      `${sender.firstName} ${sender.lastName}`,
+      text,
+      { type: "chat", senderId: sender._id.toString() }
+    );
+  }
 
   res.status(201).json({ message: populated });
 });
@@ -328,6 +338,15 @@ export const replyToMessage = asyncHandler(async (req, res) => {
 
   getIO().to(receiver._id.toString()).emit("new-message", populatedMessage);
   getIO().to(currentUser._id.toString()).emit("new-message", populatedMessage);
+
+  if (receiver.fcmToken) {
+    await sendPushNotification(
+      receiver.fcmToken,
+      `${currentUser.firstName} ${currentUser.lastName} replied to you`,
+      text,
+      { type: "chat", senderId: currentUser._id.toString() }
+    );
+  }
 
   res.status(201).json({
     message: populatedMessage,

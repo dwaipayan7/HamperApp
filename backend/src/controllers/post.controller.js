@@ -6,6 +6,7 @@ import cloudinary from "../config/cloudinary.js";
 
 import Notification from "../models/notification.model.js";
 import Comment from "../models/comment.model.js";
+import { sendPushNotification } from "../helpers/notification.helper.js";
 
 export const getPosts = asyncHandler(async (req, res) => {
   const posts = await Post.find()
@@ -170,6 +171,16 @@ export const likePost = asyncHandler(async (req, res) => {
         type: "like",
         post: postId,
       });
+
+      const postOwner = await User.findById(post.user);
+      if (postOwner?.fcmToken) {
+        await sendPushNotification(
+          postOwner.fcmToken,
+          "New Like",
+          `${user.firstName} ${user.lastName} liked your post`,
+          { type: "like", postId: postId.toString() }
+        );
+      }
     }
   }
 
@@ -257,6 +268,16 @@ export const repostPost = asyncHandler(async (req, res) => {
       type: "repost",
       post: originalPost._id,
     });
+
+    const postOwner = await User.findById(originalPost.user);
+    if (postOwner?.fcmToken) {
+      await sendPushNotification(
+        postOwner.fcmToken,
+        "New Repost",
+        `${user.firstName} ${user.lastName} reposted your post`,
+        { type: "repost", postId: originalPost._id.toString() }
+      );
+    }
   }
 
   res.status(201).json({
