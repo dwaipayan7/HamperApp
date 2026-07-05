@@ -7,6 +7,7 @@ import {
   updateProfile,
   getFollowersByUsername,
   getFollowingByUsername,
+  saveFCMToken,
 } from "../controllers/user.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -22,5 +23,6 @@ router.post("/sync", protectRoute, syncUser);
 router.get("/me", protectRoute, getCurrentUser);
 router.put("/profile", protectRoute, updateProfile);
 router.post("/follow/:targetUserId", protectRoute, followUser);
+router.post("/save-fcm-token", protectRoute, saveFCMToken);
 
 export default router;

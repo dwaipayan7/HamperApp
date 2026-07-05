@@ -21,6 +21,9 @@ import * as WebBrowser from "expo-web-browser";
 import { useEffect } from 'react';
 import { database } from '@/database';
 import { ReanimatedTrueSheetProvider } from '@lodev09/react-native-true-sheet/reanimated';
+import { NotificationUtilities } from '@/utils/NotificationUtils';
+import api from '@/utils/api';
+import messaging from '@react-native-firebase/messaging';
 
 export const queryClient = new QueryClient();
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
@@ -30,6 +33,9 @@ if (!publishableKey) {
 }
 
 WebBrowser.maybeCompleteAuthSession();
+
+
+NotificationUtilities.initNotificationService();
 
 export default function RootLayout() {
 
@@ -55,7 +61,32 @@ export default function RootLayout() {
     initDB();
   }, [])
 
+  useEffect(() => {
+    const setupNotifications = async () => {
+      try {
+        const hasPermission = await NotificationUtilities.requestUserPermission();
+        if (hasPermission) {
+          if (!messaging().isDeviceRegisteredForRemoteMessages) {
+            await messaging().registerDeviceForRemoteMessages();
+          }
+          const token = await messaging().getToken();
+          if (token) {
+            console.log('FCM Token:', token);
+            await api.saveFCMToken(token);
+          }
 
+          messaging().onTokenRefresh(async (newToken) => {
+            console.log('FCM Token refreshed:', newToken);
+            await api.saveFCMToken(newToken);
+          });
+        }
+      } catch (error) {
+        console.error('Error setting up notifications:', error);
+      }
+    };
+
+    setupNotifications();
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

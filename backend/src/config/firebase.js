@@ -1,8 +1,9 @@
-import admin from "firebase-admin";
-import serviceAccount from "./hamperapp-9c4c1-firebase-adminsdk-fbsvc-3590b39124.json" assert { type: "json" };
+// import admin from "firebase-admin";
+import { initializeApp, cert } from 'firebase-admin/app';
 
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+import serviceAccount from "./hamperapp-9c4c1-firebase-adminsdk-fbsvc-3590b39124.json" with { type: "json" };
+const app = initializeApp({
+    credential: cert(serviceAccount),
 });
 
-export default admin;
+export default app;

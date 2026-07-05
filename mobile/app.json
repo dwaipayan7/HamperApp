@@ -10,7 +10,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.x.clone",
-      "appleTeamId": "DC4Y42C595"
+      "appleTeamId": "DC4Y42C595",
+       "googleServicesFile": "./GoogleService-Info.plist"
+        
     },
     "android": {
       "softwareKeyboardLayoutMode": "resize",
@@ -19,7 +21,8 @@
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/adaptive-icon.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -27,7 +30,8 @@
       "bundler": "metro"
     },
     "plugins": [
-      
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
       "expo-router",
       [
         "expo-video",
@@ -35,8 +39,7 @@
           "supportsBackgroundPlayback": true,
           "supportsPictureInPicture": true
         }
-      ]
-    ,
+      ],
       [
         "expo-font",
         {
@@ -56,6 +59,18 @@
               {
                 "name": "simdjson",
                 "path": "../node_modules/@nozbe/simdjson",
+                "modular_headers": true
+              },
+              {
+                "name": "GoogleUtilities",
+                "modular_headers": true
+              },
+              {
+                "name": "RecaptchaInterop",
+                "modular_headers": true
+              },
+              {
+                "name": "FirebaseCoreInternal",
                 "modular_headers": true
               }
             ]

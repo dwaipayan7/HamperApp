@@ -8,7 +8,7 @@ import messaging from '@react-native-firebase/messaging';
 
 
 const onNotification = async (firebaseResponse: any) => {
-    // console.log(firebaseResponse)
+    console.log(firebaseResponse)
     const CHANNEL_NAME = 'Hamper.Notifications';
     const CHANNEL_ID = 'Hamper.Notifications';
     const channelId = await notifee.createChannel({
@@ -70,6 +70,9 @@ const initNotificationService = () => {
     );
 
     messaging().setBackgroundMessageHandler(async firebaseResponse => {
+
+        console.log('Background message received:', firebaseResponse);
+
         onNotification(firebaseResponse);
     });
 };

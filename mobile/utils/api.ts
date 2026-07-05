@@ -164,6 +164,10 @@ export class ApiUtility {
     return this.api.get("/users/me");
   }
 
+  saveFCMToken(fcmToken: string) {
+    return this.api.post("/users/save-fcm-token", { fcmToken });
+  }
+
   updateProfile(data: any) {
     return this.api.put("/users/profile", data);
   }
