@@ -13,6 +13,7 @@ import { ENV } from "./config/env.js";
 import { connectDB } from "./config/db.js";
 import { arcjetMiddleware } from "./middleware/arcjet.middleware.js";
 import { initializeSocket } from "./socket/socket.js";
+import { startNotificationWorker } from "./worker/notification.worker.js";
 
 const app = express();
 
@@ -22,7 +23,7 @@ initializeSocket(server);
 
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // for the body parser
+app.use(express.urlencoded({ extended: true }));
 
 app.use(clerkMiddleware());
 // app.use(arcjetMiddleware);
@@ -45,6 +46,7 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
   try {
     await connectDB();
+    startNotificationWorker();
 
     // listen for local development
     if (ENV.NODE_ENV !== "production") {

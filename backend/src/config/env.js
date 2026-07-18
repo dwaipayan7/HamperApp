@@ -13,4 +13,9 @@ export const ENV = {
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
   ARCJET_KEY: process.env.ARCJET_KEY,
   SECRET_KEY: process.env.SECRET_KEY,
+  VALKEY_HOST: process.env.VALKEY_HOST,
+  VALKEY_PORT: process.env.VALKEY_PORT,
 };
+
+// VALKEY_HOST=localhost
+// VALKEY_PORT=6379

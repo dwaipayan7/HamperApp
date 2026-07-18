@@ -1,0 +1,14 @@
+import { cacheClient } from "./redis.js";
+
+export const getCache = async (key) => {
+    const data = await cacheClient.get(key);
+    return data ? JSON.parse(data) : null;
+};
+
+export const setCache = async (key, value, ttlSeconds = 60) => {
+    await cacheClient.setex(key, ttlSeconds, JSON.stringify(value));
+};
+
+export const deleteCache = async (...keys) => {
+    if (keys.length > 0) await cacheClient.del(...keys);
+};
