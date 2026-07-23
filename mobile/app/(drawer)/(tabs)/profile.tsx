@@ -34,38 +34,32 @@ const ProfileScreen = () => {
 
     console.log("The userPosts are: ", userPosts);
 
-    const { mutateAsync: followUser, isPending: isFollowing } = useFollowUser();
-
-
     const [visibleModal, setVisibleModal] = useState<boolean>(false)
 
     const [isViewFollowers, setViewFollowers] = useState<boolean>(false)
     const [isViewFollowing, setViewFollowing] = useState<boolean>(false)
+    const [refreshing, setRefreshing] = useState(false);
 
-    const isFollowingUser = currentUser?.following?.includes(currentUser._id);
+    const onRefresh = async () => {
+        try {
+            setRefreshing(true);
+
+            await Promise.all([
+                invalidateCurrentUser(),
+                refetch(),
+            ]);
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
 
-    // const { mutateAsync: deletePost, isPending: isDeletePending } = useDeletePost(currentUser?.username);
 
-    // const { mutateAsync: likePost, isPending: isLikePending } = useLikePost(currentUser?.username)
 
     const [openModal, setIsModal] = useState<boolean>(false)
 
-    //  : (
-    // {!isOwnPost && <TouchableOpacity
-    //     disabled={isFollowing}
-    //     onPress={() => followUser(post.user._id)}
-    // >
-    //     <SCText
-    //         color={isFollowingUser ? COLORS.gray500 : COLORS.lightBlue}
-    //         size={14}
-    //         varient='bold'
-    //     >
-    //         {isFollowing ? '...' : isFollowingUser ? 'Following' : 'Follow'}
-    //     </SCText>
-
-    // </TouchableOpacity>}
-    //                                     )}
 
 
     return (
@@ -265,7 +259,7 @@ const ProfileScreen = () => {
                         }}
                         showsVerticalScrollIndicator={false}
 
-                        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={invalidateCurrentUser} />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                     />
                 </View>
 

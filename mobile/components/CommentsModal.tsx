@@ -25,7 +25,7 @@ import Loader from './Loader';
 
 interface CommentProps {
     selectedPost: Post;
-    onClose: () => boolean;
+    onClose: () => any;
     show: boolean;
 }
 

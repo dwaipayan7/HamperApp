@@ -7,18 +7,18 @@ import { getAuth } from "@clerk/express";
 import { clerkClient } from "@clerk/express";
 
 export const saveFCMToken = asyncHandler(async (req, res) => {
-    const { userId } = getAuth(req);
+  const { userId } = getAuth(req);
 
-    const { fcmToken } = req.body;
+  const { fcmToken } = req.body;
 
-    await User.findOneAndUpdate(
-        { clerkId: userId },
-        { fcmToken }
-    );
+  await User.findOneAndUpdate(
+    { clerkId: userId },
+    { fcmToken }
+  );
 
-    res.json({
-        success: true
-    });
+  res.json({
+    success: true
+  });
 });
 
 export const getUserProfile = asyncHandler(async (req, res) => {
@@ -138,12 +138,12 @@ export const followUser = asyncHandler(async (req, res) => {
   });
 
   if (targetUser?.fcmToken) {
-    await sendPushNotification(
-      targetUser.fcmToken,
-      "New Follower",
-      `${currentUser.firstName} ${currentUser.lastName} started following you`,
-      { type: "follow", userId: currentUser._id.toString() }
-    );
+    await sendPushNotification({
+      token: targetUser.fcmToken,
+      title: "New Follower",
+      body: `${currentUser.firstName} ${currentUser.lastName} started following you`,
+      data: { type: "follow", userId: currentUser._id.toString() },
+    });
   }
 
   res.status(200).json({

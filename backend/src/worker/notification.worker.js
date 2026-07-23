@@ -1,28 +1,31 @@
 import { Worker } from "bullmq";
 import { bullConnection } from "../helpers/redis.js";
 import { sendPushNotification } from "../helpers/notification.helper.js";
+import { logger } from "../config/logger.js";
 
 export const startNotificationWorker = () => {
   const worker = new Worker(
-    "notifications", // must match queue name in notification.queue.js
+    "notifications",
     async (job) => {
       const { token, title, body, data } = job.data;
-      console.log(`[Worker] Processing job ${job.id} → "${title}"`);
+      logger.info({ jobId: job.id, title }, "[Worker] Processing notification job");
       await sendPushNotification({ token, title, body, data });
     },
-    { connection: bullConnection }
+    { connection: bullConnection },
   );
 
   worker.on("completed", (job) => {
-    console.log(`[Worker] ✅ Job ${job.id} completed`);
+    logger.info({ jobId: job.id }, "[Worker] Notification job completed");
   });
 
   worker.on("failed", (job, err) => {
-    console.error(
-      `[Worker] ❌ Job ${job.id} failed (attempt ${job.attemptsMade}/${job.opts.attempts}): ${err.message}`
+    logger.error(
+      { jobId: job.id, attempt: job.attemptsMade, maxAttempts: job.opts.attempts, err },
+      "[Worker] Notification job failed",
     );
   });
 
-  console.log("[Worker] 🚀 Notification worker started");
+  logger.info("[Worker] Notification worker started");
   return worker;
 };
+

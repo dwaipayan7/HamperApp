@@ -1,10 +1,11 @@
-import { StyleSheet, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Image, ActivityIndicator, Text } from 'react-native';
 import React from 'react';
 import SCText from './CustomText';
 import { Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { Icon } from '@/utils/Icons';
 import { COLORS } from '@/constants/colors';
 import { formatText } from '@/utils/AllContext';
+import { useNotificationCount } from '@/services/NotificationService';
 
 interface HeaderProps {
     title?: string;
@@ -77,6 +78,8 @@ const Header = ({
     onRightActions,
     onLeftActions,
 }: HeaderProps) => {
+    // const { data } = useNotificationCount();
+    // const unreadCount = data?.count ?? 0;
     return (
         <View style={{
             flexDirection: 'row',
@@ -364,7 +367,19 @@ const Header = ({
                     )}
 
                     {showNotification && (
-                        <Feather name="bell" size={20} color={COLORS.white} onPress={onPressNotification} />
+                        <TouchableOpacity
+                            onPress={onPressNotification}
+                            style={{ position: 'relative' }}
+                        >
+                            <Feather name="bell" size={20} color={COLORS.white} />
+                            {/* {unreadCount > 0 && (
+                                <View style={styles.badge}>
+                                    <Text style={styles.badgeText}>
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </Text>
+                                </View>
+                            )} */}
+                        </TouchableOpacity>
                     )}
 
                     {/* {showEdit && (
@@ -419,5 +434,25 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '600',
         color: '#1DA1F2',
+    },
+    badge: {
+        position: 'absolute',
+        top: -6,
+        right: -6,
+        minWidth: 16,
+        height: 16,
+        borderRadius: 8,
+        backgroundColor: '#E0245E',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 3,
+        borderWidth: 1.5,
+        borderColor: '#05010D',
+    },
+    badgeText: {
+        color: '#fff',
+        fontSize: 9,
+        fontWeight: '700',
+        lineHeight: 12,
     },
 });

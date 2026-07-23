@@ -15,7 +15,8 @@ export const ENV = {
   SECRET_KEY: process.env.SECRET_KEY,
   VALKEY_HOST: process.env.VALKEY_HOST,
   VALKEY_PORT: process.env.VALKEY_PORT,
+  // Firebase service account JSON as a single-line string (never commit the .json file)
+  FIREBASE_SERVICE_ACCOUNT_JSON: process.env.FIREBASE_SERVICE_ACCOUNT_JSON,
+  // Comma-separated list of allowed CORS origins e.g. "https://app.hamper.com,https://admin.hamper.com"
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
 };
-
-// VALKEY_HOST=localhost
-// VALKEY_PORT=6379

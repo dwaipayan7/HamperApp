@@ -5,6 +5,23 @@ import Notification from "../models/notification.model.js";
 import cloudinary from "../config/cloudinary.js";
 import { enqueueNotification } from "../queue/index.js";
 import { getCache, setCache, deleteCache } from "../helpers/cache.js";
+import { cacheClient } from "../helpers/redis.js";
+import { logger } from "../config/logger.js";
+
+const deleteFeedCache = async () => {
+  let cursor = "0";
+  do {
+    const [nextCursor, keys] = await cacheClient.scan(
+      cursor,
+      "MATCH",
+      "posts:feed:*",
+      "COUNT",
+      50,
+    );
+    cursor = nextCursor;
+    if (keys.length > 0) await deleteCache(...keys);
+  } while (cursor !== "0");
+};
 
 const TTL = {
   FEED: 30,
@@ -12,56 +29,78 @@ const TTL = {
   USER_POSTS: 45,
 };
 
-//Cache Keys that are used
+const DEFAULT_PAGE_LIMIT = 20;
+
+// Cache key helpers
 const KEYS = {
-  feed: () => "posts:feed",
+  feed: (page, limit) => `posts:feed:page:${page}:limit:${limit}`,
   post: (id) => `post:${id}`,
   userPosts: (username) => `posts:user:${username}`,
+  // Used for bulk invalidation — we track all feed page keys separately
+  feedInvalidate: () => "posts:feed:*",
 };
 
 const POPULATE_USER = "username firstName lastName profilePicture";
 
-export const getAllPosts = async () => {
-  const cacheKey = KEYS.feed();
+/**
+ * Returns a paginated feed of all posts.
+ * @param {number} page - 1-indexed page number (default: 1)
+ * @param {number} limit - posts per page (default: 20, max: 50)
+ */
+export const getAllPosts = async (page = 1, limit = DEFAULT_PAGE_LIMIT) => {
+  const safeLimit = Math.min(Number(limit) || DEFAULT_PAGE_LIMIT, 50);
+  const safePage = Math.max(Number(page) || 1, 1);
+  const skip = (safePage - 1) * safeLimit;
 
-  // Handle Valkey first
+  const cacheKey = KEYS.feed(safePage, safeLimit);
+
   const cached = await getCache(cacheKey);
-  if (cached) {
-    console.log("Cache Hit", cacheKey);
-    return cached;
-  }
+  if (cached) return cached;
 
-  //Cache miss hit the mongoDB
-  console.log("Cache Miss", cacheKey);
-  const posts = await Post.find()
-    .sort({ createdAt: -1 })
-    .populate("user", POPULATE_USER)
-    .populate({
-      path: "comments",
-      populate: { path: "user", select: POPULATE_USER },
-    })
-    .populate({
-      path: "repostOf",
-      populate: { path: "user", select: POPULATE_USER },
-    })
-    .lean();
+  const [posts, total] = await Promise.all([
+    Post.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(safeLimit)
+      .populate("user", POPULATE_USER)
+      .populate({
+        path: "comments",
+        populate: { path: "user", select: POPULATE_USER },
+      })
+      .populate({
+        path: "repostOf",
+        populate: { path: "user", select: POPULATE_USER },
+      })
+      .lean(),
+    Post.countDocuments(),
+  ]);
 
-  // 3. Store in Valkey for 30 seconds
-  await setCache(cacheKey, posts, TTL.FEED);
-  return posts;
+  const result = {
+    posts,
+    pagination: {
+      page: safePage,
+      limit: safeLimit,
+      total,
+      totalPages: Math.ceil(total / safeLimit),
+      hasNextPage: safePage * safeLimit < total,
+    },
+  };
+
+  await setCache(cacheKey, result, TTL.FEED);
+  return result;
 };
 
-//getbyID
+// getById
 export const getPostById = async (postId) => {
   const cacheKey = KEYS.post(postId);
 
   const cached = await getCache(cacheKey);
   if (cached) {
-    console.log("Cache Hit", cacheKey);
+    logger.debug({ cacheKey }, "Cache hit");
     return cached;
   }
 
-  console.log("[Cache] MISS →", cacheKey);
+  logger.debug({ cacheKey }, "Cache miss");
   const post = await Post.findById(postId)
     .populate("user", POPULATE_USER)
     .populate({
@@ -89,11 +128,11 @@ export const getUserPostsByUsername = async (username) => {
 
   const cached = await getCache(cacheKey);
   if (cached) {
-    console.log("Cache Hit", cacheKey);
+    logger.debug({ cacheKey }, "Cache hit");
     return cached;
   }
 
-  console.log("Cache Miss", cacheKey);
+  logger.debug({ cacheKey }, "Cache miss");
   const user = await User.findOne({ username }).lean();
   if (!user) return null;
 
@@ -135,8 +174,11 @@ export const createPost = async (clerkId, content, imageFile) => {
     image: imageUrl,
   });
 
-  // Invalidate feed and delete the previous cached data
-  await deleteCache(KEYS.feed(), KEYS.userPosts(user.username));
+  // Invalidate all paginated feed pages + this user's post list
+  await Promise.all([
+    deleteFeedCache(),
+    deleteCache(KEYS.userPosts(user.username)),
+  ]);
 
   return post;
 };
@@ -185,8 +227,8 @@ export const likePost = async (clerkId, postId) => {
     }
   }
 
-  // Invalidate this post's cache — likes count changed
-  await deleteCache(KEYS.post(postId), KEYS.feed());
+  // Invalidate this post's cache + all feed pages (likes count changed)
+  await Promise.all([deleteCache(KEYS.post(postId)), deleteFeedCache()]);
 
   return { isLiked };
 };
@@ -206,11 +248,10 @@ export const deletePost = async (clerkId, postId) => {
     Post.findByIdAndDelete(postId),
   ]);
 
-  await deleteCache(
-    KEYS.post(postId),
-    KEYS.feed(),
-    KEYS.userPosts(user.username),
-  );
+  await Promise.all([
+    deleteCache(KEYS.post(postId), KEYS.userPosts(user.username)),
+    deleteFeedCache(),
+  ]);
 
   return { success: true };
 };
@@ -262,11 +303,10 @@ export const repostPost = async (clerkId, postId, content) => {
     }
   }
 
-  await deleteCache(
-    KEYS.post(postId),
-    KEYS.feed(),
-    KEYS.userPosts(user.username),
-  );
+  await Promise.all([
+    deleteCache(KEYS.post(postId), KEYS.userPosts(user.username)),
+    deleteFeedCache(),
+  ]);
 
   return { repost };
 };

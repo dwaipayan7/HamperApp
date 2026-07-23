@@ -1,29 +1,25 @@
-// import admin from "../config/firebase.js";
-import { getMessaging } from "firebase-admin/messaging";
-import app from "../config/firebase.js";
+import admin from "../config/firebase.js";
+import { logger } from "../config/logger.js";
 
-const messaging = getMessaging(app);
-
-export const sendPushNotification = async ({
-  token,
-  title,
-  body,
-  data = {},
-}) => {
-  if (!token) return;
-
+export const sendPushNotification = async ({ token, title, body, data }) => {
   try {
-    await messaging.send({
+    if (!token) {
+      logger.debug("No FCM token provided, skipping push notification.");
+      return;
+    }
+
+    const message = {
+      notification: { title, body },
       token,
+      ...(data && { data }),
+    };
 
-      notification: {
-        title,
-        body,
-      },
-
-      data,
-    });
-  } catch (err) {
-    console.log(err);
+    const response = await admin.messaging().send(message);
+    logger.info({ messageId: response }, "Push notification sent successfully");
+    return response;
+  } catch (error) {
+    logger.error({ err: error }, "Failed to send push notification");
+    throw error; // re-throw so BullMQ can retry the job
   }
 };
+

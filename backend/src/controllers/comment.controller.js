@@ -19,11 +19,7 @@ export const getComments = asyncHandler(async (req, res) => {
 export const createComment = asyncHandler(async (req, res) => {
   const { userId } = getAuth(req);
   const { postId } = req.params;
-  const { content } = req.body;
-
-  if (!content || content.trim() === "") {
-    return res.status(400).json({ error: "Comment content is required" });
-  }
+  const { content } = req.body; // pre-validated + trimmed by Zod middleware
 
   const user = await User.findOne({ clerkId: userId });
   const post = await Post.findById(postId);
@@ -54,12 +50,12 @@ export const createComment = asyncHandler(async (req, res) => {
 
     const postOwner = await User.findById(post.user);
     if (postOwner?.fcmToken) {
-      await sendPushNotification(
-        postOwner.fcmToken,
-        "New Comment",
-        `${user.firstName} ${user.lastName} commented on your post`,
-        { type: "comment", postId: postId.toString() }
-      );
+      await sendPushNotification({
+        token: postOwner.fcmToken,
+        title: "New Comment",
+        body: `${user.firstName} ${user.lastName} commented on your post`,
+        data: { type: "comment", postId: postId.toString() },
+      });
     }
   }
 
@@ -134,12 +130,12 @@ export const likedComment = asyncHandler(async (req, res) => {
     if (!isLiked) {
       const commentOwner = await User.findById(comment.user);
       if (commentOwner?.fcmToken) {
-        await sendPushNotification(
-          commentOwner.fcmToken,
-          "New Like",
-          `${user.firstName} ${user.lastName} liked your comment`,
-          { type: "comment_like", postId: comment.post.toString() }
-        );
+        await sendPushNotification({
+          token: commentOwner.fcmToken,
+          title: "New Like",
+          body: `${user.firstName} ${user.lastName} liked your comment`,
+          data: { type: "comment_like", postId: comment.post.toString() },
+        });
       }
     }
   }

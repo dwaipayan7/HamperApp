@@ -13,6 +13,39 @@ class NotificationService {
       .populate("comment", "content");
   };
 
+  static getUnreadCount = async (clerkId) => {
+    const user = await User.findOne({ clerkId });
+    if (!user) return null;
+
+    const count = await Notification.countDocuments({
+      to: user._id,
+      isRead: false,
+    });
+    return count;
+  };
+
+  static markAsRead = async (clerkId, notificationId) => {
+    const user = await User.findOne({ clerkId });
+    if (!user) return null;
+
+    return Notification.findOneAndUpdate(
+      { _id: notificationId, to: user._id },
+      { isRead: true },
+      { new: true },
+    );
+  };
+
+  static markAllAsRead = async (clerkId) => {
+    const user = await User.findOne({ clerkId });
+    if (!user) return null;
+
+    const result = await Notification.updateMany(
+      { to: user._id, isRead: false },
+      { isRead: true },
+    );
+    return result;
+  };
+
   static deleteNotification = async (clerkId, notificationId) => {
     const user = await User.findOne({ clerkId });
     if (!user) return null;

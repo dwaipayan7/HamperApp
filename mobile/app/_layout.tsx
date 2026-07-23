@@ -18,7 +18,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import SnackBar from '@/components/Snackbar';
 import { useSocket } from '@/hooks/useSocket';
 import * as WebBrowser from "expo-web-browser";
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { database } from '@/database';
 import { ReanimatedTrueSheetProvider } from '@lodev09/react-native-true-sheet/reanimated';
 import { NotificationUtilities } from '@/utils/NotificationUtils';
@@ -35,7 +35,6 @@ if (!publishableKey) {
 WebBrowser.maybeCompleteAuthSession();
 
 
-NotificationUtilities.initNotificationService();
 
 export default function RootLayout() {
 
@@ -62,30 +61,48 @@ export default function RootLayout() {
   }, [])
 
   useEffect(() => {
+    let unsubscribeForeground: (() => void) | undefined;
+    let unsubscribeTokenRefresh: (() => void) | undefined;
+
     const setupNotifications = async () => {
       try {
-        const hasPermission = await NotificationUtilities.requestUserPermission();
-        if (hasPermission) {
-          if (!messaging().isDeviceRegisteredForRemoteMessages) {
-            await messaging().registerDeviceForRemoteMessages();
-          }
-          const token = await messaging().getToken();
-          if (token) {
-            console.log('FCM Token:', token);
-            await api.saveFCMToken(token);
-          }
+        // initNotificationService returns the onMessage unsubscriber
+        unsubscribeForeground = NotificationUtilities.initNotificationService();
 
-          messaging().onTokenRefresh(async (newToken) => {
-            console.log('FCM Token refreshed:', newToken);
-            await api.saveFCMToken(newToken);
-          });
+        const hasPermission = await NotificationUtilities.requestUserPermission();
+
+        if (!hasPermission) {
+          console.warn('[Notifications] Permission denied — push notifications will not be received.');
+          return;
         }
+
+        if (!messaging().isDeviceRegisteredForRemoteMessages) {
+          await messaging().registerDeviceForRemoteMessages();
+        }
+
+        const token = await messaging().getToken();
+        if (token) {
+          console.log('[Notifications] FCM Token:', token);
+          await api.saveFCMToken(token);
+        }
+
+        unsubscribeTokenRefresh = messaging().onTokenRefresh(async (newToken) => {
+          console.log('[Notifications] FCM Token refreshed:', newToken);
+          await api.saveFCMToken(newToken);
+        });
+
       } catch (error) {
-        console.error('Error setting up notifications:', error);
+        console.error('[Notifications] Error setting up notifications:', error);
       }
     };
 
     setupNotifications();
+
+
+    return () => {
+      unsubscribeForeground?.();
+      unsubscribeTokenRefresh?.();
+    };
   }, []);
 
   return (

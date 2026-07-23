@@ -63,7 +63,10 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.index({ firstName: "text", lastName: "text", username: "text" });
+// Note: clerkId, email, username already have indexes via unique:true in schema definition
+
 
 const User = mongoose.model("User", userSchema);
 
 export default User;
+  

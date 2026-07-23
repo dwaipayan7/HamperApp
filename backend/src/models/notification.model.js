@@ -27,9 +27,16 @@ const notificationSchema = new mongoose.Schema(
       ref: "Comment",
       default: null,
     },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );
+
+// Compound index optimises: fetch all notifs for a user, sorted by newest, filtered by read status
+notificationSchema.index({ to: 1, isRead: 1, createdAt: -1 });
 
 const Notification = mongoose.model("Notification", notificationSchema);
 

@@ -4,6 +4,7 @@ const QueryKeys = {
   },
   NotificationKey: {
     notifications: "notifications",
+    notificationCount: "notificationCount",
   },
   CommentKey: {
     comments: "comments",

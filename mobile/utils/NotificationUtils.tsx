@@ -17,7 +17,7 @@ const onNotification = async (firebaseResponse: any) => {
         importance: AndroidImportance.HIGH,
         visibility: AndroidVisibility.PUBLIC,
     })
-
+    // npm i @notifee/react-native
     try {
         await notifee.displayNotification({
             title: firebaseResponse?.data?.title || firebaseResponse?.notification?.title || '',
@@ -25,15 +25,10 @@ const onNotification = async (firebaseResponse: any) => {
             data: {
                 ...firebaseResponse.data,
             },
-            remote: {
-                messageId: firebaseResponse?.messageId,
-                senderId: firebaseResponse?.data?.senderId
-            },
             android: {
                 channelId,
                 vibrationPattern: [300, 500],
-                smallIcon: 'ic_launcher',
-                // largeIcon: 'ic_launcher_round',
+                smallIcon: 'ic_notification',
                 pressAction: {
                     id: 'default',
                 },
@@ -48,33 +43,53 @@ const onNotification = async (firebaseResponse: any) => {
                     badge: true,
                     sound: true,
                 },
-                critical: true,
+
             }
         })
     } catch (err) {
-        console.log(err)
+        console.log('Notifee displayNotification error:', err)
     }
 
 };
 
-const requestUserPermission = async () => await messaging().requestPermission();
+const requestUserPermission = async (): Promise<boolean> => {
+
+    await notifee.requestPermission();
+
+    const messagingStatus = await messaging().requestPermission();
+
+    const granted =
+        messagingStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        messagingStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    return granted;
+};
 
 
-const initNotificationService = () => {
-    notifee.onBackgroundEvent(async ({ type, detail }) => { }
+
+messaging().setBackgroundMessageHandler(async (firebaseResponse) => {
+    console.log('Background message received:', firebaseResponse);
+    await onNotification(firebaseResponse);
+});
+
+
+
+const initNotificationService = (): (() => void) => {
+    notifee.onBackgroundEvent(async ({ type, detail }) => {
         // PressAction(detail, type, true),
-    );
-
-    notifee.onForegroundEvent(async ({ type, detail }) => { }
-        // PressAction(detail, type, false),
-    );
-
-    messaging().setBackgroundMessageHandler(async firebaseResponse => {
-
-        console.log('Background message received:', firebaseResponse);
-
-        onNotification(firebaseResponse);
     });
+
+    notifee.onForegroundEvent(async ({ type, detail }) => {
+        // PressAction(detail, type, false),
+    });
+
+    // Returns an unsubscribe function
+    const unsubscribeForeground = messaging().onMessage(async (remoteMessage) => {
+        console.log('Foreground message received:', remoteMessage);
+        await onNotification(remoteMessage);
+    });
+
+    return unsubscribeForeground;
 };
 
 export const NotificationUtilities = {

@@ -12,9 +12,11 @@ import {
 } from "../services/post.service.js";
 
 export const getPosts = asyncHandler(async (req, res) => {
-  const posts = await fetchAllPosts();
-  res.status(200).json({ posts });
+  const { page = 1, limit = 20 } = req.query;
+  const result = await fetchAllPosts(page, limit);
+  res.status(200).json({ ...result });
 });
+
 
 export const getPostById = asyncHandler(async (req, res) => {
   const { postId } = req.params;

@@ -50,7 +50,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
       receiver.fcmToken,
       `${sender.firstName} ${sender.lastName}`,
       text,
-      { type: "chat", senderId: sender._id.toString() }
+      { type: "chat", senderId: sender._id.toString() },
     );
   }
 
@@ -344,7 +344,7 @@ export const replyToMessage = asyncHandler(async (req, res) => {
       receiver.fcmToken,
       `${currentUser.firstName} ${currentUser.lastName} replied to you`,
       text,
-      { type: "chat", senderId: currentUser._id.toString() }
+      { type: "chat", senderId: currentUser._id.toString() },
     );
   }
 
