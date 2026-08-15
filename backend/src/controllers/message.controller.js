@@ -149,33 +149,6 @@ export const searchChats = asyncHandler(async (req, res) => {
   const { name } = req.query;
   const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  // const users = await User.find({
-  //   $or: [
-  //     {
-  //       username: {
-  //         $regex: escapedName,
-  //         $options: "i",
-  //       },
-  //     },
-  //     {
-  //       firstName: {
-  //         $regex: escapedName,
-  //         $options: "i",
-  //       },
-  //     },
-  //     {
-  //       lastName: {
-  //         $regex: escapedName,
-  //         $options: "i",
-  //       },
-  //     },
-  //   ],
-  // }).select("firstName lastName username profilePicture");
-
-  // const messages = await Message.find({
-  //   $or: [{ sender: currentUser._id }, { receiver: currentUser._id }],
-  // }).select("sender receiver")
-
   const chatUserIds = await Message.aggregate([
     {
       $match: {

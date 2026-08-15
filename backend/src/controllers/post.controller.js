@@ -41,16 +41,25 @@ export const getUserPosts = asyncHandler(async (req, res) => {
 
 export const createPost = asyncHandler(async (req, res) => {
   const { userId } = getAuth(req);
-  const { content } = req.body;
+  const { content, type } = req.body;
+  let { eventDetails } = req.body;
   const imageFile = req.file;
 
-  if (!content && !imageFile) {
+  if (!content && !imageFile && type !== "event") {
     return res
       .status(400)
-      .json({ error: "Post must contain either text or image" });
+      .json({ error: "Post must contain either text, image or be an event" });
   }
 
-  const post = await createPostService(userId, content, imageFile);
+  if (typeof eventDetails === "string") {
+    try {
+      eventDetails = JSON.parse(eventDetails);
+    } catch (e) {
+      // Ignore parse error
+    }
+  }
+
+  const post = await createPostService(userId, content, imageFile, type, eventDetails);
   if (!post) return res.status(404).json({ error: "User not found" });
 
   res.status(201).json({ post });

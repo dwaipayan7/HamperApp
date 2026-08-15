@@ -58,11 +58,23 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    locationCoords: {
+      type: {
+        type: String,
+        enum: ["Point"], 
+        default: "Point"
+      },
+      coordinates: {
+        type: [Number],
+        default: [0, 0] // [longitude, latitude]
+      },
+    },
   },
   { timestamps: true },
 );
 
 userSchema.index({ firstName: "text", lastName: "text", username: "text" });
+userSchema.index({ locationCoords: "2dsphere" });
 // Note: clerkId, email, username already have indexes via unique:true in schema definition
 
 

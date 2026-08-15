@@ -19,7 +19,7 @@ export const getComments = asyncHandler(async (req, res) => {
 export const createComment = asyncHandler(async (req, res) => {
   const { userId } = getAuth(req);
   const { postId } = req.params;
-  const { content } = req.body; // pre-validated + trimmed by Zod middleware
+  const { content } = req.body;
 
   const user = await User.findOne({ clerkId: userId });
   const post = await Post.findById(postId);

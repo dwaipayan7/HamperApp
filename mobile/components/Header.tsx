@@ -78,8 +78,8 @@ const Header = ({
     onRightActions,
     onLeftActions,
 }: HeaderProps) => {
-    // const { data } = useNotificationCount();
-    // const unreadCount = data?.count ?? 0;
+    const { data } = useNotificationCount();
+    const unreadCount = data?.count ?? null;
     return (
         <View style={{
             flexDirection: 'row',
@@ -372,13 +372,13 @@ const Header = ({
                             style={{ position: 'relative' }}
                         >
                             <Feather name="bell" size={20} color={COLORS.white} />
-                            {/* {unreadCount > 0 && (
+                            {unreadCount && unreadCount > 0 && (
                                 <View style={styles.badge}>
                                     <Text style={styles.badgeText}>
                                         {unreadCount > 9 ? '9+' : unreadCount}
                                     </Text>
                                 </View>
-                            )} */}
+                            )}
                         </TouchableOpacity>
                     )}
 

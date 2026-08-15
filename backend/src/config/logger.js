@@ -2,9 +2,7 @@ import pino from "pino";
 import { ENV } from "./env.js";
 import { createRequire } from "module";
 
-// Resolve pino-pretty only when it's actually installed.
-// In Docker (production), devDependencies are not installed so we fall back to
-// raw JSON logging — which is what log aggregators (Datadog, Loki, etc.) expect.
+
 const isPrettyAvailable = (() => {
   try {
     const require = createRequire(import.meta.url);

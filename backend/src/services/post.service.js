@@ -6,6 +6,7 @@ import cloudinary from "../config/cloudinary.js";
 import { enqueueNotification } from "../queue/index.js";
 import { getCache, setCache, deleteCache } from "../helpers/cache.js";
 import { cacheClient } from "../helpers/redis.js";
+import { REDIS_KEYS, TTL } from "../utils/redisKeys.js";
 import { logger } from "../config/logger.js";
 
 const deleteFeedCache = async () => {
@@ -14,7 +15,7 @@ const deleteFeedCache = async () => {
     const [nextCursor, keys] = await cacheClient.scan(
       cursor,
       "MATCH",
-      "posts:feed:*",
+      REDIS_KEYS.feedPattern(),
       "COUNT",
       50,
     );
@@ -23,36 +24,16 @@ const deleteFeedCache = async () => {
   } while (cursor !== "0");
 };
 
-const TTL = {
-  FEED: 30,
-  POST: 60,
-  USER_POSTS: 45,
-};
-
 const DEFAULT_PAGE_LIMIT = 20;
-
-// Cache key helpers
-const KEYS = {
-  feed: (page, limit) => `posts:feed:page:${page}:limit:${limit}`,
-  post: (id) => `post:${id}`,
-  userPosts: (username) => `posts:user:${username}`,
-  // Used for bulk invalidation — we track all feed page keys separately
-  feedInvalidate: () => "posts:feed:*",
-};
 
 const POPULATE_USER = "username firstName lastName profilePicture";
 
-/**
- * Returns a paginated feed of all posts.
- * @param {number} page - 1-indexed page number (default: 1)
- * @param {number} limit - posts per page (default: 20, max: 50)
- */
 export const getAllPosts = async (page = 1, limit = DEFAULT_PAGE_LIMIT) => {
   const safeLimit = Math.min(Number(limit) || DEFAULT_PAGE_LIMIT, 50);
   const safePage = Math.max(Number(page) || 1, 1);
   const skip = (safePage - 1) * safeLimit;
 
-  const cacheKey = KEYS.feed(safePage, safeLimit);
+  const cacheKey = REDIS_KEYS.feed(safePage, safeLimit);
 
   const cached = await getCache(cacheKey);
   if (cached) return cached;
@@ -92,7 +73,7 @@ export const getAllPosts = async (page = 1, limit = DEFAULT_PAGE_LIMIT) => {
 
 // getById
 export const getPostById = async (postId) => {
-  const cacheKey = KEYS.post(postId);
+  const cacheKey = REDIS_KEYS.post(postId);
 
   const cached = await getCache(cacheKey);
   if (cached) {
@@ -124,7 +105,7 @@ export const getPostWithComments = async (postId) => {
 };
 
 export const getUserPostsByUsername = async (username) => {
-  const cacheKey = KEYS.userPosts(username);
+  const cacheKey = REDIS_KEYS.userPosts(username);
 
   const cached = await getCache(cacheKey);
   if (cached) {
@@ -149,7 +130,13 @@ export const getUserPostsByUsername = async (username) => {
   return posts;
 };
 
-export const createPost = async (clerkId, content, imageFile) => {
+export const createPost = async (
+  clerkId,
+  content,
+  imageFile,
+  type = "normal",
+  eventDetails = null,
+) => {
   const user = await User.findOne({ clerkId });
   if (!user) return null;
 
@@ -168,16 +155,84 @@ export const createPost = async (clerkId, content, imageFile) => {
     imageUrl = uploaded.secure_url;
   }
 
-  const post = await Post.create({
+  const postData = {
     user: user._id,
     content: content || "",
     image: imageUrl,
-  });
+    type,
+  };
+
+  if (type === "event" && eventDetails) {
+    postData.eventDetails = {
+      locationCoords: {
+        type: "Point",
+        coordinates: [eventDetails.lng || 0, eventDetails.lat || 0],
+      },
+      radius: eventDetails.radius || 30,
+      eventDate: eventDetails.eventDate || new Date(),
+    };
+  }
+
+  const post = await Post.create(postData);
+
+  // If it's an event, send prioritized notifications
+  if (type === "event" && eventDetails) {
+    const radiusInKm = eventDetails.radius || 30;
+    // convert radius to radians for $centerSphere (radius in km / radius of earth in km)
+    const radiusInRadians = radiusInKm / 6378.1;
+    const lng = eventDetails.lng || 0;
+    const lat = eventDetails.lat || 0;
+
+    // Find users within radius
+    const usersWithinRadius = await User.find({
+      locationCoords: {
+        $geoWithin: {
+          $centerSphere: [[lng, lat], radiusInRadians],
+        },
+      },
+      _id: { $ne: user._id },
+      fcmToken: { $ne: "" },
+    });
+
+    const insideUserIds = usersWithinRadius.map((u) => u._id);
+
+    // Send immediate push notification for users within radius
+    for (const u of usersWithinRadius) {
+      if (u.fcmToken) {
+        await enqueueNotification({
+          token: u.fcmToken,
+          title: "New Event Nearby!",
+          body: `${user.firstName} posted an event near you.`,
+          data: { type: "event", postId: post._id.toString() },
+        });
+      }
+    }
+
+    // Find users outside radius
+    const usersOutsideRadius = await User.find({
+      _id: { $nin: [...insideUserIds, user._id] },
+      fcmToken: { $ne: "" },
+    });
+
+    // Send delayed push notification (10 mins) for users outside radius
+    const delayMs = 10 * 60 * 1000;
+    for (const u of usersOutsideRadius) {
+      if (u.fcmToken) {
+        await enqueueNotification({
+          token: u.fcmToken,
+          title: "New Event",
+          body: `${user.firstName} posted a new event.`,
+          data: { type: "event", postId: post._id.toString() },
+          delay: delayMs,
+        });
+      }
+    }
+  }
 
   // Invalidate all paginated feed pages + this user's post list
   await Promise.all([
     deleteFeedCache(),
-    deleteCache(KEYS.userPosts(user.username)),
+    deleteCache(REDIS_KEYS.userPosts(user.username)),
   ]);
 
   return post;
@@ -228,7 +283,7 @@ export const likePost = async (clerkId, postId) => {
   }
 
   // Invalidate this post's cache + all feed pages (likes count changed)
-  await Promise.all([deleteCache(KEYS.post(postId)), deleteFeedCache()]);
+  await Promise.all([deleteCache(REDIS_KEYS.post(postId)), deleteFeedCache()]);
 
   return { isLiked };
 };
@@ -249,7 +304,7 @@ export const deletePost = async (clerkId, postId) => {
   ]);
 
   await Promise.all([
-    deleteCache(KEYS.post(postId), KEYS.userPosts(user.username)),
+    deleteCache(REDIS_KEYS.post(postId), REDIS_KEYS.userPosts(user.username)),
     deleteFeedCache(),
   ]);
 
@@ -304,7 +359,7 @@ export const repostPost = async (clerkId, postId, content) => {
   }
 
   await Promise.all([
-    deleteCache(KEYS.post(postId), KEYS.userPosts(user.username)),
+    deleteCache(REDIS_KEYS.post(postId), REDIS_KEYS.userPosts(user.username)),
     deleteFeedCache(),
   ]);
 

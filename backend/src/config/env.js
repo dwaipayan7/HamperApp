@@ -19,4 +19,5 @@ export const ENV = {
   FIREBASE_SERVICE_ACCOUNT_JSON: process.env.FIREBASE_SERVICE_ACCOUNT_JSON,
   // Comma-separated list of allowed CORS origins e.g. "https://app.hamper.com,https://admin.hamper.com"
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
+  ELASTICSEARCH_NODE: process.env.ELASTICSEARCH_NODE,
 };

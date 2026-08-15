@@ -1,68 +1,115 @@
-import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
-import { getIO } from "../socket/socket.js";
-import { sendPushNotification } from "../helpers/notification.helper.js";
+import User from "../models/user.model.js";
 
 class MessageService {
-  static async sendMessage(clerkId, body) {
-    const { receiverId, text } = body;
-
-    if (!receiverId || !text) {
-      throw new Error("receiverId and text are required");
-    }
-
-    const sender = await User.findOne({
-      clerkId,
-    });
-
-    if (!sender) {
-      throw new Error("Sender not found");
-    }
-
-    const receiver = await User.findById(receiverId);
-
-    if (!receiver) {
-      throw new Error("Receiver not found");
-    }
-
-    const message = await Message.create({
-      sender: sender._id,
-      receiver: receiver._id,
-      text,
-    });
-
-    const populated = await Message.findById(message._id)
-      .populate("sender", "firstName lastName username profilePicture")
-      .populate("receiver", "firstName lastName username profilePicture");
-
-    getIO().to(receiver._id.toString()).emit("new-message", populated);
-    getIO().to(sender._id.toString()).emit("new-message", populated);
-
-    if (receiver.fcmToken) {
-      await sendPushNotification(
-        receiver.fcmToken,
-        `${sender.firstName} ${sender.lastName}`,
-        text,
-        {
-          type: "chat",
-          senderId: sender._id.toString(),
-        },
-      );
-    }
-
-    return populated;
-  }
-
-  static async getMessages(clerkId, receiverId) {
-    const currentUser = await User.findOne({
-      clerkId,
-    });
+  static async getAllChatList(clerkId) {
+    const currentUser = await User.findOne({ clerkId });
 
     if (!currentUser) {
       throw new Error("User not found");
     }
 
     const messages = await Message.find({
+      $or: [{ sender: currentUser._id }, { receiver: currentUser._id }],
+    })
+      .populate("sender receiver", "firstName lastName profilePicture")
+      .sort({ createdAt: -1 });
+
+    const chatMap = new Map();
+
+    messages.forEach((message) => {
+      const isCurrentUserSender =
+        message.sender._id.toString() === currentUser._id.toString();
+
+      const otherUser = isCurrentUserSender ? message.receiver : message.sender;
+
+      const otherUserId = otherUser._id.toString();
+
+      if (!chatMap.has(otherUserId)) {
+        chatMap.set(otherUserId, {
+          user: otherUser,
+          lastMessage: {
+            text: message.text,
+            createdAt: message.createdAt,
+            senderId: message.sender._id,
+          },
+        });
+      }
+    });
+
+    return Array.from(chatMap.values());
+  }
+
+  static async searchChats(clerkId, name) {
+    const currentUser = await User.findOne({ clerkId });
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const chatUserIds = await Message.aggregate([
+      {
+        $match: {
+          $or: [{ sender: currentUser._id }, { receiver: currentUser._id }],
+        },
+      },
+      {
+        $project: {
+          otherUser: {
+            $cond: [
+              { $eq: ["$sender", currentUser._id] },
+              "$receiver",
+              "$sender",
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$otherUser",
+        },
+      },
+    ]);
+
+    const users = await User.find({
+      _id: {
+        $in: chatUserIds.map((u) => u._id),
+      },
+      $or: [
+        {
+          firstName: {
+            $regex: escapedName,
+            $options: "i",
+          },
+        },
+        {
+          lastName: {
+            $regex: escapedName,
+            $options: "i",
+          },
+        },
+        {
+          username: {
+            $regex: escapedName,
+            $options: "i",
+          },
+        },
+      ],
+    }).select("firstName lastName username profilePicture");
+
+    return users;
+  }
+
+  static async deleteConversation(clerkId, receiverId) {
+    const currentUser = await User.findOne({ clerkId });
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    await Message.deleteMany({
       $or: [
         {
           sender: currentUser._id,
@@ -74,38 +121,43 @@ class MessageService {
         },
       ],
     });
-    const messages = await Message.find({
-      $or: [
-        {
-          sender: currentUser._id,
-          receiver: receiverId,
-        },
-        {
-          sender: receiverId,
-          receiver: currentUser._id,
-        },
-      ],
-    })
-      .populate("sender", "firstName lastName  profilePicture")
-      .populate("receiver", "firstName lastName  profilePicture")
-      .populate("reactions.user", "firstName lastName profilePicture")
-      .populate({
-        path: "replyTo",
-        select: "text sender createdAt",
-        populate: {
-          path: "sender",
-          select: "firstName lastName profilePicture",
-        },
-      })
-      .sort({ createdAt: -1 });
 
-    return messages.map((msg) => ({
-      ...msg.toObject(),
-      text: msg.text,
-    }));
+    return {
+      status: true,
+      message: "Conversation deleted successfully",
+    };
   }
 
-  static getAllChatList() {}
+  static async reactToMessage(clerkId, messageId, emoji) {
+    const currentUser = await User.findOne({ clerkId });
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    const message = await Message.findById(messageId);
+
+    if (!message) {
+      throw new Error("Message not found");
+    }
+
+    const existingReaction = message.reactions.find(
+      (reaction) => reaction.user.toString() === currentUser._id.toString(),
+    );
+
+    if (existingReaction) {
+      existingReaction.emoji = emoji;
+    } else {
+      message.reactions.push({
+        user: currentUser._id,
+        emoji,
+      });
+    }
+
+    await message.save();
+
+    return message;
+  }
 }
 
 export default MessageService;

@@ -1,7 +1,4 @@
-/**
- * Operational error — safe to expose message to the client.
- * Use for 4xx errors and known 5xx conditions.
- */
+
 export class AppError extends Error {
   constructor(message, statusCode = 500, code = "INTERNAL_ERROR") {
     super(message);
