@@ -4,3 +4,4 @@ node_modules/
 # Firebase service account keys — NEVER commit these
 src/config/*-adminsdk-*.json
 src/config/*-firebase-adminsdk*.json
+src/config/hamperapp-9c4c1-firebase-adminsdk-fbsvc-3590b39124.json
