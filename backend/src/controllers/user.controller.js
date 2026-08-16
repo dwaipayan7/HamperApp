@@ -1,9 +1,25 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/user.model.js";
 import Notification from "../models/notification.model.js";
+import { sendPushNotification } from "../helpers/notification.helper.js";
 
 import { getAuth } from "@clerk/express";
 import { clerkClient } from "@clerk/express";
+
+export const saveFCMToken = asyncHandler(async (req, res) => {
+  const { userId } = getAuth(req);
+
+  const { fcmToken } = req.body;
+
+  await User.findOneAndUpdate(
+    { clerkId: userId },
+    { fcmToken }
+  );
+
+  res.json({
+    success: true
+  });
+});
 
 export const getUserProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
@@ -30,7 +46,7 @@ export const syncUser = asyncHandler(async (req, res) => {
 
   // check if user already exists in mongodb
   const existingUser = await User.findOne({ clerkId: userId });
-  console.log("Thw user id is", userId);
+  console.log("The user id is", userId);
   if (existingUser) {
     return res.status(200).json({ user: existingUser });
   }
@@ -121,7 +137,61 @@ export const followUser = asyncHandler(async (req, res) => {
     type: "follow",
   });
 
+  if (targetUser?.fcmToken) {
+    await sendPushNotification({
+      token: targetUser.fcmToken,
+      title: "New Follower",
+      body: `${currentUser.firstName} ${currentUser.lastName} started following you`,
+      data: { type: "follow", userId: currentUser._id.toString() },
+    });
+  }
+
   res.status(200).json({
     message: "User followed successfully",
+  });
+});
+
+// export const followingUser = asyncHandler(async (req, res) => {
+//   const { userId } = getAuth(req);
+//   const { username } = req.params;
+// });
+
+export const getFollowersByUsername = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+
+  const user = await User.findOne({ username }).populate(
+    "followers",
+    "username firstName lastName profilePicture",
+  );
+
+  if (!user) {
+    return res.status(404).json({
+      error: "User not found",
+    });
+  }
+
+  res.status(200).json({
+    followers: user.followers,
+    // totalFollowers: user.followers.length,
+  });
+});
+
+export const getFollowingByUsername = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+
+  const user = await User.findOne({ username }).populate(
+    "following",
+    "username firstName lastName profilePicture",
+  );
+
+  if (!user) {
+    return res.status(404).json({
+      error: "User not found",
+    });
+  }
+
+  res.status(200).json({
+    following: user.following,
+    totalFollowing: user.following.length,
   });
 });

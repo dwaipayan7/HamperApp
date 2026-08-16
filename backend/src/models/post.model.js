@@ -36,9 +36,38 @@ const postSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    type: {
+      type: String,
+      enum: ["normal", "event", "poll", "job"],
+      default: "normal",
+    },
+    eventDetails: {
+      locationCoords: {
+        type: {
+          type: String,
+          enum: ["Point"],
+        },
+        coordinates: {
+          type: [Number], // [longitude, latitude]
+        },
+      },
+      radius: {
+        type: Number, // in kilometers
+        default: 30,
+      },
+      eventDate: {
+        type: Date,
+      },
+    },
   },
   { timestamps: true },
 );
+
+postSchema.index({ createdAt: -1 });
+postSchema.index({ user: 1, createdAt: -1 });
+postSchema.index({ user: 1, repostOf: 1 });
+postSchema.index({ "eventDetails.locationCoords": "2dsphere" });
+
 
 const Post = mongoose.model("Post", postSchema);
 

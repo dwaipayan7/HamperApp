@@ -11,6 +11,13 @@ export interface CreatePostPayload {
 
 const apiUtility = ApiUtility.getInstance();
 
+// export const getUserProfileByUsername = (username: string) => {
+//   return useQuery({
+//     queryKey: [QueryKeys.PostKey.username],
+//     queryFn: async () => await apiUtility.get(`/posts/profile/${username}`),
+//   });
+// };
+
 export const useLikePost = (username?: string) => {
   const api = useApi();
 
@@ -132,8 +139,19 @@ export const useFollowUser = () => {
       });
 
       queryClient.invalidateQueries({
-        queryKey: [QueryKeys.UserProfile.user],
+        queryKey: [QueryKeys.UserProfile],
       });
+
+      // queryClient.invalidateQueries({
+      //   queryKey: [QueryKeys.UserProfile.user],
+      // });
+
+      // queryClient.invalidateQueries({
+      //   queryKey: [QueryKeys.UserProfile.followers],
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: [QueryKeys.UserProfile.following],
+      // });
     },
   });
 };

@@ -6,6 +6,7 @@ import {
   deleteComment,
   likedComment,
 } from "../controllers/comment.controller.js";
+import { validate, createCommentSchema } from "../middleware/validate.middleware.js";
 
 const router = express.Router();
 
@@ -13,8 +14,9 @@ const router = express.Router();
 router.get("/post/:postId", getComments);
 
 // protected routes
-router.post("/post/:postId", protectRoute, createComment);
+router.post("/post/:postId", protectRoute, validate(createCommentSchema), createComment);
 router.post("/:commentId/like", protectRoute, likedComment);
 router.delete("/:commentId", protectRoute, deleteComment);
 
 export default router;
+

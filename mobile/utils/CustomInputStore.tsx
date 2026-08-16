@@ -223,6 +223,7 @@ export const SCTextInput = forwardRef<TextInput, ICCTextInput & {
                             // maxHeight: extendingField
                             //     ? MAX_HEIGHT
                             //     : undefined,
+                            paddingTop: Platform.OS === 'android' ? 10 : 12,
 
                             height: Platform.OS === 'ios' && extendingField
                                 ? undefined

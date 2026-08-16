@@ -4,6 +4,7 @@ const QueryKeys = {
   },
   NotificationKey: {
     notifications: "notifications",
+    notificationCount: "notificationCount",
   },
   CommentKey: {
     comments: "comments",
@@ -13,7 +14,25 @@ const QueryKeys = {
   },
   UserProfile: {
     followProfile: "followProfile",
-    user: 'user'
+    user: "user",
+    username: "username",
+    following: "following",
+    followers: "followers",
+  },
+  Messages: {
+    chatList: "chatList",
+    messages: "messages",
+    searchUsers: "searchUsers",
+  },
+  Videos: {
+    allVideos: "allVideos",
+    videoById: "videoById",
+  },
+  Search: {
+    searchUsers: "searchUsers",
+    searchPosts: "searchPosts",
+    globalSearch: "globalSearch",
+    getRecentSearches: "getRecentSearches",
   },
 };
 

@@ -54,10 +54,31 @@ const userSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    fcmToken: {
+      type: String,
+      default: "",
+    },
+    locationCoords: {
+      type: {
+        type: String,
+        enum: ["Point"], 
+        default: "Point"
+      },
+      coordinates: {
+        type: [Number],
+        default: [0, 0] // [longitude, latitude]
+      },
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+
+userSchema.index({ firstName: "text", lastName: "text", username: "text" });
+userSchema.index({ locationCoords: "2dsphere" });
+// Note: clerkId, email, username already have indexes via unique:true in schema definition
+
 
 const User = mongoose.model("User", userSchema);
 
 export default User;
+  

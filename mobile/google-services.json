@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "350287672347",
+    "project_id": "hamperapp-9c4c1",
+    "storage_bucket": "hamperapp-9c4c1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:350287672347:android:49a9f00343f8c2252ef4be",
+        "android_client_info": {
+          "package_name": "com.x.clone"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBILfZ-lb0g0eNVrej8nzx534TGifMB8UY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

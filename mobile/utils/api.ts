@@ -103,12 +103,12 @@ export class ApiUtility {
       (response) => {
         // SUCCESS MESSAGE
         if (response?.data?.message) {
-          store.dispatch(
-            showSnackbar({
-              message: response.data.message,
-              variant: "success",
-            }),
-          );
+          // store.dispatch(
+          //   showSnackbar({
+          //     message: response.data.message,
+          //     variant: "success",
+          //   }),
+          // );
         }
 
         return response;
@@ -123,9 +123,14 @@ export class ApiUtility {
           message =
             error?.response?.data?.error ||
             error?.response?.data?.message ||
-            error.message ||
-            error;
+            error?.message ||
+            "Something went wrong";
         }
+
+        // Ensure message is always a string
+        // if (typeof message !== "string") {
+        //   message = JSON.stringify(message);
+        // }
 
         store.dispatch(
           setMessage({
@@ -157,6 +162,10 @@ export class ApiUtility {
 
   getCurrentUser() {
     return this.api.get("/users/me");
+  }
+
+  saveFCMToken(fcmToken: string) {
+    return this.api.post("/users/save-fcm-token", { fcmToken });
   }
 
   updateProfile(data: any) {
@@ -220,6 +229,26 @@ export class ApiUtility {
     return null;
   }
 
+  async put<T = IApiResponse>(endpoint: string, body?: any): Promise<T> {
+    try {
+      const response = await this.api.put<T>(endpoint, body);
+
+      return response.data;
+    } catch (error: any) {
+      return error?.response?.data as T;
+    }
+  }
+
+  async patch<T = IApiResponse>(endpoint: string, body?: any): Promise<T> {
+    try {
+      const response = await this.api.patch<T>(endpoint, body);
+
+      return response.data;
+    } catch (error: any) {
+      return error?.response?.data as T;
+    }
+  }
+
   async post<T = IApiResponse>(
     endpoint: string,
     body: any,
@@ -260,7 +289,11 @@ export class ApiUtility {
     }
   }
 
-  async postForm<T = IApiResponse>(endpoint: string, params: any): Promise<T> {
+  async postForm<T = IApiResponse>(
+    endpoint: string,
+    params: any,
+    onProgress?: (progress: number) => void,
+  ): Promise<T> {
     const formData =
       params instanceof FormData
         ? params
@@ -274,6 +307,12 @@ export class ApiUtility {
       const response = await this.api.post<T>(endpoint, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: (event) => {
+          if (event.total) {
+            const progress = Math.round((event.loaded * 100) / event.total);
+            onProgress?.(progress);
+          }
         },
       });
 

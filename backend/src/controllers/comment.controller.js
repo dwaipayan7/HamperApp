@@ -4,6 +4,7 @@ import Comment from "../models/comment.model.js";
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import Notification from "../models/notification.model.js";
+import { sendPushNotification } from "../helpers/notification.helper.js";
 
 export const getComments = asyncHandler(async (req, res) => {
   const { postId } = req.params;
@@ -12,17 +13,13 @@ export const getComments = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 })
     .populate("user", "username firstName lastName profilePicture");
 
-  res.status(200).json({ comments });
+  res.status(200).json({ comments }); //
 });
 
 export const createComment = asyncHandler(async (req, res) => {
   const { userId } = getAuth(req);
   const { postId } = req.params;
   const { content } = req.body;
-
-  if (!content || content.trim() === "") {
-    return res.status(400).json({ error: "Comment content is required" });
-  }
 
   const user = await User.findOne({ clerkId: userId });
   const post = await Post.findById(postId);
@@ -50,6 +47,16 @@ export const createComment = asyncHandler(async (req, res) => {
       post: postId,
       comment: comment._id,
     });
+
+    const postOwner = await User.findById(post.user);
+    if (postOwner?.fcmToken) {
+      await sendPushNotification({
+        token: postOwner.fcmToken,
+        title: "New Comment",
+        body: `${user.firstName} ${user.lastName} commented on your post`,
+        data: { type: "comment", postId: postId.toString() },
+      });
+    }
   }
 
   res.status(201).json({ comment, message: "Comment added successfully" });
@@ -119,6 +126,18 @@ export const likedComment = asyncHandler(async (req, res) => {
       type: "comment_like",
       post: comment.post,
     });
+
+    if (!isLiked) {
+      const commentOwner = await User.findById(comment.user);
+      if (commentOwner?.fcmToken) {
+        await sendPushNotification({
+          token: commentOwner.fcmToken,
+          title: "New Like",
+          body: `${user.firstName} ${user.lastName} liked your comment`,
+          data: { type: "comment_like", postId: comment.post.toString() },
+        });
+      }
+    }
   }
 
   res.status(200).json({

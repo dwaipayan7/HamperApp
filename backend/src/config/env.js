@@ -12,4 +12,12 @@ export const ENV = {
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
   ARCJET_KEY: process.env.ARCJET_KEY,
+  SECRET_KEY: process.env.SECRET_KEY,
+  VALKEY_HOST: process.env.VALKEY_HOST,
+  VALKEY_PORT: process.env.VALKEY_PORT,
+  // Firebase service account JSON as a single-line string (never commit the .json file)
+  FIREBASE_SERVICE_ACCOUNT_JSON: process.env.FIREBASE_SERVICE_ACCOUNT_JSON,
+  // Comma-separated list of allowed CORS origins e.g. "https://app.hamper.com,https://admin.hamper.com"
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
+  ELASTICSEARCH_NODE: process.env.ELASTICSEARCH_NODE,
 };

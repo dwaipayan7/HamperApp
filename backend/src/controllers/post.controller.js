@@ -1,140 +1,66 @@
 import asyncHandler from "express-async-handler";
-import Post from "../models/post.model.js";
-import User from "../models/user.model.js";
 import { getAuth } from "@clerk/express";
-import cloudinary from "../config/cloudinary.js";
-
-import Notification from "../models/notification.model.js";
-import Comment from "../models/comment.model.js";
+import {
+  getAllPosts as fetchAllPosts,
+  getPostById as fetchPostById,
+  getPostWithComments as fetchPostWithComments,
+  getUserPostsByUsername as fetchUserPosts,
+  createPost as createPostService,
+  likePost as likePostService,
+  deletePost as deletePostService,
+  repostPost as repostPostService,
+} from "../services/post.service.js";
 
 export const getPosts = asyncHandler(async (req, res) => {
-  const posts = await Post.find()
-    .sort({ createdAt: -1 })
-    //user post
-    .populate("user", "username firstName lastName profilePicture")
-    //comment user
-    .populate({
-      path: "comments",
-      populate: {
-        path: "user",
-        select: "username firstName lastName profilePicture",
-      },
-    })
-    // populate repost
-    .populate({
-      path: "repostOf",
-      populate: {
-        path: "user",
-        select: "username firstName lastName profilePicture",
-      },
-    });
-
-  res.status(200).json({ posts });
+  const { page = 1, limit = 20 } = req.query;
+  const result = await fetchAllPosts(page, limit);
+  res.status(200).json({ ...result });
 });
+
 
 export const getPostById = asyncHandler(async (req, res) => {
   const { postId } = req.params;
-
-  const post = await Post.findById(postId)
-    .populate("user", "username firstName lastName profilePicture")
-    .populate({
-      path: "repostOf",
-      populate: {
-        path: "user",
-        select: "username firstName lastName profilePicture",
-      },
-    });
-
-  if (!post) {
-    return res.status(404).json({ error: "Post not found" });
-  }
-
+  const post = await fetchPostById(postId);
+  if (!post) return res.status(404).json({ error: "Post not found" });
   res.status(200).json({ post });
 });
 
 export const getPost = asyncHandler(async (req, res) => {
   const { postId } = req.params;
-
-  const post = await Post.findById(postId)
-    .populate("user", "username firstName lastName profilePicture")
-    .populate({
-      path: "comments",
-      populate: {
-        path: "user",
-        select: "username firstName lastName profilePicture",
-      },
-    });
-
+  const post = await fetchPostWithComments(postId);
   if (!post) return res.status(404).json({ error: "Post not found" });
-
   res.status(200).json({ post });
 });
 
 export const getUserPosts = asyncHandler(async (req, res) => {
   const { username } = req.params;
-
-  const user = await User.findOne({ username });
-  if (!user) return res.status(404).json({ error: "User not found" });
-
-  const posts = await Post.find({ user: user._id })
-    .sort({ createdAt: -1 })
-    .populate("user", "username firstName lastName profilePicture")
-    .populate({
-      path: "comments",
-      populate: {
-        path: "user",
-        select: "username firstName lastName profilePicture",
-      },
-    });
-
+  const posts = await fetchUserPosts(username);
+  if (posts === null) return res.status(404).json({ error: "User not found" });
   res.status(200).json({ posts });
 });
 
 export const createPost = asyncHandler(async (req, res) => {
   const { userId } = getAuth(req);
-  const { content } = req.body;
+  const { content, type } = req.body;
+  let { eventDetails } = req.body;
   const imageFile = req.file;
 
-  if (!content && !imageFile) {
+  if (!content && !imageFile && type !== "event") {
     return res
       .status(400)
-      .json({ error: "Post must contain either text or image" });
+      .json({ error: "Post must contain either text, image or be an event" });
   }
 
-  const user = await User.findOne({ clerkId: userId });
-  if (!user) return res.status(404).json({ error: "User not found" });
-
-  let imageUrl = "";
-
-  // upload image to Cloudinary if provided
-  if (imageFile) {
+  if (typeof eventDetails === "string") {
     try {
-      // convert buffer to base64 for cloudinary
-      const base64Image = `data:${imageFile.mimetype};base64,${imageFile.buffer.toString(
-        "base64",
-      )}`;
-
-      const uploadResponse = await cloudinary.uploader.upload(base64Image, {
-        folder: "social_media_posts",
-        resource_type: "image",
-        transformation: [
-          { width: 800, height: 600, crop: "limit" },
-          { quality: "auto" },
-          { format: "auto" },
-        ],
-      });
-      imageUrl = uploadResponse.secure_url;
-    } catch (uploadError) {
-      console.error("Cloudinary upload error:", uploadError);
-      return res.status(400).json({ error: "Failed to upload image" });
+      eventDetails = JSON.parse(eventDetails);
+    } catch (e) {
+      // Ignore parse error
     }
   }
 
-  const post = await Post.create({
-    user: user._id,
-    content: content || "",
-    image: imageUrl,
-  });
+  const post = await createPostService(userId, content, imageFile, type, eventDetails);
+  if (!post) return res.status(404).json({ error: "User not found" });
 
   res.status(201).json({ post });
 });
@@ -143,38 +69,13 @@ export const likePost = asyncHandler(async (req, res) => {
   const { userId } = getAuth(req);
   const { postId } = req.params;
 
-  const user = await User.findOne({ clerkId: userId });
-  const post = await Post.findById(postId);
-
-  if (!user || !post)
-    return res.status(404).json({ error: "User or post not found" });
-
-  const isLiked = post.likes.includes(user._id);
-
-  if (isLiked) {
-    // unlike
-    await Post.findByIdAndUpdate(postId, {
-      $pull: { likes: user._id },
-    });
-  } else {
-    // like
-    await Post.findByIdAndUpdate(postId, {
-      $push: { likes: user._id },
-    });
-
-    // create notification if not liking own post
-    if (post.user.toString() !== user._id.toString()) {
-      await Notification.create({
-        from: user._id,
-        to: post.user,
-        type: "like",
-        post: postId,
-      });
-    }
-  }
+  const result = await likePostService(userId, postId);
+  if (!result) return res.status(404).json({ error: "User or post not found" });
 
   res.status(200).json({
-    message: isLiked ? "Post unliked successfully" : "Post liked successfully",
+    message: result.isLiked
+      ? "Post unliked successfully"
+      : "Post liked successfully",
   });
 });
 
@@ -182,85 +83,36 @@ export const deletePost = asyncHandler(async (req, res) => {
   const { userId } = getAuth(req);
   const { postId } = req.params;
 
-  const user = await User.findOne({ clerkId: userId });
-  const post = await Post.findById(postId);
+  const result = await deletePostService(userId, postId);
 
-  if (!user || !post)
+  if (result.error === "not_found")
     return res.status(404).json({ error: "User or post not found" });
 
-  if (post.user.toString() !== user._id.toString()) {
+  if (result.error === "forbidden")
     return res
       .status(403)
       .json({ error: "You can only delete your own posts" });
-  }
-
-  // delete all comments on this post
-  await Comment.deleteMany({ post: postId });
-
-  // delete the post
-  await Post.findByIdAndDelete(postId);
 
   res.status(200).json({ message: "Post deleted successfully" });
 });
 
 export const repostPost = asyncHandler(async (req, res) => {
-  const { content } = req.body;
-
   const { userId } = getAuth(req);
   const { postId } = req.params;
+  const { content } = req.body;
 
-  const user = await User.findOne({ clerkId: userId });
+  const result = await repostPostService(userId, postId, content);
 
-  if (!user) {
+  if (result.error === "user_not_found")
     return res.status(404).json({ error: "User not found" });
-  }
 
-  const originalPost = await Post.findById(postId);
-
-  if (!originalPost) {
+  if (result.error === "post_not_found")
     return res.status(404).json({ error: "Post not found" });
-  }
 
-  const existingRepost = await Post.findOne({
-    user: user._id,
-    repostOf: originalPost._id,
-  });
+  if (result.error === "already_reposted")
+    return res.status(400).json({ error: "Already Reposted" });
 
-  if (existingRepost) {
-    return res.status(400).json({
-      error: "Already Reposted",
-    });
-  }
-
-  const createRepost = await Post.create({
-    user: user._id,
-    repostOf: originalPost._id,
-    content:
-      content && content.trim() !== ""
-        ? `${content.trim()}\n\n${originalPost.content}`
-        : originalPost.content,
-    image: originalPost.image,
-  });
-
-  await Post.findOneAndUpdate(
-    { _id: postId },
-    {
-      $inc: { repostCount: 1 },
-    },
-  );
-
-  //add notification
-  if (originalPost.user.toString() !== user._id.toString()) {
-    await Notification.create({
-      from: user._id,
-      to: originalPost.user,
-      type: "repost",
-      post: originalPost._id,
-    });
-  }
-
-  res.status(201).json({
-    message: "Post resposted successfully",
-    createRepost,
-  });
+  res
+    .status(201)
+    .json({ message: "Post reposted successfully", post: result.repost });
 });

@@ -1,29 +1,31 @@
 import express from "express";
 import {
-  createPost,
-  deletePost,
-  getPost,
   getPosts,
-  getUserPosts,
-  likePost,
-  repostPost,
   getPostById,
+  getPost,
+  getUserPosts,
+  createPost,
+  likePost,
+  deletePost,
+  repostPost,
 } from "../controllers/post.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import upload from "../middleware/upload.middleware.js";
+import { validate, repostSchema } from "../middleware/validate.middleware.js";
 
 const router = express.Router();
 
-// public routes
+// ── Public routes ─────────────────────────────────────────────────────────────
 router.get("/", getPosts);
-router.get("/:postId", getPost);
 router.get("/user/:username", getUserPosts);
+router.get("/:postId/full", getPost);
 router.get("/:postId", getPostById);
 
-// protected proteced
+// ── Protected routes ──────────────────────────────────────────────────────────
 router.post("/", protectRoute, upload.single("image"), createPost);
 router.post("/:postId/like", protectRoute, likePost);
-router.post("/:postId/repost", protectRoute, repostPost);
+router.post("/:postId/repost", protectRoute, validate(repostSchema), repostPost);
 router.delete("/:postId", protectRoute, deletePost);
 
 export default router;
+

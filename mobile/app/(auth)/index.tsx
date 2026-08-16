@@ -31,24 +31,36 @@ export default function Index() {
     selectIsAuthenticated
   );
 
+  // useEffect(() => {
+
+  //   if (!isLoaded) {
+  //     return;
+  //   }
+
+  //   if (!isSignedIn) {
+  //     dispatch(setAuthenticated(false))
+  //   } else {
+  //     dispatch(setAuthenticated(true))
+
+  //   }
+
+
+  //   if (isAuthenticated) {
+  //     router.replace("/(drawer)/(tabs)");
+  //   }
+  // }, [isSignedIn, isAuthenticated]);
+
+
   useEffect(() => {
+    if (!isLoaded) return;
 
-    if (!isLoaded) {
-      return;
-    }
-
-    if (!isSignedIn) {
-      dispatch(setAuthenticated(false))
-    } else {
-      dispatch(setAuthenticated(true))
-
-    }
-
-
-    if (isAuthenticated) {
+    if (isSignedIn) {
+      dispatch(setAuthenticated(true));
       router.replace("/(drawer)/(tabs)");
+    } else {
+      dispatch(setAuthenticated(false));
     }
-  }, [isSignedIn, isAuthenticated]);
+  }, [isSignedIn, isLoaded]);
 
   return (
     <LinearGradient

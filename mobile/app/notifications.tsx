@@ -1,8 +1,8 @@
 
 import { View, Text, ActivityIndicator, TouchableOpacity, ScrollView, ViewStyle, RefreshControl, FlatList } from 'react-native';
-import React from 'react'
+import React, { useEffect } from 'react'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { deleteNotification, useNotification } from '@/services/NotificationService'
+import { deleteNotification, useNotification, useMarkAllAsRead } from '@/services/NotificationService'
 import SCText from '@/components/CustomText'
 import { COLORS } from '@/constants/colors'
 import { Feather } from '@expo/vector-icons'
@@ -12,8 +12,16 @@ import GradientWrapper from '@/components/GradientWrapper';
 import { Notification } from '@/types';
 import NotificationCard from '@/components/NotificationCard';
 import LoaderModal from '@/components/LoaderModal';
+import { router } from 'expo-router';
 
 const NotificationsScreen = () => {
+
+    const { mutate: markAllAsRead } = useMarkAllAsRead();
+
+    // Mark all as read when the user opens the notifications screen
+    useEffect(() => {
+        markAllAsRead();
+    }, []);
 
     // const { data, isLoading, refetch, error } = useNotification();
     const { mutateAsync: deleteNotifi, isPending } = deleteNotification();
@@ -52,7 +60,10 @@ const NotificationsScreen = () => {
                 </TouchableOpacity>
             </View> */}
 
-                <Header leftTitle='Notifications' showSettingsIcon onSettingAction={() => { }} />
+                <Header
+                    showBackButton
+                    onBack={() => router.back()}
+                    leftTitle='Notifications' showSettingsIcon onSettingAction={() => { }} />
 
                 <FlatList
                     data={notifications || []}
@@ -88,7 +99,7 @@ const NotificationsScreen = () => {
                         )
                     }
                     renderItem={({ item, index }) => {
-                        console.log("The Item is: ", item);
+                        // console.log("The Item is: ", item);
 
                         return (
 

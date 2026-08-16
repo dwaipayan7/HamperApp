@@ -1,9 +1,11 @@
-import { StyleSheet, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Image, ActivityIndicator, Text } from 'react-native';
 import React from 'react';
 import SCText from './CustomText';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { Icon } from '@/utils/Icons';
 import { COLORS } from '@/constants/colors';
+import { formatText } from '@/utils/AllContext';
+import { useNotificationCount } from '@/services/NotificationService';
 
 interface HeaderProps {
     title?: string;
@@ -25,9 +27,13 @@ interface HeaderProps {
     rightIconSignOut?: boolean
     isUserPosts?: boolean
     userPosts?: number,
+    isVerticalThreeDots?: boolean;
+    showProfileImage?: string
+    subTitle?: string
+    showNotification?: boolean
 
-
-
+    onPressNotification?: () => void;
+    onVerticalThreeDots?: () => void;
     onRightSignOut?: () => void
     onEdit?: () => void;
     onBack?: () => void;
@@ -55,9 +61,15 @@ const Header = ({
     rightIconSignOut,
     isUserPosts,
     userPosts,
+    isVerticalThreeDots,
+    showProfileImage,
+    subTitle,
+    showNotification,
 
+
+    onPressNotification,
+    onVerticalThreeDots,
     onRightSignOut,
-
     onCustomPost,
     onSettingAction,
     onEdit,
@@ -66,6 +78,8 @@ const Header = ({
     onRightActions,
     onLeftActions,
 }: HeaderProps) => {
+    const { data } = useNotificationCount();
+    const unreadCount = data?.count ?? null;
     return (
         <View style={{
             flexDirection: 'row',
@@ -78,13 +92,14 @@ const Header = ({
             <View style={{
                 // flexDirection: 'row',
                 // alignItems: 'center',
-                // flex: 1
+                flex: 1,
                 justifyContent: 'center',
-                flexDirection: 'row'
+                flexDirection: 'row',
+
 
             }}>
 
-                {!isUserPosts && leftTitle && (
+                {/* {!isUserPosts && leftTitle && (
                     <SCText color='white' size={16} varient='semibold'>{leftTitle}</SCText>
                 )}
 
@@ -101,10 +116,12 @@ const Header = ({
                         <Ionicons
                             name="arrow-back"
                             size={24}
-                            color="#000"
+                            color={COLORS.white}
                         />
                     </TouchableOpacity>
                 )}
+
+                {showBackButton && leftTitle}
 
                 {showCloseButton && (
                     <TouchableOpacity onPress={onClose}>
@@ -114,24 +131,71 @@ const Header = ({
                             color="#000"
                         />
                     </TouchableOpacity>
+                )} */}
+
+                {showBackButton && (
+                    <TouchableOpacity
+                        onPress={onBack}
+                        style={{ marginRight: 16 }}
+                    >
+                        <Ionicons
+                            name="arrow-back"
+                            size={24}
+                            color={COLORS.white}
+                        />
+                    </TouchableOpacity>
+                )}
+
+                {(leftTitle && isUserPosts) && (
+                    <View>
+                        <SCText
+                            color="white"
+                            size={16}
+                            varient="semibold"
+                        >
+                            {leftTitle}
+                        </SCText>
+
+                        {isUserPosts && (
+                            <SCText
+                                color="white"
+                                varient="regular"
+                                size={12}
+                            >
+                                {userPosts} {userPosts === 1 ? 'Post' : 'Posts'}
+                            </SCText>
+                        )}
+                    </View>
+                )}
+                {(leftTitle && showProfileImage || leftTitle && subTitle) && (
+                    <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+                        <Image source={{ uri: showProfileImage }}
+                            style={{ height: 40, width: 40, borderRadius: 20 }}
+                        />
+                        <View style={{ gap: 4 }}>
+                            <SCText
+                                color="white"
+                                size={16}
+                                varient="semibold"
+                            >
+                                {formatText(leftTitle, 20)}
+                            </SCText>
+
+                            <SCText
+                                color="white"
+                                varient="regular"
+                                size={12}>
+                                {subTitle}
+                            </SCText>
+
+                        </View>
+
+                        <View />
+                    </View>
                 )}
 
                 {showIcon && (
                     <TouchableOpacity onPress={onLeftActions}>
-                        {/* <Ionicons
-                            name="logo-twitter"
-                            size={24}
-                            color="#1DA1F2"
-                        /> */}
-                        {/* <Image
-                            source={require('../assets/images/hamper_logo.png')}
-                            resizeMode="contain"
-                            style={{
-                                width: 34,
-                                height: 34,
-                            }}
-                        /> */}
-
                         <View
                             style={{
                                 width: 26,
@@ -298,6 +362,26 @@ const Header = ({
                         </TouchableOpacity>
                     )}
 
+                    {isVerticalThreeDots && (
+                        <FontAwesome onPress={onVerticalThreeDots} color={COLORS.white} size={24} name='ellipsis-v' />
+                    )}
+
+                    {showNotification && (
+                        <TouchableOpacity
+                            onPress={onPressNotification}
+                            style={{ position: 'relative' }}
+                        >
+                            <Feather name="bell" size={20} color={COLORS.white} />
+                            {unreadCount && unreadCount > 0 && (
+                                <View style={styles.badge}>
+                                    <Text style={styles.badgeText}>
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </Text>
+                                </View>
+                            )}
+                        </TouchableOpacity>
+                    )}
+
                     {/* {showEdit && (
                     <TouchableOpacity onPress={onEdit}>
                         <Ionicons
@@ -350,5 +434,25 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '600',
         color: '#1DA1F2',
+    },
+    badge: {
+        position: 'absolute',
+        top: -6,
+        right: -6,
+        minWidth: 16,
+        height: 16,
+        borderRadius: 8,
+        backgroundColor: '#E0245E',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 3,
+        borderWidth: 1.5,
+        borderColor: '#05010D',
+    },
+    badgeText: {
+        color: '#fff',
+        fontSize: 9,
+        fontWeight: '700',
+        lineHeight: 12,
     },
 });

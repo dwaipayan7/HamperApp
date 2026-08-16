@@ -13,31 +13,59 @@ import SCText from '@/components/CustomText'
 import { Feather } from '@expo/vector-icons'
 import dayjs from 'dayjs'
 import { usePosts } from '@/hooks/usePosts'
-import { useDeletePost, useLikePost } from '@/services/PostService'
+import { useDeletePost, useFollowUser, useLikePost } from '@/services/PostService'
 import PostsList from '@/components/PostsList'
 import UpdateProfileModal from '@/modal/UpdateProfileModal'
+import ImagePreviewModal from '@/modal/ImagePreviewModal'
+import { useLocalSearchParams } from 'expo-router'
+import FollowingFollowersModal from '@/modal/FollowingFollowersModal'
 
 const ProfileScreen = () => {
 
-    const { currentUser, } = useCurrentUser();
+    const { currentUser, refetch: invalidateCurrentUser } = useCurrentUser();
+
+    const { username } = useLocalSearchParams<{ username: string }>();
 
     const insets = useSafeAreaInsets();
 
     const { signOut } = useClerk();
 
-    const { posts: userPosts, isLoading, checkIsLiked, refetch, error } = usePosts();
+    const { posts: userPosts, isLoading, checkIsLiked, refetch, error } = usePosts(username || currentUser?.username);
 
-    // const { mutateAsync: deletePost, isPending: isDeletePending } = useDeletePost(currentUser?.username);
+    console.log("The userPosts are: ", userPosts);
 
-    // const { mutateAsync: likePost, isPending: isLikePending } = useLikePost(currentUser?.username)
+    const [visibleModal, setVisibleModal] = useState<boolean>(false)
+
+    const [isViewFollowers, setViewFollowers] = useState<boolean>(false)
+    const [isViewFollowing, setViewFollowing] = useState<boolean>(false)
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = async () => {
+        try {
+            setRefreshing(true);
+
+            await Promise.all([
+                invalidateCurrentUser(),
+                refetch(),
+            ]);
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
+
+
 
     const [openModal, setIsModal] = useState<boolean>(false)
+
 
 
     return (
         <GradientWrapper style={{ flex: 1 }}>
             <SafeAreaView style={{ flex: 1 }}>
-                <Header leftTitle={`${currentUser.firstName} ${currentUser.lastName}`}
+                <Header leftTitle={`${currentUser?.firstName} ${currentUser?.lastName}`}
                     rightIconSignOut
                     onRightSignOut={() => {
                         Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -59,12 +87,16 @@ const ProfileScreen = () => {
                     <FlatList
                         data={currentUser ? [currentUser] : []}
                         renderItem={({ item, index }) => {
+
+                            // console.log("The Item is: ", item);
+
+
                             return (
-                                <View>
+                                <View key={index}>
                                     <Image
                                         source={{
                                             uri:
-                                                currentUser.bannerImage ||
+                                                item.bannerImage ||
                                                 "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
                                         }}
                                         contentFit='cover'
@@ -82,7 +114,9 @@ const ProfileScreen = () => {
                                             paddingHorizontal: 16,
                                         }}
                                     >
-                                        <View
+                                        <TouchableOpacity
+                                            onPress={() => setVisibleModal(true)}
+                                            activeOpacity={0.8}
                                             style={{
                                                 marginTop: -50,
                                                 padding: 4,
@@ -101,9 +135,9 @@ const ProfileScreen = () => {
                                                 }}
                                                 contentFit="cover"
                                             />
-                                        </View>
+                                        </TouchableOpacity>
 
-                                        <TouchableOpacity
+                                        {currentUser && <TouchableOpacity
                                             style={{
                                                 marginTop: 12,
                                                 paddingVertical: 8,
@@ -123,6 +157,8 @@ const ProfileScreen = () => {
                                                 Edit Profile
                                             </SCText>
                                         </TouchableOpacity>
+                                        }
+
 
 
 
@@ -131,7 +167,7 @@ const ProfileScreen = () => {
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 15, marginBottom: 8 }}>
 
                                             <SCText varient='bold' size={18} color={COLORS.white}>
-                                                {currentUser?.firstName} {currentUser?.lastName}
+                                                {item?.firstName} {item?.lastName}
                                             </SCText>
 
                                             {<Feather name='check-circle' size={20} color={'#1da1f2'} />}
@@ -140,13 +176,13 @@ const ProfileScreen = () => {
 
                                         <SCText varient='bold' size={14} style={{
                                             marginBottom: 8
-                                        }} color={COLORS.gray500}>@{currentUser?.username}</SCText>
-                                        <SCText varient='bold' size={14} color={COLORS.white}>{currentUser?.bio}</SCText>
+                                        }} color={COLORS.gray500}>@{item?.username}</SCText>
+                                        <SCText varient='bold' size={14} color={COLORS.white}>{item?.bio}</SCText>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 15, marginBottom: 8 }}>
 
                                             {<Feather name='map-pin' size={20} color={COLORS.gray500} />}
                                             <SCText varient='bold' size={15} color={COLORS.white}>
-                                                {currentUser?.location}
+                                                {item?.location}
                                             </SCText>
 
 
@@ -175,7 +211,8 @@ const ProfileScreen = () => {
                                         </View>
 
                                         <View style={{ flexDirection: 'row', gap: 10, paddingTop: 4 }}>
-                                            <TouchableOpacity onPress={() => { }}>
+
+                                            <TouchableOpacity onPress={() => setViewFollowing(true)}>
 
                                                 <SCText color={COLORS.white}>
                                                     <SCText varient='bold'>{currentUser?.following?.length}</SCText>
@@ -184,7 +221,7 @@ const ProfileScreen = () => {
 
                                             </TouchableOpacity>
                                             <SCText color={COLORS.white}>•</SCText>
-                                            <TouchableOpacity onPress={() => { }}>
+                                            <TouchableOpacity onPress={() => setViewFollowers(true)}>
 
                                                 <SCText color={COLORS.white}>
                                                     <SCText varient='bold'>{currentUser?.followers?.length}</SCText>
@@ -195,7 +232,22 @@ const ProfileScreen = () => {
                                         </View>
                                     </View>
 
-                                    <PostsList username={currentUser?.username}
+                                    <PostsList username={item?.username}
+
+                                    />
+
+                                    <ImagePreviewModal imageUrl={currentUser?.profilePicture} visible={visibleModal} onClose={() => setVisibleModal(false)} />
+
+                                    <FollowingFollowersModal
+
+                                        show={isViewFollowers || isViewFollowing}
+                                        close={() => {
+                                            setViewFollowers(false);
+                                            setViewFollowing(false);
+                                        }}
+                                        username={item.username}
+                                        isFollowing={!!isViewFollowing}
+
 
                                     />
 
@@ -207,7 +259,7 @@ const ProfileScreen = () => {
                         }}
                         showsVerticalScrollIndicator={false}
 
-                        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                     />
                 </View>
 
@@ -215,7 +267,7 @@ const ProfileScreen = () => {
                     show={openModal}
                     close={() => setIsModal(false)}
                 />
-            </SafeAreaView>
+            </SafeAreaView >
         </GradientWrapper >
     )
 }
