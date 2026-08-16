@@ -65,7 +65,7 @@ const ProfileScreen = () => {
     return (
         <GradientWrapper style={{ flex: 1 }}>
             <SafeAreaView style={{ flex: 1 }}>
-                <Header leftTitle={`${currentUser.firstName} ${currentUser.lastName}`}
+                <Header leftTitle={`${currentUser?.firstName} ${currentUser?.lastName}`}
                     rightIconSignOut
                     onRightSignOut={() => {
                         Alert.alert("Logout", "Are you sure you want to logout?", [

@@ -8,6 +8,7 @@ import { getCache, setCache, deleteCache } from "../helpers/cache.js";
 import { cacheClient } from "../helpers/redis.js";
 import { REDIS_KEYS, TTL } from "../utils/redisKeys.js";
 import { logger } from "../config/logger.js";
+import mongoose from "mongoose";
 
 const deleteFeedCache = async () => {
   let cursor = "0";
@@ -26,33 +27,167 @@ const deleteFeedCache = async () => {
 
 const DEFAULT_PAGE_LIMIT = 20;
 
-const POPULATE_USER = "username firstName lastName profilePicture";
+export const POPULATE_USER = "username firstName lastName profilePicture";
+
+const USER_PROJECT = {
+  username: 1,
+  firstName: 1,
+  lastName: 1,
+  profilePicture: 1,
+};
 
 export const getAllPosts = async (page = 1, limit = DEFAULT_PAGE_LIMIT) => {
   const safeLimit = Math.min(Number(limit) || DEFAULT_PAGE_LIMIT, 50);
+
   const safePage = Math.max(Number(page) || 1, 1);
+
   const skip = (safePage - 1) * safeLimit;
 
   const cacheKey = REDIS_KEYS.feed(safePage, safeLimit);
 
   const cached = await getCache(cacheKey);
-  if (cached) return cached;
+
+  if (cached) {
+    return cached;
+  }
 
   const [posts, total] = await Promise.all([
-    Post.find()
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(safeLimit)
-      .populate("user", POPULATE_USER)
-      .populate({
-        path: "comments",
-        populate: { path: "user", select: POPULATE_USER },
-      })
-      .populate({
-        path: "repostOf",
-        populate: { path: "user", select: POPULATE_USER },
-      })
-      .lean(),
+    Post.aggregate([
+      // 1. Sort
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+
+      // 2. Pagination
+      {
+        $skip: skip,
+      },
+
+      {
+        $limit: safeLimit,
+      },
+
+      // 3. Populate post.user
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $project: USER_PROJECT,
+            },
+          ],
+          as: "user",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$user",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // 4. Populate comments
+      {
+        $lookup: {
+          from: "comments",
+          let: {
+            commentIds: "$comments",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$_id", "$$commentIds"],
+                },
+              },
+            },
+
+            // Populate comment.user
+            {
+              $lookup: {
+                from: "users",
+                localField: "user",
+                foreignField: "_id",
+                pipeline: [
+                  {
+                    $project: USER_PROJECT,
+                  },
+                ],
+                as: "user",
+              },
+            },
+
+            {
+              $unwind: {
+                path: "$user",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ],
+          as: "comments",
+        },
+      },
+
+      // 5. Populate repostOf
+      {
+        $lookup: {
+          from: "posts",
+          localField: "repostOf",
+          foreignField: "_id",
+          as: "repostOf",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$repostOf",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // 6. Populate repostOf.user
+      {
+        $lookup: {
+          from: "users",
+          localField: "repostOf.user",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $project: USER_PROJECT,
+            },
+          ],
+          as: "repostOfUser",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$repostOfUser",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // 7. Put user back inside repostOf
+      {
+        $set: {
+          "repostOf.user": "$repostOfUser",
+        },
+      },
+
+      // 8. Remove temporary field
+      {
+        $project: {
+          repostOfUser: 0,
+        },
+      },
+    ]),
+
+    // Total count
     Post.countDocuments(),
   ]);
 
@@ -68,6 +203,7 @@ export const getAllPosts = async (page = 1, limit = DEFAULT_PAGE_LIMIT) => {
   };
 
   await setCache(cacheKey, result, TTL.FEED);
+
   return result;
 };
 
@@ -82,13 +218,79 @@ export const getPostById = async (postId) => {
   }
 
   logger.debug({ cacheKey }, "Cache miss");
-  const post = await Post.findById(postId)
-    .populate("user", POPULATE_USER)
-    .populate({
-      path: "repostOf",
-      populate: { path: "user", select: POPULATE_USER },
-    })
-    .lean();
+
+  // const post = await Post.findById(postId)
+  //   .populate("user", POPULATE_USER)
+  //   .populate({
+  //     path: "repostOf",
+  //     populate: { path: "user", select: POPULATE_USER },
+  //   })
+  //   .lean();
+
+  const [post] = await Post.aggregate([
+    //find the post
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(postId),
+      },
+    },
+    //populate post.user
+    {
+      $lookup: {
+        from: "users",
+        localField: "user",
+        foreignField: "_id",
+        pipeline: [
+          {
+            $project: USER_PROJECT,
+          },
+        ],
+        as: "user",
+      },
+    },
+
+    //convert user into the object
+    {
+      $unwind: {
+        path: "$users",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    //populate repost
+
+    {
+      $lookup: {
+        from: "posts",
+        localField: "repostOf",
+        foreignField: "_id",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "user",
+              foreignField: "_id",
+              pipeline: [
+                {
+                  $project: USER_PROJECT,
+                },
+              ],
+            },
+          },
+        ],
+        as: "repostOf",
+      },
+    },
+
+    //convert repost Array Flattern
+
+    {
+      $unwind: {
+        path: "$repostOf",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+  ]);
 
   if (post) await setCache(cacheKey, post, TTL.POST);
   return post;

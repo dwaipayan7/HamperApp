@@ -12,6 +12,7 @@ import commentRoutes from "./routes/comment.route.js";
 import notificationRoutes from "./routes/notification.route.js";
 import messageRoutes from "./routes/message.route.js";
 import videoRoutes from "./routes/video.route.js";
+import searchRoutes from "./routes/search.route.js";
 
 import { ENV } from "./config/env.js";
 import { logger } from "./config/logger.js";
@@ -27,7 +28,6 @@ const server = http.createServer(app);
 initializeSocket(server);
 
 app.use(helmet());
-
 
 const allowedOrigins = ENV.ALLOWED_ORIGINS
   ? ENV.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
@@ -48,17 +48,15 @@ app.use(
   }),
 );
 
-
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
-
-app.use(pinoHttp({ logger, autoLogging: { ignore: (req) => req.url === "/health" } }));
-
+app.use(
+  pinoHttp({ logger, autoLogging: { ignore: (req) => req.url === "/health" } }),
+);
 
 app.use(clerkMiddleware());
 app.use(arcjetMiddleware);
-
 
 app.get("/health", async (_req, res) => {
   const mongoOk = mongoose.connection.readyState === 1;
@@ -74,7 +72,6 @@ app.get("/health", async (_req, res) => {
   });
 });
 
-
 app.get("/", (_req, res) => res.json({ message: "HamperApp API" }));
 
 app.use("/api/users", userRoutes);
@@ -83,12 +80,13 @@ app.use("/api/comments", commentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/videos", videoRoutes);
-
+app.use("/api/search", searchRoutes);
 
 app.use((_req, res) => {
-  res.status(404).json({ success: false, error: "Route not found", code: "NOT_FOUND" });
+  res
+    .status(404)
+    .json({ success: false, error: "Route not found", code: "NOT_FOUND" });
 });
-
 
 app.use((err, req, res, _next) => {
   const statusCode = err.isOperational ? err.statusCode : 500;
@@ -104,7 +102,6 @@ app.use((err, req, res, _next) => {
 
   res.status(statusCode).json({ success: false, error: message, code });
 });
-
 
 const startServer = async () => {
   try {
@@ -124,6 +121,4 @@ const startServer = async () => {
 
 startServer();
 
-
 export default app;
-

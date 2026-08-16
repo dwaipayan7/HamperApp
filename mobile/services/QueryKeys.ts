@@ -28,6 +28,12 @@ const QueryKeys = {
     allVideos: "allVideos",
     videoById: "videoById",
   },
+  Search: {
+    searchUsers: "searchUsers",
+    searchPosts: "searchPosts",
+    globalSearch: "globalSearch",
+    getRecentSearches: "getRecentSearches",
+  },
 };
 
 export default QueryKeys;
