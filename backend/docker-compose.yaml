@@ -2,13 +2,25 @@ services:
   backend:
     build: .
     container_name: hamperapp-backend
+
     ports:
       - "3000:3000"
+
     env_file:
       - .env
+
     depends_on:
       - valkey
-      - elasticsearch 
+      - elasticsearch
+
+    
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+    
+    command: npm run dev
+
     restart: unless-stopped
 
   valkey:
@@ -27,7 +39,7 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m 
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ports:
       - "9200:9200"
     restart: unless-stopped
@@ -40,10 +52,10 @@ services:
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     ports:
-      - "5601:5601" 
+      - "5601:5601"
     restart: unless-stopped
     depends_on:
-      - elasticsearch 
+      - elasticsearch
 
 volumes:
   valkey-data:

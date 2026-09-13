@@ -34,6 +34,9 @@ const QueryKeys = {
     globalSearch: "globalSearch",
     getRecentSearches: "getRecentSearches",
   },
+  AI: {
+    compose: "aiCompose",
+  },
 };
 
 export default QueryKeys;

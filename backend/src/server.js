@@ -13,6 +13,7 @@ import notificationRoutes from "./routes/notification.route.js";
 import messageRoutes from "./routes/message.route.js";
 import videoRoutes from "./routes/video.route.js";
 import searchRoutes from "./routes/search.route.js";
+import aiRoutes from "./routes/ai.route.js";
 
 import { ENV } from "./config/env.js";
 import { logger } from "./config/logger.js";
@@ -81,6 +82,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/videos", videoRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/ai", aiRoutes);
 
 app.use((_req, res) => {
   res
