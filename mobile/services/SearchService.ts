@@ -10,33 +10,32 @@ export interface SearchUser {
   profilePicture?: string;
 }
 
+interface SearchUsersResponse {
+  success: boolean;
+  data: SearchUser[];
+  message?: string;
+}
+
 const apiUtility = ApiUtility.getInstance();
 
-// export const getUserProfileByUsername = (username: string) => {
-//   return useQuery({
-//     queryKey: [QueryKeys.UserProfile.username, username],
-//     queryFn: async () => {
-//       const response = await apiUtility.get(`/users/profile/${username}`);
-//       return response?.user;
-//     },
-//   });
-// };
+export const useSearchUsers = (query: string) => {
+  const searchQuery = query.trim();
 
-export const userSearchUsers = (query: string) => {
   return useQuery<SearchUser[]>({
-    queryKey: [QueryKeys.Search.searchUsers, query.trim()],
+    queryKey: [QueryKeys.Search.searchUsers, searchQuery],
 
     queryFn: async () => {
-      const response = await apiUtility.get(
-        `/search/users?q=${encodeURIComponent(query.trim())}`,
+      const response = await apiUtility.get<SearchUsersResponse>(
+        `/search/users?q=${encodeURIComponent(searchQuery)}`,
       );
 
-      console.log("The Response is: ", response);
+      console.log("SEARCH RESPONSE:", response);
+      console.log("SEARCH DATA:", response?.data);
 
       return response?.data ?? [];
     },
 
-    enabled: query.trim().length > 0,
+    enabled: searchQuery.length > 0,
 
     staleTime: 30 * 1000,
   });

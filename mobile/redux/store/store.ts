@@ -3,14 +3,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { persistReducer, persistStore } from "redux-persist";
 import snackbarReducer from "../slices/snackbarSlice";
 import AuthSlice from "../slices/AuthSlice";
+import { reduxStorage } from "@/utils/mmkv";
 
 const persistConfig = {
   key: "root",
-  storage: AsyncStorage,
+  storage: reduxStorage,
 };
 const persistConfigAuth = {
   key: "auth",
-  storage: AsyncStorage,
+  storage: reduxStorage,
 };
 
 const persistedSnackBarSlice = persistReducer(persistConfig, snackbarReducer);

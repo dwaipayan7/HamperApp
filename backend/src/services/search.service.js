@@ -18,7 +18,7 @@ export const searchUsers = async (query, limit = 20) => {
           //exact user name
           {
             term: {
-              TERM_USER_KEYWORD: {
+              [TERM_USER_KEYWORD]: {
                 value: query.toLowerCase(),
                 boost: 10,
               },
@@ -122,7 +122,16 @@ export const searchPosts = async (query, limit = 20) => {
         from: "users",
         localField: "user",
         foreignField: "_id",
-        pipeline: [{ $project: POPULATE_USER }],
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              firstName: 1,
+              lastName: 1,
+              profilePicture: 1,
+            },
+          },
+        ],
         as: "user",
       },
     },

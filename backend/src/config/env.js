@@ -20,4 +20,7 @@ export const ENV = {
   // Comma-separated list of allowed CORS origins e.g. "https://app.hamper.com,https://admin.hamper.com"
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
   ELASTICSEARCH_NODE: process.env.ELASTICSEARCH_NODE,
+  OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || "",
+  OPENROUTER_MODEL:
+    process.env.OPENROUTER_MODEL || "meta-llama/llama-3.3-70b-instruct:free",
 };

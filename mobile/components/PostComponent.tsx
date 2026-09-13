@@ -9,9 +9,10 @@ import {
 import React, { useState } from 'react';
 import { Image } from 'expo-image';
 import { useUser } from '@clerk/expo';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import SCText from './CustomText';
+import AIAssistantModal from './AIAssistantModal';
 import * as ImagePicker from 'expo-image-picker';
 import { Formik } from 'formik';
 import * as yup from 'yup';
@@ -28,6 +29,8 @@ const PostComponent = () => {
 
     const [selectedImage, setSelectedImage] =
         useState<string | null>(null);
+
+    const [showAIModal, setShowAIModal] = useState(false);
 
     const { user } = useUser();
 
@@ -277,6 +280,30 @@ const PostComponent = () => {
                                     color={'#1da1f2'}
                                 />
                             </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => setShowAIModal(true)}
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                    backgroundColor: 'rgba(145, 71, 255, 0.12)',
+                                    paddingHorizontal: 8,
+                                    paddingVertical: 3,
+                                    borderRadius: 12,
+                                    borderWidth: 1,
+                                    borderColor: 'rgba(145, 71, 255, 0.3)',
+                                }}
+                            >
+                                <MaterialCommunityIcons
+                                    name="creation"
+                                    size={16}
+                                    color={'#9147ff'}
+                                />
+                                <SCText varient="bold" size={11} color={'#9147ff'}>
+                                    AI
+                                </SCText>
+                            </TouchableOpacity>
                         </View>
 
                         <TouchableOpacity
@@ -323,6 +350,15 @@ const PostComponent = () => {
                             )}
                         </TouchableOpacity>
                     </View>
+
+                    <AIAssistantModal
+                        show={showAIModal}
+                        onClose={() => setShowAIModal(false)}
+                        currentContent={values.content}
+                        onApplyContent={(newContent) => {
+                            setFieldValue('content', newContent);
+                        }}
+                    />
                 </View>
             )}
         </Formik>

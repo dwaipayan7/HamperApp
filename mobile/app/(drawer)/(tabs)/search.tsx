@@ -1,17 +1,16 @@
-import { ScrollView, StyleSheet, TouchableOpacity, View, Animated, TextInput, Keyboard, Pressable, ActivityIndicator, Text } from 'react-native'
-import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react'
+import { ScrollView, StyleSheet, TouchableOpacity, View, Animated, TextInput, Keyboard, ActivityIndicator } from 'react-native'
+import React, { useCallback, useRef, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { Divider } from '@/components/Divider';
 import GradientWrapper from '@/components/GradientWrapper';
 import SCText from '@/components/CustomText';
 import { COLORS } from '@/constants/colors';
 import { useDebounce } from 'use-debounce';
-import { SearchUser, } from '@/services/SearchService';
-import { deviceWidth } from '@/utils/AllContext';
+import { SearchUser, userSearchUsers, } from '@/services/SearchService';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { useSearchUsers } from '@/services/ChatService';
+import { Text } from 'react-native';
+
 
 type TabType = 'All' | 'Accounts' | 'Posts';
 const TABS: TabType[] = ['All', 'Accounts', 'Posts'];
@@ -26,15 +25,11 @@ const SearchScreen = () => {
     const inputRef = useRef<TextInput>(null);
     const cancelAnim = useRef(new Animated.Value(0)).current;
 
-    const { data: searchResults, isLoading: isSearchLoading } = useSearchUsers(debouncedSearch);
-    // const { data: recentSearches = [], isLoading: isRecentLoading } = useRecentSearches();
-    // const { mutate: clearHistory, isPending: isClearing } = useClearSearchHistory();
+    // const { data: searchResults, isLoading: isSearchLoading } = useSearchUsers(debouncedSearch);
+
+    const { data: searchResults, isLoading: isSearchLoading } = userSearchUsers(debouncedSearch)
 
     console.log("The Search Results is: ", searchResults);
-    // console.log("The recent Results is: ", recentSearches);
-
-
-
 
     const showCancel = useCallback(() => {
         setIsFocused(true);
@@ -116,8 +111,30 @@ const SearchScreen = () => {
             <SCText color='white' varient='regular' size={13} style={{ marginTop: 8 }} numberOfLines={2}>
                 {post.content}
             </SCText>
+            {post.image ? (
+                <Image
+                    source={{ uri: post.image }}
+                    style={styles.postImage}
+                    contentFit="cover"
+                />
+            ) : null}
+            <View style={styles.postFooter}>
+                <View style={styles.postStat}>
+                    <Ionicons name="heart-outline" size={14} color={COLORS.gray400} />
+                    <SCText color={COLORS.gray400} size={12} style={{ marginLeft: 4 }}>{post.likes?.length ?? 0}</SCText>
+                </View>
+                <View style={styles.postStat}>
+                    <Ionicons name="chatbubble-outline" size={14} color={COLORS.gray400} />
+                    <SCText color={COLORS.gray400} size={12} style={{ marginLeft: 4 }}>{post.comments?.length ?? 0}</SCText>
+                </View>
+            </View>
         </TouchableOpacity>
     );
+
+    const users = searchResults?.users ?? [];
+    const posts = searchResults?.posts ?? [];
+    const hasQuery = debouncedSearch.trim().length > 0;
+    const hasNoResults = users.length === 0 && posts.length === 0;
 
     return (
         <GradientWrapper>
@@ -155,7 +172,7 @@ const SearchScreen = () => {
                 </View>
 
 
-                {debouncedSearch.trim().length > 0 && (
+                {hasQuery && (
                     <View style={styles.tabsContainer}>
                         {TABS.map(tab => (
                             <TouchableOpacity
@@ -175,68 +192,38 @@ const SearchScreen = () => {
                 )}
 
                 <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                    {/* {!debouncedSearch.trim() ? (
-
-                        <View style={styles.recentSection}>
-                            <View style={styles.recentHeader}>
-                                <SCText color='white' size={16} varient='bold'>Recent</SCText>
-                                {searchResults.length > 0 && (
-                                    <TouchableOpacity onPress={() => { }} disabled={false}>
-                                        <SCText color={COLORS.lightBlue} size={14} varient='medium'>Clear all</SCText>
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-
-                            {isSearchLoading ? (
-                                <ActivityIndicator size="small" color={COLORS.gray400} style={{ marginTop: 20 }} />
-                            ) : searchResults.length > 0 ? (
-                                searchResults.map(item => (
-                                    <TouchableOpacity
-                                        key={item._id}
-                                        style={styles.recentItem}
-                                        onPress={() => setSearch(item.query || item.searchedUser?.username || '')}
-                                    >
-                                        <View style={styles.recentItemLeft}>
-                                            <Ionicons name="time-outline" size={20} color={COLORS.gray400} />
-                                            {item.searchedUser ? (
-                                                <View style={styles.recentUserContainer}>
-                                                    <Image
-                                                        source={item.searchedUser.profilePicture ? { uri: item.searchedUser.profilePicture } : require('@/assets/images/hamper_logo.png')}
-                                                        style={styles.recentAvatar}
-                                                        contentFit="cover"
-                                                    />
-                                                    <View>
-                                                        <SCText color='white' size={14}>{item.searchedUser.username}</SCText>
-                                                        <SCText color={COLORS.gray400} size={12}>{item.searchedUser.firstName}</SCText>
-                                                    </View>
-                                                </View>
-                                            ) : (
-                                                <SCText color='white' size={15} style={{ marginLeft: 12 }}>{item.query}</SCText>
-                                            )}
-                                        </View>
-                                        <TouchableOpacity>
-                                            <Ionicons name="close" size={20} color={COLORS.gray400} />
-                                        </TouchableOpacity>
-                                    </TouchableOpacity>
-                                ))
-                            ) : (
-                                <View style={styles.emptyRecent}>
-                                    <SCText color={COLORS.gray400} size={14} style={{ textAlign: 'center' }}>No recent searches.</SCText>
-                                </View>
-                            )}
+                    {!hasQuery ? (
+                        <View style={styles.emptyState}>
+                            <Feather name="search" size={48} color={COLORS.gray400} />
+                            <SCText color={COLORS.gray400} size={16} style={{ marginTop: 16, textAlign: 'center' }}>
+                                Search for people and posts
+                            </SCText>
                         </View>
                     ) : isSearchLoading ? (
-
                         <ActivityIndicator size="large" color="white" style={{ marginTop: 40 }} />
                     ) : (
-                        
                         <View style={styles.resultsContainer}>
                             {activeTab === 'All' && (
                                 <>
-                                    {searchResults?.users.map(renderUserItem)}
-                                    {searchResults?.posts.map(renderPostItem)}
+                                    {users.length > 0 && (
+                                        <View style={styles.sectionContainer}>
+                                            <SCText color={COLORS.gray400} varient='bold' size={13} style={styles.sectionTitle}>
+                                                ACCOUNTS
+                                            </SCText>
+                                            {users.map(renderUserItem)}
+                                        </View>
+                                    )}
 
-                                    {searchResults?.users.length === 0 && searchResults?.posts.length === 0 && (
+                                    {posts.length > 0 && (
+                                        <View style={styles.sectionContainer}>
+                                            <SCText color={COLORS.gray400} varient='bold' size={13} style={styles.sectionTitle}>
+                                                POSTS
+                                            </SCText>
+                                            {posts.map(renderPostItem)}
+                                        </View>
+                                    )}
+
+                                    {hasNoResults && (
                                         <SCText color={COLORS.gray400} style={styles.noResults}>No results found for "{debouncedSearch}"</SCText>
                                     )}
                                 </>
@@ -244,8 +231,8 @@ const SearchScreen = () => {
 
                             {activeTab === 'Accounts' && (
                                 <>
-                                    {searchResults?.users.map(renderUserItem)}
-                                    {searchResults?.users.length === 0 && (
+                                    {users.map(renderUserItem)}
+                                    {users.length === 0 && (
                                         <SCText color={COLORS.gray400} style={styles.noResults}>No accounts found.</SCText>
                                     )}
                                 </>
@@ -253,14 +240,14 @@ const SearchScreen = () => {
 
                             {activeTab === 'Posts' && (
                                 <>
-                                    {searchResults?.posts.map(renderPostItem)}
-                                    {searchResults?.posts.length === 0 && (
+                                    {posts.map(renderPostItem)}
+                                    {posts.length === 0 && (
                                         <SCText color={COLORS.gray400} style={styles.noResults}>No posts found.</SCText>
                                     )}
                                 </>
                             )}
                         </View>
-                    )} */}
+                    )}
                 </ScrollView>
             </SafeAreaView>
         </GradientWrapper>
@@ -347,7 +334,78 @@ const styles = StyleSheet.create({
         flex: 1,
     },
 
-    // Recent Searches
+    // Empty state
+    emptyState: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingTop: 80,
+    },
+
+    // Results
+    resultsContainer: {
+        paddingHorizontal: 16,
+        paddingBottom: 40,
+    },
+    sectionContainer: {
+        marginBottom: 16,
+    },
+    sectionTitle: {
+        marginBottom: 8,
+        letterSpacing: 1,
+    },
+    userResultItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+    },
+    avatar: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        marginRight: 12,
+    },
+    userInfo: {
+        flex: 1,
+        justifyContent: 'center',
+    },
+    postResultItem: {
+        padding: 16,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 12,
+        marginBottom: 12,
+    },
+    postHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    postAvatar: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        marginRight: 8,
+    },
+    postImage: {
+        width: '100%',
+        height: 180,
+        borderRadius: 10,
+        marginTop: 10,
+    },
+    postFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 10,
+        gap: 16,
+    },
+    postStat: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    noResults: {
+        textAlign: 'center',
+        marginTop: 40,
+    },
+
+    // Recent Searches (kept for future use)
     recentSection: {
         paddingHorizontal: 16,
         paddingTop: 10,
@@ -383,44 +441,4 @@ const styles = StyleSheet.create({
     emptyRecent: {
         paddingVertical: 40,
     },
-
-    // Results
-    resultsContainer: {
-        paddingHorizontal: 16,
-    },
-    userResultItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 12,
-    },
-    avatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        marginRight: 12,
-    },
-    userInfo: {
-        flex: 1,
-        justifyContent: 'center',
-    },
-    postResultItem: {
-        padding: 16,
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderRadius: 12,
-        marginBottom: 12,
-    },
-    postHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    postAvatar: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        marginRight: 8,
-    },
-    noResults: {
-        textAlign: 'center',
-        marginTop: 40,
-    }
 });

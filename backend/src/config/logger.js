@@ -2,7 +2,6 @@ import pino from "pino";
 import { ENV } from "./env.js";
 import { createRequire } from "module";
 
-
 const isPrettyAvailable = (() => {
   try {
     const require = createRequire(import.meta.url);
@@ -28,4 +27,3 @@ export const logger = pino({
       }
     : undefined,
 });
-
