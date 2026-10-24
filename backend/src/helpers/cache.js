@@ -6,7 +6,7 @@ export const getCache = async (key) => {
   try {
     return JSON.parse(data);
   } catch {
-    return data; // return as-is if not valid JSON
+    return data;
   }
 };
 

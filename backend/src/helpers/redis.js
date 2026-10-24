@@ -5,7 +5,7 @@ import { logger } from "../config/logger.js";
 export const bullConnection = new Redis({
   host: ENV.VALKEY_HOST || "localhost",
   port: Number(ENV.VALKEY_PORT) || 6379,
-  maxRetriesPerRequest: null,
+  maxRetriesPerRequest: 4,
 });
 
 export const cacheClient = new Redis({

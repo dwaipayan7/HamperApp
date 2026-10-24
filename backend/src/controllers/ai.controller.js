@@ -6,15 +6,12 @@ import {
 } from "../services/ai.service.js";
 import { ok, fail } from "../helpers/response.js";
 
+
+
+
 export const composeAI = asyncHandler(async (req, res) => {
-  const {
-    action,
-    content,
-    topic,
-    tone = "engaging",
-    count = 6,
-    model,
-  } = req.body;
+  const { action, content, topic, tone = "engaging", count = 6, model } =
+    req.body;
 
   if (!action) {
     return fail(
@@ -94,7 +91,6 @@ export const composeAI = asyncHandler(async (req, res) => {
       return fail(res, error.message, 503, "AI_NOT_CONFIGURED");
     }
 
-    // Pass through other operational or unexpected errors
     const statusCode = error.statusCode || 500;
     const message = error.message || "Failed to generate AI response";
     return fail(res, message, statusCode, error.code || "AI_ERROR");

@@ -12,7 +12,7 @@ import ActionSheet, { ActionSheetRef, ScrollView } from "react-native-actions-sh
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import SCText from "./CustomText";
-import { COLORS } from "@/constants/colors";
+
 import {
   useAICompose,
   AIAction,
@@ -145,6 +145,8 @@ const AIAssistantModal = ({
 
   const applyText = (text: string) => {
     onApplyContent(text);
+    setSuggestions([]);
+    setCaptions([]);
     showMessage("Applied to post! ✨", "success");
     onClose();
   };
@@ -295,7 +297,7 @@ const AIAssistantModal = ({
                   </SCText>
                 </View>
 
-                {/* Tone Chips */}
+
                 <SCText
                   varient="semibold"
                   size={13}
@@ -383,7 +385,10 @@ const AIAssistantModal = ({
                             </SCText>
                           </View>
                           <TouchableOpacity
-                            onPress={() => applyText(item.text)}
+                            onPress={() => {
+                              applyText(item.text);
+                              setSuggestions([]);
+                            }}
                             style={styles.applyBtn}
                           >
                             <Feather name="check" size={13} color="#FFFFFF" />

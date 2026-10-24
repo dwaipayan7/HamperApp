@@ -5,6 +5,7 @@ import { logger } from "../config/logger.js";
 
 const jsonParser = new JsonOutputParser();
 
+
 export const enhancePost = async ({ content, tone = "engaging", model }) => {
   try {
     const llm = getOpenRouterModel({ model, temperature: 0.7 });
@@ -52,6 +53,7 @@ Please provide 3 distinct enhanced variations:
   }
 };
 
+
 export const generateHashtags = async ({ content, count = 6, model }) => {
   try {
     const llm = getOpenRouterModel({ model, temperature: 0.5 });
@@ -87,6 +89,7 @@ Generate {count} top relevant hashtags:`,
     throw error;
   }
 };
+
 
 export const generateCaption = async ({ topic, tone = "engaging", model }) => {
   try {

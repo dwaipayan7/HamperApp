@@ -37,9 +37,7 @@ export interface AIComposeResponse {
   code?: string;
 }
 
-/**
- * Mutation hook for requesting AI post assistance via LangChain + OpenRouter.
- */
+
 export const useAICompose = () => {
   return useMutation({
     mutationFn: async (payload: AIComposePayload): Promise<AIComposeData> => {
